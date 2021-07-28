@@ -8,11 +8,11 @@ seriesId: "Computation Expressions"
 seriesOrder: 7
 ---
 
-In this post we're going to look at returning multiple values from a computation expression using the `Combine` method.
+この記事では、`Combine`メソッドを使って、計算式から複数の値を返すことを見ていきます。
 
 ## The story so far...
 
-So far, our expression builder class looks like this:
+これまでのところ、式ビルダークラスは以下のようになっています。
 
 ```fsharp
 type TraceBuilder() =
@@ -48,13 +48,13 @@ type TraceBuilder() =
 let trace = new TraceBuilder()
 ```
 
-And this class has worked fine so far. But we are about to run into a problem...
+このクラスは、ここまでは問題なく動作しています。しかし、これから問題が発生します...
 
-## A problem with two 'yields'
+## 2つの「yield」に関する問題
 
-Previously, we saw how `yield` could be used to return values just like `return`.
+前回は、`yield`を使って、`return`と同じように値を返す方法を見ました。
 
-Normally, `yield` is not used just once, of course, but multiple times in order to return values at different stages of a process such as an enumeration. So let's try that:
+通常、`yield`はもちろん一度だけではなく、列挙などの処理の異なる段階で値を返すために複数回使用します。では、試してみましょう。
 
 ```fsharp
 trace {
@@ -63,13 +63,13 @@ trace {
     } |> printfn "Result for yield then yield: %A"
 ```
 
-But uh-oh, we get an error message:
+しかし、困ったことに、エラーメッセージが表示されます。
 
 ```text
 This control construct may only be used if the computation expression builder defines a 'Combine' method.
 ```
 
-And if you use `return` instead of `yield`, you get the same error.
+また、`yield`の代わりに`return`を使うと、同じエラーが出ます。
 
 ```fsharp
 trace {
@@ -78,7 +78,7 @@ trace {
     } |> printfn "Result for return then return: %A"
 ```
 
-And this problem occurs in other contexts too.  For example, if we want to do something and then return, like this:
+また、この問題は他の文脈でも発生します。 例えば、次のように、何かをしてからリターンしたい場合です。
 
 ```fsharp
 trace {
@@ -87,13 +87,13 @@ trace {
     } |> printfn "Result for if then return: %A"
 ```
 
-We get the same error message about a missing 'Combine' method.
+同じように「Combine」メソッドがないというエラーメッセージが表示されます。
 
-## Understanding the problem
+## 問題点の把握
 
-So what's going on here?
+では、何が起こっているのでしょうか？
 
-To understand, let's go back to the behind-the-scenes view of the computation expression. We have seen that `return` and `yield` are really just the last step in a series of continuations, like this:
+理解するためには、計算式の舞台裏に戻ってみましょう。`return`と`yield`は実際には以下のような一連の連続処理の最後のステップであることを見てきました。
 
 ```fsharp
 Bind(1,fun x ->
@@ -102,7 +102,7 @@ Bind(1,fun x ->
         Return(z)  // or Yield
 ```
 
-You can think of `return` (or `yield`) as "resetting" the indentation, if you like. So when we `return/yield` and then `return/yield` again, we are generating code like this:
+`return`（または`yield`）は、インデントを「リセットする」と考えてもいいでしょう。つまり、`return/yield`した後、再び`return/yield`すると、次のようなコードが生成されるのです。
 
 ```fsharp
 Bind(1,fun x ->
@@ -116,24 +116,24 @@ Bind(3,fun w ->
         Yield(v)
 ```
 
-But really this can be simplified to:
+しかし，実際にはこれは次のように単純化できます。
 
 ```fsharp
 let value1 = some expression
 let value2 = some other expression
 ```
 
-In other words, we now have *two* values in our computation expression. And then the obvious question is, how should these two values be combined to give a single result for the computation expression as a whole?
+つまり、計算式の中に*2つの*値が入っていることになります。では，この2つの値をどのように組み合わせれば，計算式全体として1つの結果が得られるのでしょうか？
 
-This is a very important point. **Return and yield do *not* generate an early return from a computation expression**.  No, the entire computation expression, all the way to the last curly brace, is *always* evaluated and results in a *single* value.  Let me repeat that. Every part of the computation expression is *always evaluated* -- there is no short circuiting going on.  If we want to short circuit and return early, we have to write our own code to do that (and we'll see how to do that later).
+これは非常に重要なポイントです。**RETURNやYEARは、計算式から早期にリターンを得ることは*できません*** 最後の中括弧に至るまで、計算式全体が評価され、結果として*単一の*値が得られるのは*常に*です。 繰り返しになりますが 計算式のすべての部分は常に評価されます。-- つまり、短絡的な処理は行われません。 もし短絡して早く返したいのであれば、そのためのコードを自分で書かなければなりません（その方法は後ほど説明します）。
 
-So, back to the pressing question. We have two expressions resulting in two values: how should those multiple values be combined into one?
+さて、差し迫った質問に戻ります。2つの式から2つの値が得られていますが、これらの複数の値をどのようにして1つにまとめるのでしょうか？
 
-## Introducing "Combine"
+## "Combine "の紹介
 
-The answer is by using the `Combine` method, which takes two *wrapped* values and combines them to make another wrapped value. Exactly how this works is up to us.
+その答えは、`Combine`メソッドを使うことです、これは、2つの*ラップ*された値を受け取り、それらを組み合わせて別のラップされた値を作ります。
 
-In our case, we are dealing specifically with `int options`, so one simple implementation that leaps to mind it just to add the numbers together. Each parameter is an `option` of course (the wrapped type), so we need to pick them apart and handle the four possible cases:
+今回の例では、特に `int options` を扱っているので、単純な実装としては、数字を足し合わせることが思い浮かびます。各パラメータはもちろん`option`（ラップされた型）なので、それらを分解して4つの可能なケースを処理する必要があります。
 
 ```fsharp
 type TraceBuilder() =
@@ -158,7 +158,7 @@ type TraceBuilder() =
 let trace = new TraceBuilder()
 ```
 
-Running the test code again:
+テストコードを再度実行します。
 
 ```fsharp
 trace {
@@ -167,13 +167,13 @@ trace {
     } |> printfn "Result for yield then yield: %A"
 ```
 
-But now we get a different error message:
+しかし、今度は違うエラーメッセージが表示されます。
 
 ```text
 This control construct may only be used if the computation expression builder defines a 'Delay' method
 ```
 
-The `Delay` method is a hook that allows you to delay evaluation of a computation expression until needed -- we'll discuss this in detail very soon; but for now, let's create a default implementation:
+`Delay`メソッドは、計算式の評価を必要なときまで遅らせることができるフックです。これについてはすぐに詳しく説明しますが、とりあえずデフォルトの実装を作ってみましょう。
 
 ```fsharp
 type TraceBuilder() =
@@ -187,7 +187,7 @@ type TraceBuilder() =
 let trace = new TraceBuilder()
 ```
 
-Running the test code again:
+テストコードを再度実行します。
 
 ```fsharp
 trace {
@@ -196,7 +196,7 @@ trace {
     } |> printfn "Result for yield then yield: %A"
 ```
 
-And finally we get the code to complete.
+そして最後に、コードを完成させます。
 
 ```text
 Delay
@@ -207,9 +207,9 @@ combining 1 and 2
 Result for yield then yield: Some 3
 ```
 
-The result of the entire workflow is the sum of all the yields, namely `Some 3`.
+ワークフロー全体の結果は、すべてのyieldの合計である`Some 3`となります。
 
-If we have a "failure" in the workflow (e.g. a `None`), the second yield doesn't occur and the overall result is `Some 1` instead.
+もし、ワークフローに「失敗」があった場合（例：`None`）、2つ目のyieldは発生せず、全体の結果は`Some 1`となります。
 
 ```fsharp
 trace {
@@ -219,7 +219,7 @@ trace {
     } |> printfn "Result for yield then None: %A"
 ```
 
-We can have three `yields` rather than two:
+2つではなく、3つの`yield`を持つことができます。
 
 ```fsharp
 trace {
@@ -229,9 +229,9 @@ trace {
     } |> printfn "Result for yield x 3: %A"
 ```
 
-The result is what you would expect, `Some 6`.
+結果は期待通り、`Some 6`となります。
 
-We can even try mixing up `yield` and `return` together. Other than the syntax difference, the overall effect is the same.
+さらに、`yield`と`return`を一緒に混ぜてみることもできます。構文が違うだけで，全体的な効果は同じです。
 
 ```fsharp
 trace {
@@ -245,16 +245,16 @@ trace {
     } |> printfn "Result for return then return: %A"
 ```
 
-## Using Combine for sequence generation
+## Combineを使ったシーケンス生成
 
-Adding numbers up is not really the point of `yield`, although you might perhaps use a similar idea for constructing concatenated strings, somewhat like `StringBuilder`.
+しかし、`yield`の目的は、数字の足し算ではありません。おそらく、`StringBuilder`のように、連結された文字列を作るために同じようなアイデアを使うかもしれません。
 
-No, `yield` is naturally used as part of sequence generation, and now that we understand `Combine`, we can extend our "ListBuilder" workflow (from last time) with the required methods.
+また、`Combine`を理解したことで、前回のワークフローであるListBuilderを必要なメソッドで拡張することができます。
 
-* The `Combine` method is just list concatenation.
-* The `Delay` method can use a default implementation for now.
+* `Combine`メソッドは、単なるリストの連結です。
+* `Delay` メソッドは、今のところデフォルトの実装を使うことができます。
 
-Here's the full class:
+これがクラスの全貌です。
 
 ```fsharp
 type ListBuilder() =
@@ -289,7 +289,7 @@ type ListBuilder() =
 let listbuilder = new ListBuilder()
 ```
 
-And here it is in use:
+そして、実際に使用してみます。
 
 ```fsharp
 listbuilder {
@@ -303,7 +303,7 @@ listbuilder {
     } |> printfn "Result for yield then yield! : %A"
 ```
 
-And here's a more complicated example with a `for` loop and some `yield`s.
+さらに、`for`ループと`yield`を使った複雑な例を示します。
 
 ```fsharp
 listbuilder {
@@ -314,22 +314,22 @@ listbuilder {
     } |> printfn "Result for for..in..do : %A"
 ```
 
-And the result is:
+そして、その結果は
 
 ```text
 ["red"; "red hat"; "-"; "red tie"; "-"; "blue"; "blue hat"; "-"; "blue tie"; "-"]
 ```
 
-You can see that by combining `for..in..do` with `yield`, we are not too far away from the built-in `seq` expression syntax (except that `seq` is lazy, of course).
+`for...in...do`と`yield`を組み合わせることで、組み込みの`seq`式の構文からそれほど離れていないことがわかります（もちろん、`seq`が遅延していることを除いて）。
 
-I would strongly encourage you to play around with this a bit until you are clear on what is going on behind the scenes.
-As you can see from the example above, you can use `yield` in creative ways to generate all sorts of irregular lists, not just simple ones.
+舞台裏で何が起こっているのかがはっきりするまで、これを少し遊んでみることを強くお勧めします。
+上の例からわかるように、`yield`をクリエイティブな方法で使うことで、単純なものだけでなく、あらゆる種類の不規則なリストを生成することができます。
 
-*Note: If you're wondering about `While`, we're going to hold off on it for a bit, until after we have looked at `Delay` in an upcoming post*.
+*注：`While`について気になる方は、次回の投稿で`Delay`を見てからにしましょう*。
 
-## Order of processing for "combine"
+## "combine "の処理順序
 
-The `Combine` method only has two parameters.  So what happens when you combine more than two values? For example, here are four values to combine:
+`Combine`メソッドには2つのパラメータしかありません。 では、2つ以上の値を組み合わせる場合はどうなるのでしょうか？例えば、4つの値を組み合わせる場合を考えてみましょう。
 
 ```fsharp
 listbuilder {
@@ -340,7 +340,7 @@ listbuilder {
     } |> printfn "Result for yield x 4: %A"
 ```
 
-If you look at the output you can see that the values are combined pair-wise, as you might expect.
+出力を見てみると、期待通りに値がペアで結合されているのがわかります。
 
 ```text
 combining [3] and [4]
@@ -349,13 +349,13 @@ combining [1] and [2; 3; 4]
 Result for yield x 4: [1; 2; 3; 4]
 ```
 
-A subtle but important point is that they are combined "backwards", starting from the last value.  First "3" is combined with "4", and the result of that is then combined with "2", and so on.
+微妙なところですが、重要なポイントは、最後の値から「逆」に組み合わせていることです。 まず "3 "が "4 "と結合され、その結果が "2 "と結合される、という具合です。
 
 ![Combine](./combine.png)
 
-## Combine for non-sequences
+## シーケンス以外の文字列の結合
 
-In the second of our earlier problematic examples, we didn't have a sequence; we just had two separate expressions in a row.
+先ほどの問題の2つ目の例では、シーケンスはなく、2つの独立した式が並んでいるだけでした。
 
 ```fsharp
 trace {
@@ -364,20 +364,20 @@ trace {
     } |> printfn "Result for combine: %A"
 ```
 
-How should these expressions be combined?
+これらの式をどのように組み合わせるべきでしょうか。
 
-There are a number of common ways of doing this, depending on the concepts that the workflow supports.
+ワークフローがサポートする概念に応じて、いくつかの一般的な方法があります。
 
-### Implementing combine for workflows with "success" or "failure"
+### "成功 "や "失敗 "を伴うワークフローへのコンバインの実装
 
-If the workflow has some concept of "success" or "failure", then a standard approach is:
+ワークフローに「成功」や「失敗」の概念がある場合、標準的な方法は以下の通りです。
 
-* If the first expression "succeeds" (whatever that means in context), then use that value.
-* Otherwise use the value of the second expression.
+* 最初の式が「成功」した場合は、その値を使用します。
+* それ以外の場合は、2番目の式の値を使用します。
 
-In this case, we also generally use the "failure" value for `Zero`.
+この場合、一般的には `Zero` の "failure" の値を使用します。
 
-This approach is useful for chaining together a series of "or else" expressions where the first success "wins" and becomes the overall result.
+この方法は、一連の「or else」式を連鎖させて、最初に成功したものが全体の結果となるような場合に便利です。
 
 ```text
 if (do first expression)
@@ -385,7 +385,7 @@ or else (do second expression)
 or else (do third expression)
 ```
 
-For example, for the `maybe` workflow, it is common to return the first expression if it is `Some`, but otherwise the second expression, like this:
+例えば、`maybe`というワークフローでは、以下のように、`Some`であれば第一の式を返し、そうでなければ第二の式を返すというのが一般的です。
 
 ```fsharp
 type TraceBuilder() =
@@ -405,9 +405,9 @@ type TraceBuilder() =
 let trace = new TraceBuilder()
 ```
 
-**Example: Parsing**
+**Example: 構文解析**の例
 
-Let's try a parsing example with this implementation:
+この実装を使って、パーシングの例を試してみましょう。
 
 ```fsharp
 type IntOrBool = I of int | B of bool
@@ -428,17 +428,17 @@ trace {
     } |> printfn "Result for parsing: %A"
 ```
 
-We get the following result:
+次のような結果が得られます。
 
 ```text
 Some (I 42)
 ```
 
-You can see that the first `return!` expression is `None`, and ignored. So the overall result is the second expression, `Some (I 42)`.
+最初の `return!` 式は `None` で、無視されているのがわかります。つまり、全体の結果は2番目の式である`Some (I 42)`となります。
 
-**Example: Dictionary lookup**
+**Example: 辞書検索の例
 
-In this example, we'll try looking up the same key in a number of dictionaries, and return when we find a value:
+この例では，同じキーを複数の辞書で検索し，値が見つかったら返すということをやってみましょう。
 
 ```fsharp
 let map1 = [ ("1","One"); ("2","Two") ] |> Map.ofList
@@ -450,21 +450,21 @@ trace {
     } |> printfn "Result for map lookup: %A"
 ```
 
-We get the following result:
+次のような結果が得られます。
 
 ```text
 Result for map lookup: Some "Alice"
 ```
 
-You can see that the first lookup is `None`, and ignored. So the overall result is the second lookup.
+最初のルックアップは `None` で、無視されているのがわかります。つまり、全体の結果は2番目のルックアップになります。
 
-As you can see, this technique is very convenient when doing parsing or evaluating a sequence of (possibly unsuccessful) operations.
+ご覧のように、この手法は解析や一連の（失敗する可能性のある）操作を評価する際に非常に便利です。
 
-### Implementing combine for workflows with sequential steps
+### シーケンシャルステップを持つワークフローへのコンバインの実装
 
-If the workflow has the concept of sequential steps, then the overall result is just the value of the last step, and all the previous steps are evaluated only for their side effects.
+ワークフローに連続したステップの概念がある場合、全体的な結果は最後のステップの値だけであり、前のステップはすべてその副次的な効果のみが評価されることになります。
 
-In normal F#, this would be written:
+通常のF#では、このように書かれます。
 
 ```text
 do some expression
@@ -472,17 +472,17 @@ do some other expression
 final expression
 ```
 
-Or using the semicolon syntax, just:
+あるいはセミコロンの構文を使って、単に
 
 ```text
 some expression; some other expression; final expression
 ```
 
-In normal F#, each expression (other than the last) evaluates to the unit value.
+通常のF#では、（最後の式以外の）各式は単位値で評価されます。
 
-The equivalent approach for a computation expression is to treat each expression (other than the last) as a *wrapped* unit value, and "pass it into" the next expression, and so on, until you reach the last expression.
+計算式と同等のアプローチは、（最後の式以外の）各式を*ラップ*された単位値として扱い、それを次の式に「渡す」ことで、最後の式に到達するまで続けていきます。
 
-This is exactly what bind does, of course, and so the easiest implementation is just to reuse the `Bind` method itself. Also, for this approach to work it is important that `Zero` is the wrapped unit value.
+もちろん、これはbindが行っていることと全く同じであり、最も簡単な実装は、`Bind`メソッド自体を再利用することです。また、この方法が機能するためには、`Zero`がラップされた単位値であることが重要です。
 
 ```fsharp
 type TraceBuilder() =
@@ -500,9 +500,9 @@ type TraceBuilder() =
 let trace = new TraceBuilder()
 ```
 
-The difference from a normal bind is that the continuation has a unit parameter, and evaluates to `b`.  This in turn forces `a` to be of type `WrapperType<unit>` in general, or `unit option` in our case.
+通常のバインドとの違いは、コンティニュエーションがユニットパラメータを持ち、`b`と評価されることです。 これにより、`a` は一般的には `WrapperType<unit>` 型、ここでは `unit option` 型であることが強制されます。
 
-Here's an example of sequential processing that works with this implementation of `Combine`:
+この実装の`Combine`で動作する逐次処理の例を示します。
 
 ```fsharp
 trace {
@@ -512,7 +512,7 @@ trace {
     } |> printfn "Result for sequential combine: %A"
 ```
 
-Here's the following trace. Note that the result of the whole expression was the result of the last expression in the sequence, just like normal F# code.
+以下のようなトレースがあります。通常のF#コードと同じように、式全体の結果は、シーケンスの最後の式の結果であることに注意してください。
 
 ```text
 hello.......
@@ -526,43 +526,43 @@ Combining Some null with Some 1
 Result for sequential combine: Some 1
 ```
 
-### Implementing combine for workflows that build data structures
+### データ構造を構築するワークフローへのコンバインの実装
 
-Finally, another common pattern for workflows is that they build data structures. In this case, `Combine` should merge the two data structures in whatever way is appropriate.
-And the `Zero` method should create an empty data structure, if needed (and if even possible).
+最後に、ワークフローによくあるパターンとして、データ構造を構築するものがあります。この場合、`Combine`は2つのデータ構造を適切な方法でマージする必要があります。
+また、`Zero`メソッドは、必要に応じて（可能であれば）、空のデータ構造を作成します。
 
-In the "list builder" example above, we used exactly this approach. `Combine` was just list concatenation and `Zero` was the empty list.
+上の「リストビルダー」の例では、まさにこのようなアプローチをとっています。`Combine`は単なるリスト連結で、`Zero`は空のリストでした。
 
-## Guidelines for mixing "Combine" and "Zero"
+## "Combine "と "Zero "を混ぜるためのガイドライン
 
-We have looked at two different implementations for `Combine` for option types.
+ここでは、オプションタイプに対する `Combine` の2つの異なる実装を見てきました。
 
-* The first one used options as "success/failure" indicators, when the first success "won". In this case `Zero` was defined as `None`
-* The second one was sequential, In this case `Zero` was defined as `Some ()`
+* 最初の実装では、オプションを「成功/失敗」の指標として使用し、最初の成功が「勝ち」となります。この場合、`Zero`は`None`として定義されます。
+* 2つ目はシーケンシャルなもので、この場合は `Zero` が `Some ()` として定義されました。
 
-Both cases worked nicely, but was that luck, or are there are any guidelines for implementing `Combine` and `Zero` correctly?
+どちらのケースもうまくいきましたが、これは運が良かったのでしょうか。それとも、`Combine`と`Zero`を正しく実装するためのガイドラインがあるのでしょうか。
 
-First, note that `Combine` does *not* have to give the same result if the parameters are swapped.
-That is, `Combine(a,b)` need not be the same as `Combine(b,a)`. The list builder is a good example of this.
+まず、`Combine`はパラメータを入れ替えても同じ結果になるとは限らないことに注意してください。
+つまり、`Combine(a,b)` は `Combine(b,a)` と同じである必要はありません。リストビルダがその良い例です。
 
-On the other hand there is a useful rule that connects `Zero` and `Combine`.
+一方で、`Zero`と`Combine`を結びつける便利なルールがあります。
 
-**Rule: `Combine(a,Zero)` should be the same as `Combine(Zero,a)` which should the same as just `a`.**
+**ルール：`Combine(a,Zero)`は`Combine(Zero,a)`と同じであるべきであり、`a`だけと同じであるべきである**。
 
-To use an analogy from arithmetic, you can think of `Combine` like addition (which is not a bad analogy -- it really is "adding" two values). And `Zero` is just the number zero, of course! So the rule above can be expressed as:
+算数で例えると、`Combine`は足し算のようなものだと考えることができます(悪い例えではありません。実際には2つの値を「足し算」しているのですから)。そして、`Zero`は、もちろん、数字のゼロです。ですから、上記のルールは次のように表現できます。
 
-**Rule: `a + 0` is the same as `0 + a` is the same as just `a`, where `+` means `Combine` and `0` means `Zero`.**
+**ルール： `a + 0` は `0 + a` と同じであり、`a` と同じである、ここで、`+`は `Combine` を意味し、`0`は`Zero`を意味である**。
 
-If you look at the first `Combine` implementation ("success/failure") for option types, you'll see that it does indeed comply with this rule, as does the second implementation ("bind" with `Some()`).
+オプション型に対する最初の `Combine` の実装（"success/failure"）を見てみると、2番目の実装（`Some()`を使った "bind"）と同様に、確かにこのルールに準拠していることがわかります。
 
-On the other hand, if we had used the "bind" implementation of `Combine` but left `Zero` defined as `None`, it would *not* have obeyed the addition rule, which would be a clue that we had got something wrong.
+一方で、`Combine`の "bind "実装を使って、`Zero`を`None`と定義したままにしていたとしたら、足し算のルールには*従わなかった*でしょうし、何か間違ったことをしたという手がかりになるでしょう。
 
 
-## "Combine" without bind
+## bindを使わない "Combine"
 
-As with all the builder methods, if you don't need them, you don't need to implement them.  So for a workflow that is strongly sequential, you could easily create a builder class with `Combine`, `Zero`, and `Yield`, say, without having to implement `Bind` and `Return` at all.
+他のビルダーメソッドと同様に、必要がなければ実装する必要はありません。 つまり、強いシーケンシャルなワークフローの場合、`Bind`と`Return`を実装することなく、`Combine`、`Zero`、`Yield`を持つビルダークラスを簡単に作ることができます。
 
-Here's an example of a minimal implementation that works:
+以下に，最低限の実装で動作する例を示します．
 
 ```fsharp
 type TraceBuilder() =
@@ -580,7 +580,7 @@ type TraceBuilder() =
 let trace = new TraceBuilder()
 ```
 
-And here it is in use:
+そして、実際に使用してみます。
 
 ```fsharp
 trace {
@@ -590,7 +590,7 @@ trace {
     } |> printfn "Result for minimal combine: %A"
 ```
 
-Similarly, if you have a data-structure oriented workflow, you could just implement `Combine` and some other helpers. For example, here is a minimal implementation of our list builder class:
+同様に、データ構造を重視したワークフローであれば、`Combine`と他のヘルパーを実装するだけでよいでしょう。例えば、リストビルダークラスの最小限の実装を以下に示します。
 
 ```fsharp
 type ListBuilder() =
@@ -609,7 +609,7 @@ type ListBuilder() =
 let listbuilder = new ListBuilder()
 ```
 
-And even with the minimal implementation, we can write code like this:
+また、最小限の実装でも、以下のようなコードを書くことができます。
 
 ```fsharp
 listbuilder {
@@ -624,16 +624,16 @@ listbuilder {
 ```
 
 
-## A standalone "Combine" function
+## スタンドアローンの "bind "関数
 
-In a previous post, we saw that the "bind" function is often used as standalone function, and is normally given the operator `>>=`.
+前回の記事では、"bind "関数は単独の関数として使われることが多く、通常は演算子 `>>=` が与えられることを紹介しました。
 
-The `Combine` function too, is often used as a standalone function. Unlike bind, there is no standard symbol -- it can vary depending on how the combine function works.
+Combine`関数もまた、単独の関数としてよく使われます。bindと違って標準的な記号はなく、combine関数の動作に応じて変化します。
 
-A symmetric combination operation is often written as `++` or `<+>`. And the "left-biased" combination (that is, only do the second expression if the first
-one fails) that we used earlier for options is sometimes written as `<++`.
+対称的な組み合わせ操作は、しばしば `++` や `<+>` と書かれます。また，前に使った「左バイアスのかかった」組み合わせ（つまり，最初の式が失敗したときに2番目の式だけを実行する）は
+また、先ほどオプションで使った「左バイアス」の組み合わせ（つまり、最初の式が失敗した場合に2番目の式を実行する）は、`<++`と書かれることがあります。
 
-So here is an example of a standalone left-biased combination of options, as used in a dictionary lookup example.
+以下は，辞書検索の例で使われている，単独の左バイアスのかかったオプションの組み合わせの例です。
 
 ```fsharp
 module StandaloneCombine =
@@ -658,15 +658,15 @@ module StandaloneCombine =
 ```
 
 
-## Summary
+## まとめ
 
-What have we learned about `Combine` in this post?
+この記事で `Combine` について学んだことは？
 
-* You need to implement `Combine` (and `Delay`) if you need to combine or "add" more than one wrapped value in a computation expression.
-* `Combine` combines values pairwise, from last to first.
-* There is no universal implementation of `Combine` that works in all cases -- it needs to be customized according the particular needs of the workflow.
-* There is a sensible rule that relates `Combine` with `Zero`.
-* `Combine` doesn't require `Bind` to be implemented.
-* `Combine` can be exposed as a standalone function
+* 計算式の中で、複数のラップされた値を組み合わせたり、「追加」する必要がある場合には、`Combine`（および `Delay`）を実装する必要があります。
+* `Combine` は値をペアにして、最後から最初に向かって結合します。
+* すべてのケースで動作する普遍的な `Combine` の実装はありません。ワークフローの特定のニーズに応じてカスタマイズする必要があります。
+* `Combine` と `Zero` を関連付ける適切なルールがあります。
+* `Combine` は `Bind` を実装する必要はありません。
+* `Combine` はスタンドアロンの関数として公開することができます。
 
-In the next post, we'll add logic to control exactly when the internal expressions get evaluated, and introduce true short circuiting and lazy evaluation.
+次回の記事では、内部式がいつ評価されるかを正確に制御するロジックを追加し、真の短絡評価と遅延評価を紹介します。
