@@ -8,50 +8,50 @@ seriesId: "Computation Expressions"
 seriesOrder: 6
 ---
 
-Having covered bind and continuations, and the use of wrapper types, we're finally ready to take on the full set of methods associated with "builder" classes.
+バインドとコンティニュエーション、そしてラッパー型の使用について説明してきましたが、いよいよ「ビルダー」クラスに関連するメソッドの全容を解明する準備が整いました。
 
-If you look at the [MSDN documentation](http://msdn.microsoft.com/en-us/library/dd233182.aspx), you'll see not just `Bind` and `Return`, but also other strangely named methods like `Delay` and `Zero`. What are *they* for?  That's what this and the next few posts will answer.
+[MSDNドキュメント](http://msdn.microsoft.com/en-us/library/dd233182.aspx)を見ると、`Bind`や`Return`だけでなく、`Delay`や`Zero`といった奇妙な名前のメソッドも出てきます。これらのメソッドは何のためにあるのでしょうか？ この記事と次の数回の記事がその答えになります。
 
-## The plan of action
+## 行動計画
 
-To demonstrate how to create a builder class, we will create a custom workflow which uses all of the possible builder methods.
+ビルダークラスの作成方法を説明するために、ビルダーのすべてのメソッドを使用するカスタムワークフローを作成します。
 
-But rather than starting at the top and trying to explain what these methods mean without context, we'll work from the bottom up, starting with a simple workflow and adding methods only as needed to solve a problem or an error. In the process, you'll come to understand how F# processes computation expressions in detail.
+しかし、最初からこれらのメソッドの意味を説明するのではなく、シンプルなワークフローから始めて、問題やエラーを解決するために必要なメソッドだけを追加するという、ボトムアップで作業を進めます。その過程で、F#がどのようにコンピュテーション式を処理しているのか、詳しく理解することができます。
 
-The outline of this process is:
+このプロセスの概要は以下の通りです。
 
-* Part 1: In this first part, we'll look at what methods are needed for a basic workflow. We'll introduce `Zero`, `Yield`, `Combine` and `For`.
-* Part 2: Next, we'll look at how to delay the execution of your code, so that it is only evaluated when needed. We'll introduce `Delay` and `Run`, and look at lazy computations.
-* Part 3: Finally, we'll cover the rest of the methods: `While`, `Using`, and exception handling.
+* Part 1: この最初のパートでは、基本的なワークフローに必要なメソッドを見ていきます。ここでは、`Zero`、`Yield`、`Combine`、`For`を紹介します。
+* 第2部では、コードの実行を遅延させて、必要なときにだけコードが評価されるようにする方法を紹介します。`Delay`と`Run`を紹介し、遅延計算についても見ていきます。
+* Part 3: 最後に、残りのメソッドである `While`, `Using`, そして例外処理について説明します。
 
-## Before we get started
+## 始める前に
 
-Before we dive into creating the workflow, here are some general comments.
+ワークフローの作成に入る前に、一般的なコメントをいくつか紹介します。
 
-### The documentation for computation expressions
+### computation expressionのドキュメントについて
 
-First, as you might have noticed, the MSDN documentation for computation expressions is meagre at best, and although not inaccurate, can be misleading. For example, the signatures of the builder methods are *more* flexible than they appear to be, and this can be used to implement some features that might not be obvious if you work from the documentation alone. We will show an example of this later.
+まず、お気づきかもしれませんが、MSDN のコンピュテーション式に関するドキュメントはせいぜい貧弱で、不正確ではありませんが、誤解を招く恐れがあります。例えば、ビルダーメソッドのシグネチャは、見た目よりも柔軟性が高く、ドキュメントだけではわからない機能を実装するために使用することができます。この例は後で紹介します。
 
-If you want more detailed documentation, there are two sources I can recommend. For an detailed overview of the concepts behind computation expressions, a great resource is the [paper "The F# Expression Zoo" by Tomas Petricek and Don Syme](http://tomasp.net/academic/papers/computation-zoo/computation-zoo.pdf). And for the most accurate up-to-date technical documentation, you should read the [F# language specification](http://research.microsoft.com/en-us/um/cambridge/projects/fsharp/manual/spec.pdf), which has a section on computation expressions.
+より詳細なドキュメントが必要な場合は、お勧めできるソースが2つあります。コンピュテーション式の背後にある概念の詳しい概要については、[paper "The F# Expression Zoo" by Tomas Petricek and Don Syme](http://tomasp.net/academic/papers/computation-zoo/computation-zoo.pdf)が素晴らしい資料です。また、最も正確な最新の技術文書としては、[F# language specification](http://research.microsoft.com/en-us/um/cambridge/projects/fsharp/manual/spec.pdf)を読むべきで、その中にコンピュテーション式に関する項目があります。
 
-### Wrapped and unwrapped types
+### 折り返し型と非折り返し型
 
-When you are trying to understand the signatures as documented, remember that what I have been calling the "unwrapped" type is normally written as `'T` and the "wrapped" type is normally written `M<'T>`. That is, when you see that the `Return` method has the signature `'T -> M<'T>` it means `Return` takes an unwrapped type and returns a wrapped type.
+ドキュメントに記載されているシグネチャを理解しようとするときには、これまで私が「アンラップ型」と呼んでいたものは通常 `'T` と書かれ、「ラップ型」は通常 `M<'T>` と書かれていることを思い出してください。つまり、`Return`メソッドのシグネチャーが`'T -> M<'T>`となっているのは、`Return`がラップされていない型を受け取り、ラップされた型を返すことを意味しているのだと思います。
 
-As I have in the earlier posts in this series, I will continue to use "unwrapped" and "wrapped" to describe the relationship between these types, but as we move forward these terms will be stretched to the breaking point, so I will also start using other terminology, such as "computation type" instead of "wrapped type". I hope that when we reach this point, the reason for the change will be clear and understandable.
+これまでの連載でも、これらの型の関係を表すのに「アンラップ」と「ラップ」を使い続けてきましたが、今後はこれらの用語が限界まで伸びてしまうので、「ラップ型」の代わりに「計算型」などの別の用語も使うようにします。ここまで来ると、変更の理由が明確になって理解しやすいと思います。
 
-Also, in my examples, I will generally try to keep things simple by using code such as:
+また、私の例では、基本的には以下のようなコードを使って、物事をシンプルに保つようにしています。
 
 ```fsharp
 let! x = ...wrapped type value...
 ```
 
-But this is actually an oversimplification. To be precise, the "x" can be any *pattern* not just a single value, and the "wrapped type" value can,
-of course, be an *expression* that evaluates to a wrapped type.
-The MSDN documentation uses this more precise approach. It uses "pattern" and "expression" in the definitions, such as `let! pattern = expr in cexpr`.
+しかし、これは実際には単純化しすぎです。正確には、"x "は単一の値だけでなく、どんな*パターン*でもよく、"ラップされた型 "の値は、もちろんラップされた型として評価される*式*でもよい。
+もちろん、ラップされた型として評価される*式*も可能です。
+MSDNのドキュメントでは、このより正確なアプローチを使用しています。MSDNのドキュメントでは、このようなより正確なアプローチを採用しています。例えば、「`let! pattern = expr in cexpr`」のように、定義に「pattern」と「expression」を使用しています。
 
-Here are some examples of using patterns and expressions in a `maybe` computation expression,
-where `Option` is the wrapped type, and the right hand side expressions are `options`:
+ここでは，`maybe`というコンピュテーション式でパターンや式を使う例を紹介します．
+ここで，`Option`はラップされた型で，右辺の式は`options`です．
 
 ```fsharp
 // let! pattern = expr in cexpr
@@ -62,50 +62,50 @@ maybe {
     }
 ```
 
-Having said this, I will continue to use the oversimplified examples, so as not to add extra complication to an already complicated topic!
+ここでは、ただでさえ複雑なテーマに、さらに複雑さを加えないように、単純化しすぎた例を使い続けます。
 
-### Implementing special methods in the builder class (or not)
+### ビルダークラスに特別なメソッドを実装する (もしくはしない)
 
-The MSDN documentation shows that each special operation (such as `for..in`, or `yield`) is translated into one or more calls to methods in the builder class.
+MSDNのドキュメントによると、各特殊な操作(例えば、`for..in`や`yield`)は、ビルダークラスのメソッドの1つ以上の呼び出しに変換されています。
 
-There is not always a one-to-one correspondence, but generally, to support the syntax for a special operation, you *must* implement a corresponding method in the builder class, otherwise the compiler will complain and give you an error.
+必ずしも1対1の対応ではありませんが、一般的には、特殊な操作の構文をサポートするためには、ビルダークラスに対応するメソッドを実装*しなければなりません*。
 
-On the other hand, you do *not* need to implement every single method if you don't need the syntax. For example, we have already implemented the `maybe` workflow quite nicely by only implementing the two methods `Bind` and `Return`. We don't need to implement `Delay`, `Use`, and so on, if we don't need to use them.
+一方で、その構文が必要でない場合は、すべてのメソッドを実装する*必要はありません*。例えば、`maybe`のワークフローは、`Bind`と`Return`の2つのメソッドを実装するだけで、とてもうまく実装できています。`Delay`や`Use`などを使う必要がなければ、それらを実装する必要はありません。
 
-To see what happens if you have not implemented a method, let's try to use the `for..in..do` syntax in our `maybe` workflow like this:
+メソッドを実装していないとどうなるかを見るために、`maybe`のワークフローで`for...in...do`構文を次のように使ってみましょう。
 
 ```fsharp
 maybe { for i in [1;2;3] do i }
 ```
 
-We will get the compiler error:
+コンパイラエラーが発生します。
 
 ```text
 This control construct may only be used if the computation expression builder defines a 'For' method
 ```
 
-Sometimes you get will errors that might be cryptic unless you know what is going on behind the scenes.
-For example, if you forget to put `return` in your workflow, like this:
+時々、舞台裏で何が起こっているのかを知らない限り、不可解なエラーが発生することがあります。
+例えば、次のようにワークフローの中に`return`を入れ忘れた場合です。
 
 ```fsharp
 maybe { 1 }
 ```
 
-You will get the compiler error:
+コンパイラエラーが発生します。
 
 ```text
 This control construct may only be used if the computation expression builder defines a 'Zero' method
 ```
 
-You might be asking: what is the `Zero` method? And why do I need it?  The answer to that is coming right up.
+`Zoro`メソッドとは何でしょうか? そして、なぜそれが必要なのか？ その答えはすぐに出てきます。
 
-### Operations with and without '!'
+### '!'を使った演算と使わない演算
 
-Obviously, many of the special operations come in pairs, with and without a "!" symbol. For example: `let` and `let!` (pronounced "let-bang"), `return` and `return!`, `yield` and `yield!` and so on.
+当然のことながら、特殊な操作の多くは、「！」マークのあるものとないものがペアになっています。例えば、`let` と `let!` （発音は「レットバン」）、`return` と `return!`、`yield` と `yield!` などです。
 
-The difference is easy to remember when you realize that the operations *without* a "!" always have *unwrapped* types on the right hand side, while the ones *with* a "!" always have *wrapped* types.
+この違いは、"!"が付いていない演算は常に右辺が*unwrapped*型であるのに対し、"!"が付いている演算は常に*wrapped*型であることを理解すると、簡単に覚えられます。
 
-So for example, using the `maybe` workflow, where `Option` is the wrapped type, we can compare the different syntaxes:
+そのため，例えば，`maybe`というワークフローを使って，`Option`がラップされた型である場合，それぞれの構文を比較することができます．
 
 ```fsharp
 let x = 1           // 1 is an "unwrapped" type
@@ -116,7 +116,7 @@ yield 1             // 1 is an "unwrapped" type
 yield! (Some 1)     // Some 1 is a "wrapped" type
 ```
 
-The "!" versions are particularly important for composition, because the wrapped type can be the result of *another* computation expression of the same type.
+ラップされた型は，同じ型の*別の*コンピュテーション式の結果になることがあるので，"!"バージョンは合成の際に特に重要です．
 
 ```fsharp
 let! x = maybe {...)       // "maybe" returns a "wrapped" type
@@ -133,11 +133,11 @@ let processUri uri = async {
     }
 ```
 
-## Diving in - creating a minimal implementation of a workflow
+## 潜入 - ワークフローの最小限の実装を作る
 
-Let's start! We'll begin by creating a minimal version of the "maybe" workflow (which we'll rename as "trace") with every method instrumented, so we can see what is going on. We'll use this as our testbed throughout this post.
+さあ、始めましょう。まず、"maybe "ワークフローの最小限のバージョン（"trace "と改名します）を作成し、すべてのメソッドをインストゥルメント化します。この記事では、これをテストベッドとして使用します。
 
-Here's the code for the first version of the `trace` workflow:
+以下は、`trace`ワークフローの最初のバージョンのコードです。
 
 ```fsharp
 type TraceBuilder() =
@@ -161,9 +161,9 @@ type TraceBuilder() =
 let trace = new TraceBuilder()
 ```
 
-Nothing new here, I hope. We have already seen all these methods before.
+目新しいことは何もありませんよね。これらのメソッドはすべて以前に見たことがあります。
 
-Now let's run some sample code through it:
+では、いくつかのサンプルコードを実行してみましょう。
 
 ```fsharp
 trace {
@@ -187,17 +187,17 @@ trace {
     } |> printfn "Result 4: %A"
 ```
 
-Everything should work as expected, in particular, you should be able to see that the use of `None` in the 4th example caused the next two lines (`let! y = ... return x+y`) to be skipped and the result of the whole expression was `None`.
+全てが期待通りに動くはずです。特に、4番目の例で `None` を使うと、次の2行（`let! y = ... return x + y`）がスキップされて、式全体の結果が `None` になっていることがわかるはずです。
 
-## Introducing "do!"
+## "do!"の導入
 
-Our expression supports `let!`, but what about `do!`?
+この式は `let!` をサポートしていますが、`do!` はどうでしょうか?
 
-In normal F#, `do` is just like `let`, except that the expression doesn't return anything useful (namely, a unit value).
+通常のF#では、`do`は`let`と同じですが、式が有用なもの（つまり、単位の値）を返さないことが違います。
 
-Inside a computation expression, `do!` is very similar. Just as `let!` passes a wrapped result to the `Bind` method, so does `do!`, except that in the case of `do!` the "result" is the unit value, and so a *wrapped* version of unit is passed to the bind method.
+コンピュテーション式の中では、`do!`は非常によく似ています。let!`がラップされた結果を`Bind`メソッドに渡すのと同様に、`do!`もラップされた結果を`Bind`メソッドに渡します。ただし、`do!`の場合、「結果」はユニット値なので、バインドメソッドにはユニットの*ラップされた*バージョンが渡されます。
 
-Here is a simple demonstration using the `trace` workflow:
+以下は、`trace`ワークフローを使った簡単なデモです。
 
 ```fsharp
 trace {
@@ -208,7 +208,7 @@ trace {
     } |> printfn "Result from do: %A"
 ```
 
-Here is the output:
+これが出力結果です。
 
 ```text
 ...expression that returns unit
@@ -220,26 +220,26 @@ Returning a unwrapped 1 as an option
 Result from do: Some 1
 ```
 
-You can verify for yourself that a `unit option` is being passed to `Bind` as a result of each `do!`.
+各 `do!` の結果として `unit option` が `Bind` に渡されていることを自分で確認することができます。
 
-## Introducing "Zero"
+## "Zero "の紹介
 
-What is the smallest computation expression you can get away with? Let's try nothing at all:
+コンピュテーション式の中で最も小さいものは何でしょうか？何もしないことを試してみましょう。
 
 ```fsharp
 trace {
     } |> printfn "Result for empty: %A"
 ```
 
-We get an error immediately:
+すぐにエラーが発生します。
 
 ```text
 This value is not a function and cannot be applied
 ```
 
-Fair enough. If you think about it, it doesn't make sense to have nothing at all in a computation expression. After all, its purpose is to chain expressions together.
+まあ、いいでしょう。考えてみれば、コンピュテーション式の中に何もないというのは意味がありません。結局のところ、その目的は式を連鎖させることにあります。
 
-Next, what about a simple expression with no `let!` or `return`?
+次に，`let!`や`return`のないシンプルな式はどうでしょうか？
 
 ```fsharp
 trace {
@@ -247,15 +247,15 @@ trace {
     } |> printfn "Result for simple expression: %A"
 ```
 
-Now we get a different error:
+今度は別のエラーが発生します。
 
 ```text
 This control construct may only be used if the computation expression builder defines a 'Zero' method
 ```
 
-So why is the `Zero` method needed now but we haven't needed it before? The answer is that in this particular case we haven't returned anything explicitly, yet the computation expression as a whole *must* return a wrapped value. So what value should it return?
+では、なぜ今は`Zero`メソッドが必要なのに、以前は必要なかったのでしょうか？その答えは、今回のケースでは明示的に何も返していないのに、コンピュテーション式全体としてはラップされた値を返さなければならないからです。では、どのような値を返すべきでしょうか？
 
-In fact, this situation will occur any time the return value of the computation expression has not been explicitly given. The same thing happens if you have an `if..then` expression without an else clause.
+実は、このような状況は、コンピュテーション式の戻り値が明示的に与えられていない場合には必ず発生します。同じことは，else節のない`if...then`式でも起こります．
 
 ```fsharp
 trace {
@@ -263,25 +263,25 @@ trace {
     } |> printfn "Result for if without else: %A"
 ```
 
-In normal F# code, an "if..then" without an "else" would result in a unit value, but in a computation expression, the particular return value must be a member of the wrapped type, and the compiler does not know what value this is.
+通常のF#のコードでは、"if...then "に "else "を付けないと単位の値になりますが、コンピュテーション式では、特定の戻り値はラップされた型のメンバーでなければならず、コンパイラはそれがどのような値であるかを知りません。
 
-The fix is to tell the compiler what to use -- and that is the purpose of the `Zero` method.
+これを解決するには、コンパイラに何を使うかを指示する必要があり、それが `Zero` メソッドの目的です。
 
-### What value should you use for Zero?
+### Zeroにはどのような値を使用すべきか？
 
-So which value *should* you use for `Zero`? It depends on the kind of workflow you are creating.
+では、`Zero`にはどのような値を使うべきなのでしょうか。それは、どのようなワークフローを作成するかによります。
 
-Here are some guidelines that might help:
+ここでは、いくつかのガイドラインをご紹介します。
 
-* **Does the workflow have a concept of "success" or "failure"?** If so, use the "failure" value for `Zero`. For example, in our `trace` workflow, we use `None` to indicate failure, and so we can use `None` as the Zero value.
-* **Does the workflow have a concept of "sequential processing"?** That is, in your workflow you do one step and then another, with some processing behind the scenes.  In normal F# code, an expression that did not return anything explicitly would evaluate to unit. So to parallel this case, your `Zero` should be the *wrapped* version of unit. For example, in a variant on an option-based workflow, we might use `Some ()` to mean `Zero` (and by the way, this would always be the same as `Return ()` as well).
-* **Is the workflow primarily concerned with manipulating data structures?** If so, `Zero` should be the "empty" data structure. For example, in a "list builder" workflow, we would use the empty list as the Zero value.
+* **ワークフローに「成功」や「失敗」の概念はありますか？** もしそうなら、`Zero`には「失敗」の値を使用してください。例えば、`trace`ワークフローでは、失敗を示すために`None`を使用していますので、`None`をゼロ値として使用することができます。
+* **ワークフローには「逐次処理」という概念があるのでしょうか？** つまり、ワークフローでは、あるステップを行った後に別のステップを行い、その裏で何らかの処理を行うということです。 通常のF#コードでは、明示的に何も返さない式はunitと評価されます。ですから、このケースと並行して、`Zero`はUnitの*wrapped*バージョンでなければなりません。例えば、オプションベースのワークフローのバリエーションでは、`ゼロ`を意味する`Some ()`を使用することができます（ちなみに、これは常に`Return ()`と同じになります）。
+* **ワークフローは主にデータ構造を操作することに関係していますか** そうであれば、`Zero`は「空」のデータ構造であるべきです。例えば、"リストビルダー "のワークフローでは、空のリストをゼロの値として使用します。
 
-The `Zero` value also has an important role to play when combining wrapped types. So stay tuned, and we'll revisit Zero in the next post.
+また、`ゼロ`の値は、ラップされた型を組み合わせる際にも重要な役割を果たします。次回はZeroについてご紹介しますので、お楽しみに。
 
-### A Zero implementation
+### ゼロの実装
 
-So now let's extend our testbed class with a `Zero` method that returns `None`, and try again.
+それでは、テストベッドクラスを拡張して、`None`を返す`Zero`メソッドを追加して、もう一度試してみましょう。
 
 ```fsharp
 type TraceBuilder() =
@@ -303,11 +303,11 @@ trace {
     } |> printfn "Result for if without else: %A"
 ```
 
-The test code makes it clear that `Zero` is being called behind the scenes. And `None` is the return value for the expression as whole. *Note: `None` may print out as `<null>`. You can ignore this.*
+テストコードを見ると、裏では `Zero` が呼ばれていることがわかります。そして、`None`が式全体の戻り値となります。*Note: `None` は `<null>` としてプリントアウトされる可能性があります。これは無視して構いません*。
 
-### Do you always need a Zero?
+### 常にゼロが必要なのか？
 
-Remember, you *not required* to have a `Zero`, but only if it makes sense in the context of the workflow. For example `seq` does not allow zero, but `async` does:
+`Zero`は必須ではありませんが、ワークフローの中で意味を成す場合にのみ必要となります。例えば、`seq`ではzeroは使えませんが、`async`では使えます。
 
 ```fsharp
 let s = seq {printfn "zero" }    // Error
@@ -315,11 +315,11 @@ let a = async {printfn "zero" }  // OK
 ```
 
 
-## Introducing "Yield"
+## "Yield "の紹介
 
-In C#, there is a "yield" statement that, within an iterator, is used to return early and then picks up where you left off when you come back.
+C#には "yield "という文があり、イテレータの中では早く戻ってきて、戻ってきたときには前回の続きをするという使い方をします。
 
-And looking at the docs, there is a "yield" available in F# computation expressions as well. What does it do? Let's try it and see.
+ドキュメントを見ると、F#のコンピュテーション式にも "yield "があります。これは何をするものなのでしょうか？試しに使ってみましょう。
 
 ```fsharp
 trace {
@@ -327,15 +327,15 @@ trace {
     } |> printfn "Result for yield: %A"
 ```
 
-And we get the error:
+そして、エラーが発生します。
 
 ```text
 This control construct may only be used if the computation expression builder defines a 'Yield' method
 ```
 
-No surprise there. So what should the implementation of "yield" method look like?  The MSDN documentation says that it has the signature `'T -> M<'T>`, which is exactly the same as the signature for the `Return` method. It must take an unwrapped value and wrap it.
+当然ですね。では、"yield "メソッドの実装はどのようになっているのでしょうか？ MSDNのドキュメントによると、`'T -> M<'T>`というシグネチャを持っており、これは`Return`メソッドのシグネチャと全く同じです。このメソッドはラップされていない値を受け取り、それをラップしなければなりません。
 
-So let's implement it the same way as `Return` and retry the test expression.
+そこで，`Return`と同じように実装して，テスト式を再試行してみましょう．
 
 ```fsharp
 type TraceBuilder() =
@@ -354,11 +354,11 @@ trace {
     } |> printfn "Result for yield: %A"
 ```
 
-This works now, and it seems that it can be used as an exact substitute for `return`.
+これで動作するようになり、`return`の正確な代用として使用できるようになりました。
 
-There is a also a `YieldFrom` method that parallels the `ReturnFrom` method. And it behaves the same way, allowing you to yield a wrapped value rather than a unwrapped one.
+また、`ReturnFrom`メソッドと平行して、`YieldFrom`メソッドもあります。これも同じように、ラップされていない値ではなく、ラップされた値を返すことができます。
 
-So let's add that to our list of builder methods as well:
+それでは、このメソッドもビルダーメソッドのリストに加えてみましょう。
 
 ```fsharp
 type TraceBuilder() =
@@ -377,7 +377,7 @@ trace {
     } |> printfn "Result for yield!: %A"
 ```
 
-At this point you might be wondering: if `return` and `yield` are basically the same thing, why are there two different keywords?  The answer is mainly so that you can enforce appropriate syntax by implementing one but not the other.  For example, the `seq` expression *does* allow `yield` but *doesn't* allow `return`, while the `async` does allow `return`, but does not allow `yield`, as you can see from the snippets below.
+ここで疑問に思うかもしれません。「return」と「yield」が基本的に同じものであるならば、なぜ2つの異なるキーワードがあるのか？ その答えは主に、一方を実装して他方を実装しないことで、適切な構文を強制することができるからです。 例えば、以下のスニペットからわかるように、`seq`式は、`yield`を*許容します*が、`return`を*許容しません*。一方、`async`式は、`return`を許容しますが、`yield`を許容しません。
 
 ```fsharp
 let s = seq {yield 1}    // OK
@@ -387,17 +387,17 @@ let a = async {return 1} // OK
 let a = async {yield 1}  // error
 ```
 
-In fact, you could create slightly different behavior for `return` vs. `yield`, so that, for example, using `return` stops the rest of the computation expression from being evaluated, while `yield` doesn't.
+実際には、`return` と `yield` で若干異なる動作をさせることができます。例えば、`return` を使用するとコンピュテーション式の残りの部分が評価されなくなりますが、`yield` では評価されません。
 
-More generally, of course, `yield` should be used for sequence/enumeration semantics, while `return` is normally used once per expression. (We'll see how `yield` can be used multiple times in the next post.)
+より一般的には、もちろん、`yield`はシーケンス/列挙セマンティクスに使用されるべきであり、`return`は通常、1つの式につき1回使用されます。(次の記事で `yield` を複数回使用する方法を見てみましょう。)
 
-## Revisiting "For"
+## "For "の再検討
 
-We talked about the `for..in..do` syntax in the last post. So now let's revisit the "list builder" that we discussed earlier and add the extra methods. We already saw how to define `Bind` and `Return` for a list in a previous post, so we just need to implement the additional methods.
+前回の記事では、`for...in...do`構文について説明しました。今回は、前回説明した「リストビルダー」をもう一度見直して、追加のメソッドを追加してみましょう。前回の記事で、リストの `Bind` と `Return` を定義する方法を見ましたので、あとは追加のメソッドを実装するだけです。
 
-* The `Zero` method just returns an empty list.
-* The `Yield` method can be implemented in the same way as `Return`.
-* The `For` method can be implemented the same as `Bind`.
+* `Zero` メソッドは空のリストを返すだけです。
+* `Yield` メソッドは `Return` と同じ方法で実装できます。
+* `For` メソッドは `Bind` と同じように実装することができます。
 
 ```fsharp
 type ListBuilder() =
@@ -424,7 +424,7 @@ type ListBuilder() =
 let listbuilder = new ListBuilder()
 ```
 
-And here is the code using `let!`:
+また、`let!`を使ったコードは以下の通りです。
 
 ```fsharp
 listbuilder {
@@ -434,7 +434,7 @@ listbuilder {
     } |> printfn "Result: %A"
 ```
 
-And here is the equivalent code using `for`:
+また、`for`を使った同等のコードは以下の通りです。
 
 ```fsharp
 listbuilder {
@@ -444,19 +444,19 @@ listbuilder {
     } |> printfn "Result: %A"
 ```
 
-You can see that both approaches give the same result.
+どちらの方法でも同じ結果が得られることがわかります。
 
-## Summary
+## まとめ
 
-In this post, we've seen how to implement the basic methods for a simple computation expression.
+今回の記事では、簡単なコンピュテーション式の基本的なメソッドの実装方法を見てきました。
 
-Some points to reiterate:
+繰り返しになりますが、以下の点に注意してください。
 
-* For simple expressions you don't need to implement all the methods.
-* Things with bangs have wrapped types on the right hand side.
-* Things without bangs have unwrapped types on the right hand side.
-* You need to implement `Zero` if you want a workflow that doesn't explicitly return a value.
-* `Yield` is basically equivalent to `Return`, but `Yield` should be used for sequence/enumeration semantics.
-* `For` is basically equivalent to `Bind` in simple cases.
+* 簡単な式では、すべてのメソッドを実装する必要はありません。
+* "!"のあるものは、右手側にラップされた型があります。
+* "!"のないものは、右手側にラップされていない型を持ちます。
+* 明示的に値を返さないワークフローが必要な場合は、`Zero`を実装する必要があります。
+* `Yield` は基本的に `Return` と同等ですが、`Yield` はシーケンスや列挙のセマンティクスに使用する必要があります。
+* `For` は基本的に、単純なケースでは `Bind` と同等です。
 
-In the next post, we'll look at what happens when we need to combine multiple values.
+次回は、複数の値を結合する必要がある場合にどうなるかを見てみましょう。
