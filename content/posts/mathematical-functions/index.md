@@ -8,55 +8,55 @@ seriesId: "Thinking functionally"
 seriesOrder: 2
 ---
 
-The impetus behind functional programming comes from mathematics. Mathematical functions have a number of very nice features that functional languages try to emulate in the real world.
+関数型プログラミングを支える原動力は数学にあります。数学関数には、関数型言語が実用的に模倣する非常に優れた特性が数多くあります。
 
-So first, let's start with a mathematical function that adds 1 to a number.
+まず、数値に1を加算する数学関数から始めましょう。
 
 	Add1(x) = x+1
 
-What does this really mean?  Well it seems pretty straightforward. It means that there is an operation that starts with a number, and adds one to it.
+これは実際には何を意味するのでしょうか？ それはとても簡単なことです。つまり、ある数字から始まり、それに1を加える演算があるということです。
 
-Let's introduce some terminology:
+用語をいくつか紹介します。
 
-* The set of values that can be used as input to the function is called the *domain*. In this case, it could be the set of real numbers, but to make life simpler for now, let's restrict it to integers only.
-* The set of possible output values from the function is called the *range* (technically, the image on the codomain). In this case, it is also the set of integers.
-* The function is said to *map* the domain to the range.
+* 関数への入力として使用できる値の集合は、*定義域(domain)*と呼ばれます。この場合は、実数の集合である可能性がありますが、ここでは簡単にするために、整数のみに制限します。
+* この関数からの出力値のセットは、*値域(range)* (厳密には終域(codomain)の像) と呼ばれます。この場合は、整数の集合でもあります。
+* この関数は、定義域から終域への*写像(map)*といいます。
 
 ![](./Functions_Add1.png)
 
-Here's how the definition would look in F#
+この定義をF#で表現すると以下のようになります。
 
 ```fsharp
 let add1 x = x + 1
 ```
 
-If you type that into the F# interactive window (don't forget the double semicolons) you will see the result (the "signature" of the function):
+これをF#のインタラクティブウィンドウに入力すると（ダブルセミコロンを忘れずに），結果（関数の「シグネチャ」）が表示されます。
 
 ```fsharp
 val add1 : int -> int
 ```
 
-Let's look at that output in detail:
+この出力を詳細に見てみましょう。
 
-* The overall meaning is "the function `add1` maps integers (the domain) onto integers (the range)".
-* "`add1`" is defined as a "val", short for "value". Hmmm... what does that mean?  We'll discuss values shortly.
-* The arrow notation "`->`" is used to show the domain and range. In this case, the domain is the `int` type, and the range is also the `int` type.
+* 全体の意味は、「関数 `add1` は整数（定義域）を整数（値域）への写像」です．
+* "`add1`"は "val"として定義されています、"value"の略です。ふむふむ、どういうことでしょう？ 値については後で説明します。
+* 「`->`」という矢印表記は、定義域と値域を示すのに使われます。この場合、定義域は `int` 型であり、値域も `int` 型です。
 
-Also note that the type was not specified, yet the F# compiler guessed that the function was working with ints. (Can this be tweaked? Yes, as we'll see shortly).
+また、型が指定されていないにもかかわらず、F#コンパイラはこの関数がintを扱うものだと推測していることにも注目してください。(これは調整可能ですか? はい、後で説明します。)
 
-## Key properties of mathematical functions ##
+## 数学関数の主要な特性 ##
 
-Mathematical functions have some properties that are very different from the kinds of functions you are used to in procedural programming.
+数学関数には、手続き型プログラミングで使用する関数とはまったく異なる特性があります。
 
-* A function always gives the same output value for a given input value
-* A function has no side effects.
+* 関数は、与えられた入力値に対して常に同じ値を返します。
+* 関数には副作用はありません。
 
-These properties provide some very powerful benefits, and so functional programming languages try to enforce these properties in their design as well. Let's look at each of them in turn.
+これらの特性は非常に強力な利点となるため、関数型プログラミング言語ではこれらの特性を強制するように設計されています。では、1つずつ順番に見ていきましょう。
 
-### Mathematical functions always give the same output for a given input ###
+### 数学関数は、与えられた入力に対して常に同じ結果を出力する ###
 
-In imperative programming, we think that functions "do" something or "calculate" something. A mathematical function does not do any calculation -- it is purely a mapping from input to output. In fact, another way to think of defining a function is simply as the set of all the mappings. For example, in a very crude way we could define the "`add1`"
-function (in C#) as
+命令型プログラミングでは、関数は何かを「〜する」、または何かを「計算する」と考えます。数学関数は、入力から出力への単なるマッピングであり、計算は行いません。実際、関数を定義する別の方法は、単純にすべてのマッピングを組み合わせたものと考えることです。例えば、大雑把な方法で 「`add1`」 を定義することができます。
+関数（C#）を次のように定義できます:
 
 ```csharp
 int add1(int input)
@@ -72,58 +72,58 @@ int add1(int input)
 }
 ```
 
-Obviously, we can't have a case for every possible integer, but the principle is the same. You can see that absolutely no calculation is being done at all, just a lookup.
+もちろん、ありとあらゆる整数にケースを用意することはできませんが、原理は同じです。全く計算をしていない、ただのルックアップであることがわかります。
 
-### Mathematical functions are free from side effects ###
+### 数学関数は副作用がない ###
 
-In a mathematical function, the input and the output are logically two different things, both of which are predefined. The function does not change the input or the output -- it just maps a pre-existing input value from the domain to a pre-existing output value in the range.
+数学関数では、入力と出力は論理的に2つの異なるものであり、どちらも事前定義されています。この関数は、入力または出力を変更するのではなく、既存の入力値を定義域から値域へ既定の出力値へ定める写像です。
 
-In other words, evaluating the function *cannot possibly have any effect on the input, or anything else for that matter*. Remember, evaluating the function is not actually calculating or manipulating anything; it is just a glorified lookup.
+つまり、関数*を評価しても、入力には何の影響も与えません*。関数を評価することは、何かを実際に計算したり操作したりすることではありません。ただの美化されたルックアップです。
 
-This "immutability" of the values is subtle but very important. If I am doing mathematics, I do not expect the numbers to change underneath me when I add them!  For example, if I have:
+この値の「不変性」は微妙ですが、非常に重要です。数学をやっているのなら、加算時に使用した数値が勝手に変わるなんてありえません！たとえば、次のような場合:
 
 	x = 5
 	y = x+1
 
-I would not expect x to be changed by the adding of one to it. I would expect to get back a different number (y) and x would be left untouched. In the world of mathematics, the integers already exist as an unchangeable set, and the "add1" function simply defines a relationship between them.
+xに1を加えても変更されないでしょう。別の数字 (y) が返ってきて、xは変更されません。数学の世界では、整数は不変の集合としてすでに存在しており、「add1」関数は単にそれらの間の関係を定義しているにすぎません。
 
-### The power of pure functions ###
+### 純粋関数のもつ力 ###
 
-The kinds of functions which have repeatable results and no side effects are called "pure functions", and you can do some interesting things with them:
+再現可能な結果を持ち、副作用のない関数は 「純粋関数」 と呼ばれ、いくつかの興味深いことを行うことができます:
 
-* They are trivially parallelizable. I could take all the integers from 1 to 1000, say, and given 1000 different CPUs, I could get each CPU to execute the "`add1`" function for the corresponding integer at the same time, safe in the knowledge that there was no need for any interaction between them. No locks, mutexes, semaphores, etc., needed.
-* I can use a function lazily, only evaluating it when I need the output. I can be sure that the answer will be the same whether I evaluate it now or later.
-* I only ever need to evaluate a function once for a certain input, and I can then cache the result, because I know that the same input always gives the same output.
-* If I have a number of pure functions, I can evaluate them in any order I like. Again, it can't make any difference to the final result.
+* 簡単に並列化できます。たとえば、1から1000までの全整数をとり、1000個の異なるCPUを用意して、それぞれのCPUで、対応する整数の`add1`関数を同時に実行させることができます。これは、各CPU間で相互作用が必要ないことを知っていれば安全です。ロック、ミューテックス、セマフォなどは必要ありません。
+* 関数は、出力が必要なときに評価するだけで、遅延的に使用できます。今評価しても、後で評価しても、答えは変わりません。
+* ある入力に対して関数を評価する必要があるのは一度だけで、その結果をキャッシュすることができます。なぜなら、同じ入力が常に同じ出力を与えることがわかっているからです。
+* 純粋な関数が多数ある場合は、任意の順序で評価できます。この場合も、最終的な結果には影響しません。
 
-So you can see that if we can create pure functions in a programming language, we immediately gain a lot of powerful techniques. And indeed you can do all these things in F#:
+ですから、プログラミング言語で純粋関数を作成できれば、すぐに多くの強力なテクニックが得られます。実際、F#ではこれらすべてのことができます:
 
-* You have already seen an example of parallelism in the ["why use F#?"](/series/why-use-fsharp.html) series.
-* Evaluating functions lazily will be discussed in the ["optimization"](/series/optimization.html) series.
-* Caching the results of functions is called "memoization" and will also be discussed in the ["optimization"](/series/optimization.html) series.
-* Not caring about the order of evaluation makes concurrent programming much easier, and doesn't introduce bugs when functions are reordered or refactored.
+* 並列処理の例は、[「なぜF#を使うのか?」](/series/why-use-fsharp.html) シリーズですでに説明しました。
+* 関数の遅延評価については、[「最適化」](/series/optimization.html) で説明します。
+* 関数の結果のキャッシュは「メモ化」と呼ばれ、[「最適化」](/series/optimization.html) シリーズでも取り上げます。
+* 評価の順序を気にしないことで、並行プログラミングが非常に簡単になり、関数が並べ替えられたりリファクタリングされたりしてもバグが発生しません。
 
-## "Unhelpful" properties of mathematical functions ##
+## 「役に立たない」数学関数の特性 ##
 
-Mathematical functions also have some properties that seem not to be very helpful when used in programming.
+数学関数には、プログラミングではあまり役に立たないと思われる特性もあります。
 
-* The input and output values are immutable
-* A function always has exactly one input and one output
+* 入力値と出力値は不変である
+* 関数の入出力は常に1つだけである
 
-These properties are mirrored in the design of functional programming languages too. Let's look at each of these in turn.
+これらの特性は、関数型プログラミング言語の設計にも反映されています。それぞれを順番に見ていきましょう。
 
-**The input and output values are immutable**
+**入力値と出力値は不変である**
 
-Immutable values seem like a nice idea in theory, but how can you actually get any work done if you can't assign to variables in a traditional way?
+不変の値は理論的には良いアイデアのように思えるかもしれませんが、従来の方法で変数に代入できない場合、実際にどのようにして作業を行うことができるのでしょうか。
 
-I can assure you that this is not as much as a problem as you might think. As you work through this series, you'll see how this works in practice.
+これはあなたが考えているほどの問題ではないと断言できます。この連載を読み進めていくうちに、この方法が実際にどのように行われるかを理解することができます。
 
-**Mathematical functions always have exactly one input and one output**
+**数学関数の入出力は常に1つだけである**
 
-As you can see from the diagrams, there is always exactly one input and one output for a mathematical function. This is true for functional programming languages as well, although it may not be obvious when you first use them.
+図からわかるように、数学関数の入出力は常に1つだけです。これは関数型プログラミング言語にも当てはまりますが、関数型プログラミング言語を初めて使用するときには分かりにくいかもしれません。
 
-That seems like a big annoyance. How can you do useful things without having functions with two (or more) parameters?
+これは非常に困ったことです。2つ (またはそれ以上) のパラメータを持つ関数なしで、どうすれば実用的なことが出来るのでしょうか?
 
-Well, it turns there is a way to do it, and what's more, it is completely transparent to you in F#. It is called "currying" and it deserves its own post, which is coming up soon.
+そう、それを実行する方法があり、さらにF#では完全に透過的です。これは「カリー化」 と呼ばれており、近いうちに投稿される予定です。
 
-In fact, as you will later discover, these two "unhelpful" properties will turn out to be incredibly useful and a key part of what makes functional programming so powerful.
+実際、後で説明するように、この2つの「役に立たない」 特性は、信じられないほど便利であり、関数型プログラミングを強力なものにする鍵となります。
