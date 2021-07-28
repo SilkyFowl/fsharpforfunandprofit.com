@@ -7,46 +7,46 @@ hasComments: 1
 date: 2015-01-01
 ---
 
-Functional languages are very different from standard imperative languages, and can be quite tricky to get the hang of initially.  This page offers some tips on how to learn F# effectively.
+関数型言語は標準的な命令型言語とは大きく異なり、最初にコツをつかむのはかなり難しいものです。 このページでは、F#を効果的に学ぶためのヒントをご紹介します。
 
-## Approach learning F# as a beginner ##
+## 初心者としてのF#学習への取り組み ##
 
-If you have experience in languages such as C# and Java, you have probably found that you can get a pretty good understanding of source code written in other similar languages, even if you aren't familiar with the keywords or the libraries. This is because all imperative languages use the same way of thinking, and experience in one language can be easily transferred to another.
+C#やJavaなどの言語を使ったことがある人は、キーワードやライブラリに詳しくなくても、似たような言語で書かれたソースコードをかなり理解できることに気付いていると思います。これは、すべての命令型言語が同じ考え方をしており、ある言語での経験を他の言語に簡単に移すことができるからです。
 
-If you are like many people, your standard approach to learning a new programming language is to find out how to implement concepts you are already familiar with. You might ask "how do I assign a variable?" or "how do I do a loop?", and with these answers be able to do some basic programming quite quickly.
+もしあなたが多くの人と同じようなら、新しいプログラミング言語を学ぶときの標準的なアプローチは、すでに慣れ親しんだ概念をどうやって実装するかということでしょう。「変数の代入方法」や「ループの実行方法」など確認して、基本的なプログラミングをすぐに出来るようにするかもしれません。
 
-When learning F#, **you should not try to bring your old imperative concepts with you**. In a pure functional language there are no variables, there are no loops, and there are no objects!
+F#を学ぶ際には、**古い命令型の概念を持ち込もうとしない**ようにしましょう。純粋な関数型言語には、変数もループもオブジェクトもありません。
 
-Yes, F# is a hybrid language and does support these concepts. But you will learn much faster if you start with a beginners mind.
+確かに、F#はハイブリッド言語であり、これらの概念をサポートしています。しかし、初心者の気持ちで始めた方がはるかに早く学ぶことができます。
 
-## Change the way you think ##
+## 考え方を変える ##
 
-It is important to understand that functional programming is not just a stylistic difference; it is a completely different way of thinking about programming, in the way that truly object-oriented programming (in Smalltalk say) is also a different way of thinking from a traditional imperative language such as C.
+関数型プログラミングは、単なるスタイルの違いではなく、プログラミングに対する完全に異なる考え方であることを理解することが重要です。これは、真のオブジェクト指向プログラミング（Smalltalkで言うところの）が、C言語のような伝統的な命令型言語とは異なる考え方であるのと同じです。
 
-F# does allow non-functional styles, and it is tempting to retain the habits you already are familiar with. You could just use F# in a non-functional way without really changing your mindset, and not realize what you are missing. To get the most out of F#, and to be fluent and comfortable with functional programming in general, it is critical that you think functionally, not imperatively.
+F#は非関数的なスタイルを許容しているので、すでに慣れ親しんだ習慣を維持したいと思うものです。考え方を変えずにF#を非関数的に使っても、何が足りないのか気づかないかもしれません。F#を最大限に活用し、関数型プログラミングを使いこなすためには、命令的ではなく、関数的に考えることが重要です。
 
-By far the most important thing you can do is to take the time and effort to understand exactly how F# works, especially the core concepts involving functions and the type system.  So please read and reread the series ["thinking functionally"](/series/thinking-functionally.html) and ["understanding F# types"](/series/understanding-fsharp-types.html), play with the examples, and get comfortable with the ideas before you try to start doing serious coding. If you don't understand how functions and types work, then you will have a hard time being productive.
+F#がどのように機能するのか、特に関数や型システムに関わる中核的な概念を正確に理解するために、時間と労力をかけることが何よりも大切です。 ですから、本格的なコーディングを始める前に、["thinking functionally"](/series/thinking-functionally.html)と["understanding F# types"](/series/understanding-fsharp-types.html)を読み直し、例題で遊んで、考え方に慣れてください。関数や型がどのように機能するのかを理解していなければ、生産性を上げることは難しいでしょう。
 
-## Dos and Don'ts ##
+## 推奨事項、禁止事項 ##
 
-Here is a list of dos and don'ts that will encourage you to think functionally. These will be hard at first, but just like learning a foreign language, you have to dive in and force yourself to speak like the locals.
+ここでは、関数的に考えることを促すための注意点をまとめています。最初は難しいかもしれませんが、外国語を学ぶのと同じように、現地の人と同じように話すためには、飛び込まなければなりません。
 
-* Don't use the `mutable` keyword **at all** as a beginner. Coding complex functions without the crutch of mutable state will really force you to understand the functional paradigm.
-* Don't use `for` loops or `if-then-else`. Use pattern matching for testing booleans and recursing through lists.
-* Don't use "dot notation". Instead of "dotting into" objects, try to use functions for everything. That is, write `String.length "hello"` rather than `"hello".Length`. It might seem like extra work, but this way of working is essential when using pipes and higher order functions like `List.map`. And don't write your own methods either! See [this post for details](/posts/type-extensions/#downsides-of-methods).
-* As a corollary, don't create classes. Use only the pure F# types such as tuples, records and unions.
-* Don't use the debugger. If you have relied on the debugger to find and fix incorrect code, you will get a nasty shock. In F#, you will probably not get that far, because the compiler is so much stricter in many ways.  And of course, there is no tool to "debug" the compiler and step through its processing.  The best tool for debugging compiler errors is your brain, and F# forces you to use it!
+* 初心者のうちは、`mutable`キーワードを **一切** 使わないでください。ミュータブルステートを使わずに複雑な関数をコーディングすることで、関数型のパラダイムを理解することができます。
+* `for`ループや`if-then-else`は使わないでください。booleansのテストやリストの再帰にはパターンマッチを使いましょう。
+* 「ドット記法」は使わないでください。オブジェクトに「ドットを打つ」のではなく、すべてに関数を使うようにしましょう。つまり、`"hello".Length`ではなく、`String.length "hello"`と書きます。余計なことをしているように見えるかもしれませんが、パイプや `List.map` のような高階の関数を使うときには、このような作業方法が不可欠です。また、自分でメソッドを書くのもやめましょう。詳しくは[this post for details](/posts/type-extensions/#downsides-of-methods)をご覧ください。
+* 関連して、クラスを作らないでください。タプル、レコード、ユニオンのような純粋なF#の型だけを使いましょう。
+* デバッガは使わないでください。間違ったコードを見つけて修正するためにデバッガに頼っていたら、ひどいショックを受けるでしょう。F#では、コンパイラが多くの点で非常に厳しいので、おそらくそこまではできないでしょう。 もちろん、コンパイラを「デバッグ」して、その処理を段階的に進めるツールもありません。 コンパイラのエラーをデバッグするための最良のツールはあなたの頭脳であり、F#はあなたにそれを使わせるのです！
 
-On the other hand:
+その一方で
 
-* Do create lots of "little types", especially union types. They are lightweight and easy, and their use will help document your domain model and ensure correctness.
-* Do understand the `list` and `seq` types and their associated library modules. Functions like `List.fold` and `List.map` are very powerful. Once you understand how to use them, you will be well on your way to understanding higher order functions in general.
-* Once you understand the collection modules, try to avoid recursion. Recursion can be error prone, and it can be hard to make sure that it is properly tail-recursive. When you use `List.fold`, you can never have that problem.
-* Do use pipe (`|>`) and composition (`>>`) as much as you can. This style is much more idiomatic than nested function calls like `f(g(x))`
-* Do understand how partial application works, and try to become comfortable with point-free (tacit) style.
-* Do develop code incrementally, using the interactive window to test code fragments. If you blindly create lots of code and then try to compile it all at once, you may end up with many painful and hard-to-debug compilation errors.
+* 「小さな型」、特にユニオン型をたくさん作りましょう。これらは軽量で簡単であり、これらを使用することでドメインモデルを文書化し、正しさを確保することができます。
+* `list` と `seq` 型、およびそれらに関連するライブラリモジュールを理解してください。`List.fold`や`List.map`のような関数は非常に強力です。これらの使い方を理解すれば、一般的な高次関数を理解することができるようになります。
+* コレクションモジュールを理解したら、再帰を避けるようにしましょう。再帰はエラーになりやすく、また、適切に末尾再帰的であることを確認するのは難しいでしょう。`List.fold`を使えば、そのような問題は起こりません。
+* パイプ(`|>`)とコンポジション(`>>`)はできるだけ使いましょう。このスタイルは、`f(g(x))`のようなネストされた関数呼び出しよりも、はるかにイディオム的です。
+* 部分適用の仕組みを理解し、ポイントフリー（暗黙の了解）スタイルに慣れるようにしましょう。
+* コードの断片をテストするためにインタラクティブウィンドウを使用して、コードを段階的に開発してください。やみくもに大量のコードを作成して一度にコンパイルしようとすると、痛くてデバッグしにくいコンパイルエラーが多発することになります。
 
-## Troubleshooting ##
+## トラブルシューティング ##
 
-There are a number of extremely common errors that beginners make, and if you are frustrated about getting your code to compile, please read the ["troubleshooting F#"](/troubleshooting-fsharp/) page.
+初心者が陥りやすい非常に一般的なエラーがいくつかあります。コードのコンパイルに挫折した場合は、["トラブルシューティングF#"](/troubleshooting-fsharp/)のページをお読みください。
 
