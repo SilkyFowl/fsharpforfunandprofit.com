@@ -9,22 +9,22 @@ seriesOrder: 7
 categories: [Conciseness]
 ---
 
-After having seen some simple code, we will now move on to demonstrating the major themes (conciseness, convenience, correctness, concurrency and completeness), filtered through the concepts of types, functions and pattern matching.
+簡単なコードを見た後は、型、関数、パターン・マッチングの概念を通して、主要なテーマ（簡潔性、利便性、正しさ、同時性、完全性）を実演していきます。
 
-With the next few posts, we'll examine the features of F# that aid conciseness and readability.
+これからの数回の投稿では、簡潔さと読みやすさを助けるF#の機能を検証します。
 
-An important goal for most mainstream programming languages is a good balance of readability and conciseness. Too much conciseness can result in hard-to-understand or obfuscated code (APL anyone?), while too much verbosity can easily swamp the underlying meaning. Ideally, we want a high signal-to-noise ratio, where every word and character in the code contributes to the meaning of the code, and there is minimal boilerplate.
+主流のプログラミング言語の重要な目標は、読みやすさと簡潔さのバランスをとることです。簡潔すぎると理解しにくいコードや難読なコードになってしまいますし（APLとか）、冗長すぎると根本的な意味がわからなくなってしまいます。理想的には、コード内のすべての単語や文字がコードの意味に貢献し、定型文が最小限であるような、高いS/N比が望まれます。
 
-Why is conciseness important? Here are a few reasons:
+なぜ簡潔であることが重要なのでしょうか？いくつかの理由を挙げてみましょう。
 
-* **A concise language tends to be more declarative**, saying *what* the code should do rather than *how* to do it. That is, declarative code is more focused on the high-level logic rather than the
-nuts and bolts of the implementation.
-* **It is easier to reason about correctness** if there are fewer lines of code to reason about!
-* And of course, **you can see more code on a screen** at a time. This might seem trivial, but the more you can see, the more you can grasp as well.
+* **簡潔な言語は、より宣言的である傾向があります**。つまり、宣言的なコードは、実装のコツよりも高レベルの論理に焦点を当てています。
+宣言型のコードは、実装のコツよりも高レベルの論理に焦点を当てています。
+* コードの行数が少なければ、**正しさを推論するのは簡単です**。
+* そしてもちろん、**一度に多くのコードを画面上で見ることができます**。これは些細なことかもしれませんが、見えるものが多いほど、把握できるものも多くなります。
 
-As you have seen, compared with C#, F# is generally much more concise. This is due to features such as:
+ご覧になったように、C#と比較して、F#は一般的にはるかに簡潔です。これは次のような機能によるものです。
 
-* **Type inference** and **low overhead type definitions**. One of the major reasons for F#'s conciseness and readability is its type system. F# makes it very easy to create new types as you need them. They don't cause visual clutter either in their definition or in use, and the type inference system means that you can use them freely without getting distracted by complex type syntax.
-* **Using functions to extract boilerplate code**. The DRY principle ("don't repeat yourself") is a core principle of good design in functional languages as well as object-oriented languages. In F# it is extremely easy to extract repetitive code into common utility functions, which allows you to focus on the important stuff.
-* **Composing complex code from simple functions** and **creating mini-languages**. The functional approach makes it easy to create a set of basic operations and then combine these building blocks in various ways to build up more complex behaviors. In this way, even the most complex code is still very concise and readable.
-* **Pattern matching**. We've seen pattern matching as a glorified switch statement, but in fact it is much more general, as it can compare expressions in a number of ways, matching on values, conditions, and types, and then assign or extract values, all at the same time.
+* **型推論**と**低オーバーヘッドの型定義**です。F#の簡潔さと読みやすさの主な理由の一つは、その型システムです。F#では、必要に応じて新しい型を簡単に作ることができます。型の定義や使用時に視覚的な混乱を招くことはありませんし、型推論システムにより、複雑な型の構文に惑わされることなく、自由に型を使用することができます。
+* **関数を使って定型的なコードを抽出する**. DRYの原則（"don't repeat yourself"）は、オブジェクト指向言語だけでなく、関数型言語においても優れたデザインの核となる原則です。F#では、繰り返しの多いコードを一般的なユーティリティー関数に抽出することが非常に簡単にできますので、重要なことに集中することができます。
+* **単純な関数から複雑なコードを構成する**と**ミニ言語を作成する**です。関数的なアプローチでは、基本的な操作のセットを作成し、これらのビルディングブロックを様々な方法で組み合わせて、より複雑な動作を構築することが簡単にできます。このようにして、最も複雑なコードであっても、非常に簡潔で読みやすいものになります。
+* **パターンマッチング**。パターンマッチングは、switchステートメントのようなものだと思っていましたが、実際にはもっと一般的なもので、値、条件、タイプに合わせて様々な方法で式を比較し、同時に値を割り当てたり抽出したりすることができます。
