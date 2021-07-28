@@ -7,23 +7,23 @@ hasComments: 1
 date: 2020-01-01
 ---
 
-As the saying goes, "if it compiles, it's correct", but it can be extremely frustrating just trying to get the code to compile at all!  So this page is devoted to helping you troubleshoot your F# code.
+諺にもあるように、「コンパイルできれば正しい」のですが、コードをコンパイルしようとするだけで非常にイライラすることがあります。 そこでこのページでは、F#コードのトラブルシューティングをお手伝いします。
 
-I will first present some general advice on troubleshooting and some of the most common errors that beginners make. After that, I will describe each of the common error messages in detail, and give examples of how they can occur and how to correct them.
+まず、トラブルシューティングに関する一般的なアドバイスと、初心者が陥りやすいエラーをいくつか紹介します。その後、一般的なエラーメッセージをそれぞれ詳しく説明し、どのように発生するか、どのように修正するかの例を示します。
 
-[(Jump to the error numbers)](#NumericErrors)
+[(エラー番号へのジャンプ)](#NumericErrors)
 
-## General guidelines for troubleshooting ##
+## トラブルシューティングの一般的なガイドライン ##
 
-By far the most important thing you can do is to take the time and effort to understand exactly how F# works, especially the core concepts involving functions and the type system.  So please read and reread the series ["thinking functionally"](/series/thinking-functionally.html) and ["understanding F# types"](/series/understanding-fsharp-types.html), play with the examples, and get comfortable with the ideas before you try to start doing serious coding. If you don't understand how functions and types work, then the compiler errors will not make any sense.
+最も重要なことは、F#がどのように動作するか、特に関数や型システムに関わる中核的な概念を正確に理解するために時間と労力をかけることです。 本格的なコーディングを始める前に、["thinking functionally"](/series/thinking-functionally.html)と["understanding F# types"](/series/understanding-fsharp-types.html)を読み直し、例題で遊んで、考え方に慣れてください。関数や型がどのように機能するかを理解していなければ、コンパイラのエラーも意味をなさないでしょう。
 
-If you are coming from an imperative language such as C#, you may have developed some bad habits by relying on the debugger to find and fix incorrect code.   In F#, you will probably not get that far, because the compiler is so much stricter in many ways.  And of course, there is no tool to "debug" the compiler and step through its processing.  The best tool for debugging compiler errors is your brain, and F# forces you to use it!
+C#のような命令型言語から来た人は、間違ったコードを見つけて修正するためにデバッガに頼るという悪い習慣が身についているかもしれません。  F#では、コンパイラが多くの点で非常に厳しいので、おそらくそこまではできないでしょう。 もちろん、コンパイラーを「デバッグ」して、その処理を段階的に進めるツールもありません。 コンパイラのエラーをデバッグするための最良のツールはあなたの脳であり、F#はそれを使うことを強要しているのです。
 
-Nevertheless, there are a number of extremely common errors that beginners make, and I will quickly go through them.
+とはいえ、初心者が陥りやすいエラーがいくつかありますので、それらを簡単に説明します。
 
-### Don't use parentheses when calling a function ###
+### 関数を呼び出すときに括弧を使わない ### ##F#
 
-In F#, whitespace is the standard separator for function parameters. You will rarely need to use parentheses, and in particular, do not use parentheses when calling a function.
+F#では、関数のパラメータには空白が標準的な区切り文字となっています。括弧を使う必要はほとんどありませんが、特に、関数を呼び出すときには括弧を使わないようにしましょう。
 
 ```fsharp
 let add x y = x + y
@@ -32,9 +32,9 @@ let result = add (1 2)  //wrong
 let result = add 1 2    //correct
 ```
 
-### Don't mix up tuples with multiple parameters ###
+### 複数のパラメータを持つタプルを混ぜてはいけません ### 。
 
-If it has a comma, it is a tuple. And a tuple is one object not two. So you will get errors about passing the wrong type of parameter, or too few parameters.
+コンマがあれば、それはタプルです。そして、タプルは1つのオブジェクトであり、2つのオブジェクトではありません。そのため、間違ったタイプのパラメータを渡したり、パラメータが少なすぎたりするとエラーになります。
 
 ```fsharp
 addTwoParams (1,2)  // trying to pass a single tuple rather than two args
@@ -42,28 +42,28 @@ addTwoParams (1,2)  // trying to pass a single tuple rather than two args
    //               int but here has type 'a * 'b
 ```
 
-The compiler treats `(1,2)` as a generic tuple, which it attempts to pass to "`addTwoParams`". Then it complains that the first parameter of `addTwoParams` is an int, and we're trying to pass a tuple.
+コンパイラは `(1,2)` を一般的なタプルとして扱い、それを "`addTwoParams`" に渡そうとします。すると、`addTwoParams`の最初のパラメータはint型で、タプルを渡そうとしていると文句を言います。
 
-If you attempt to pass *two* arguments to a function expecting *one* tuple, you will get another obscure error.
+もし、*1*個のタプルを期待する関数に*2*個の引数を渡そうとすると、別の不明瞭なエラーが発生します。
 
 ```fsharp
 addTuple 1 2   // trying to pass two args rather than one tuple
   // error FS0003: This value is not a function and cannot be applied
 ```
 
-### Watch out for too few or too many arguments ###
+### 引数の数が少なすぎたり多すぎたりすると注意が必要です##。
 
-The F# compiler will not complain if you pass too few arguments to a function (in fact "partial application" is an important feature), but if you don't understand what is going on, you will often get strange "type mismatch" errors later.
+F#コンパイラは、関数に渡す引数の数が少なすぎても文句を言いませんが(実際、「部分適用」は重要な機能です)、何が起こっているのかを理解していないと、後で奇妙な「型の不一致」のエラーがしばしば発生します。
 
-Similarly the error for having too many arguments is typically "This value is not a function" rather than a more straightforward error.
+同様に、引数が多すぎる場合のエラーも、もっとわかりやすいエラーではなく、典型的には「この値は関数ではありません」となります。
 
-The "printf" family of functions is very strict in this respect. The argument count must be exact.
+"printf"関数ファミリーは、この点において非常に厳格です。引数の数は正確でなければなりません。
 
-This is a very important topic -- it is critical that you understand how partial application works. See the series ["thinking functionally"](/series/thinking-functionally.html) for a more detailed discussion.
+これは非常に重要なトピックです。部分適用がどのように機能するかを理解することは非常に重要です。より詳しい説明は ["thinking functionally"](/series/thinking-functionally.html)シリーズをご覧ください。
 
-### Use semicolons for list separators ###
+### リストのセパレータにセミコロンを使用する##。
 
-In the few places where F# needs an explicit separator character, such as lists and records, the semicolon is used.  Commas are never used. (Like a broken record, I will remind you that commas are for tuples).
+リストやレコードなど、F# が明示的なセパレータ文字を必要とする数少ない場所では、セミコロンを使用します。 カンマは決して使用しません。(壊れたレコードのように「カンマはタプルのためのものである」と唱えましょう)。
 
 ```fsharp
 let list1 = [1,2,3]    // wrong! This is a ONE-element list containing
@@ -74,9 +74,9 @@ type Customer = {Name:string, Address: string}  // wrong
 type Customer = {Name:string; Address: string}  // correct
 ```
 
-### Don't use ! for not or != for not-equal ###
+### not に ! を、not-equal に != を使用してはいけません##。
 
-The exclamation point symbol is not the "NOT" operator. It is the deferencing operator for mutable references. If you use it by mistake, you will get the following error:
+感嘆符の記号は「NOT」演算子ではありません。これは可変型参照のdeferencing演算子です。誤って使用すると、以下のようなエラーが発生します。
 
 ```fsharp
 let y = true
@@ -85,22 +85,22 @@ let z = !y
 //    type 'a ref but here has type bool
 ```
 
-The correct construction is to use the "not" keyword. Think SQL or VB syntax rather than C syntax.
+正しい構文は、"not "キーワードを使うことです。C言語の構文ではなく，SQLやVBの構文を考えてみてください．
 
 ```fsharp
 let y = true
 let z = not y       //correct
 ```
 
-And for "not equal", use "<>", again like SQL or VB.
+また，"not equal "には"<>"を使います。これもSQLやVBの構文と同じです。
 
 ```fsharp
 let z = 1 <> 2      //correct
 ```
 
-### Don't use = for assignment ###
+### 代入には = を使わない ###
 
-If you are using mutable values, the assignment operation is written "`<-`".  If you use the equals symbol you might not even get an error, just an unexpected result.
+ミュータブルな値を使っている場合、代入操作は「`<-`」と書きます。 等号を使った場合は、エラーにならず、予想外の結果が出るだけかもしれません。
 
 ```fsharp
 let mutable x = 1
@@ -108,9 +108,9 @@ x = x + 1          // returns false. x is not equal to x+1
 x <- x + 1         // assigns x+1 to x
 ```
 
-### Watch out for hidden tab characters ###
+### 隠れたタブ文字に気をつけよう ###
 
-The indenting rules are very straightforward, and it is easy to get the hang of them. But you are not allowed to use tabs, only spaces.
+インデントのルールは非常にわかりやすいので、コツをつかむのは簡単です。しかし、タブを使うことはできず、スペースのみを使うことができます。
 
 ```fsharp
 let add x y =
@@ -118,13 +118,13 @@ let add x y =
 // => error FS1161: TABs are not allowed in F# code
 ```
 
-Be sure to set your editor to convert tabs to spaces. And watch out if you are pasting code in from elsewhere. If you do run into persistent problems with a bit of code, try removing the whitespace and re-adding it.
+エディタでタブをスペースに変換するように設定してください。また、他の場所からコードを貼り付けている場合は注意してください。また、他の場所からコードを貼り付けている場合にも注意が必要です。 もし、コードに問題がある場合には、空白を削除して再度追加してみてください。
 
-### Don't mistake simple values for function values ###
+### 単純な値と関数の値を間違えない ###
 
-If you are trying to create a function pointer or delegate, watch out that you don't accidentally create a simple value that has already been evaluated.
+関数ポインタやデリゲートを作成する際には、既に評価された単純な値を誤って作成しないように注意してください。
 
-If you want a parameterless function that you can reuse, you will need to explicitly pass a unit parameter, or define it as a lambda.
+パラメータレスで再利用可能な関数を作りたい場合は、ユニットパラメータを明示的に渡すか、ラムダとして定義する必要があります。
 
 ```fsharp
 let reader = new System.IO.StringReader("hello")
@@ -138,134 +138,133 @@ let randomFn() =  r.Next()  //correct
 let randomFn   =  fun () -> r.Next()  //correct
 ```
 
-See the series ["thinking functionally"](/series/thinking-functionally.html) for more discussion of parameterless functions.
+パラメータレス関数については、シリーズ["thinking functionally"](/series/thinking-functionally.html)を参照してください。
 
-### Tips for troubleshooting "not enough information" errors ###
+### "not enough information" エラーのトラブルシューティングのヒント ###
 
-The F# compiler is currently a one-pass left-to-right compiler, and so type information later in the program is unavailable to the compiler if it hasn't been parsed yet.
+F# コンパイラは現在、ワンパスの左から右へのコンパイラであるため、プログラムの 後方にある型情報がまだ解析されていない場合、コンパイラはその型情報を利用できません。
 
-A number of errors can be caused by this, such as ["FS0072: Lookup on object of indeterminate type"](#FS0072) and ["FS0041: A unique overload for could not be determined"](#FS0041). The suggested fixes for each of these specific cases are described below, but there are some general principles that can help if the compiler is complaining about missing types or not enough information. These guidelines are:
+このため、["FS0072: Lookup on object of indeterminate type"](#FS0072)や["FS0041: A unique overload for could not be determined"](#FS0041)など、多くのエラーが発生してしまいます。これらの具体的なケースに対する修正案を以下に説明しますが、型の欠落や十分な情報がないことをコンパイラーが訴えている場合に役立つ一般的な指針がいくつかあります。これらのガイドラインは
 
-* Define things before they are used (this includes making sure the files are compiled in the right order)
-* Put the things that have "known types" earlier than things that have "unknown types". In particular, you might be able reorder pipes and similar chained functions so that the typed objects come first.
-* Annotate as needed. One common trick is to add annotations until everything works, and then take them away one by one until you have the minimum needed.
+* 使用する前に定義しておく（ファイルを正しい順序でコンパイルすることも含む）。
+* 「既知の型」を持つものを「未知の型」を持つものよりも先に配置する。特に、パイプや類似の連鎖関数を、型付きのオブジェクトが最初に来るように並べ替えることができるかもしれません。
+* 必要に応じてアノテーションを行う。よくあるトリックは、すべてがうまくいくまでアノテーションを追加し、必要最小限になるまで1つずつアノテーションを削除していくことです。
 
-Do try to avoid annotating if possible. Not only is it not aesthetically pleasing, but it makes the code more brittle. It is a lot easier to change types if there are no explicit dependencies on them.
-
-----
-
-# F# compiler errors {#NumericErrors}
+できる限りアノテーションをつけないようにしてください。見た目が悪いだけでなく、コードがもろくなってしまいます。明示的な依存関係がなければ、型を変更するのはずっと簡単です。
 
 ----
 
-Here is a list of the major errors that seem to me worth documenting. I have not documented any errors that are self explanatory, only those that seem obscure to beginners.
+# F# コンパイラのエラー{#NumericErrors}について
 
-I will continue to add to the list in the future, and I welcome any suggestions for additions.
+----
+
+以下は、文書化する価値があると思われる主なエラーのリストです。ここでは、初心者にはわかりにくいと思われるエラーだけを取り上げ、説明可能なエラーは記録していません。
+
+今後もこのリストを追加していきますので、追加のご提案をお待ちしております。
 
 * [FS0001: The type 'X' does not match the type 'Y'](#FS0001)
-* [FS0003: This value is not a function and cannot be applied](#FS0003)
-* [FS0008: This runtime coercion or type test involves an indeterminate type](#FS0008)
+* [FS0003: この値は関数ではないため、適用できません](#FS0003)
+* [FS0008: この実行時強制または型テストには不確定な型が含まれています](#FS0008)
 * [FS0010: Unexpected identifier in binding](#FS0010a)
-* [FS0010: Incomplete structured construct](#FS0010b)
+* [FS0010: 不完全な構造化構成](#FS0010b)
 * [FS0013: The static coercion from type X to Y involves an indeterminate type](#FS0013)
-* [FS0020: This expression should have type 'unit'](#FS0020)
-* [FS0030: Value restriction](#FS0030)
+* [FS0020: この式の型は'unit'であるべきです](#FS0020)
+* [FS0030: 値の制限](#FS0030)
 * [FS0035: This construct is deprecated](#FS0035)
 * [FS0039: The field, constructor or member X is not defined](#FS0039)
-* [FS0041: A unique overload for could not be determined](#FS0041)
-* [FS0049: Uppercase variable identifiers should not generally be used in patterns](#FS0049)
-* [FS0072: Lookup on object of indeterminate type](#FS0072)
-* [FS0588: Block following this 'let' is unfinished](#FS0588)
+* [FS0041: unique overload for could not be determined](#FS0041)
+* [FS0049: 大文字の変数識別子は、一般的にパターンで使用すべきではありません](#FS0049)
+* [FS0072: 不確定な型のオブジェクトのルックアップ](#FS0072)
+* [FS0588: let に続くブロックが未完成です](#FS0588)
 
 
-## FS0001: The type 'X' does not match the type 'Y' {#FS0001}
+## FS0001: 型'X'は型'Y'と一致しません{#FS0001}。
 
-This is probably the most common error you will run into. It can manifest itself in a wide variety of contexts, so I have grouped the most common problems together with examples and fixes. Do pay attention to the error message, as it is normally quite explicit about what the problem is.
+このエラーは、おそらく最も一般的なエラーでしょう。さまざまな状況で発生する可能性があるため、最も一般的な問題をグループ化し、例と修正方法を示しました。エラーメッセージには注意を払ってください。
 
 {{<rawtable>}}
 <table class="table table-striped table-bordered table-condensed">
 <thead>
   <tr>
-	<th>Error message</th>
-	<th>Possible causes</th>
+	<th> エラーメッセージ</th>
+	<th>考えられる原因</th>
   </tr>
 </thead>
 <tbody>
   <tr>
-	<td>The type 'float' does not match the type 'int'</td>
-	<td><a href="#FS0001A">A. Can't mix floats and ints</a></td>
+	<td>「float」という型が「int」という型と一致しない</td>
+	<td><a href="#FS0001A">A. floatとintを混在させることはできません</a></td>
   </tr>
   <tr>
-	<td>The type 'int' does not support any operators named 'DivideByInt'</td>
-	<td><a href="#FS0001A">A. Can't mix floats and ints.</a></td>
+  <td>'int'型は'DivideByInt'という名前の演算子をサポートしていません</td>
+	<td><a href="#FS0001A">A. floatとintを混在させることはできません。</a></td>
   </tr>
   <tr>
-	<td>The type 'X' is not compatible with any of the types</td>
-	<td><a href="#FS0001B">B. Using the wrong numeric type.</a></td>
+  <td>型'X'は、どの型とも互換性がありません</td>
+	<td><a href="#FS0001B">B. 間違った数値型を使用しています。</a></td>
   </tr>
   <tr>
-	<td>This type (function type) does not match the type (simple type). Note: function types have a arrow in them, like <code>'a -&gt; 'b</code>.</td>
-	<td><a href="#FS0001C">C. Passing too many arguments to a function.</a></td>
+  <td>このタイプ(関数型)はタイプ(単純型)と一致しません。注意：関数型には、<code>'a -&gt; 'b</code>のように、矢印が付いています。</td>
+	<td><a href="#FS0001C">C. 関数に渡す引数の数が多すぎる。</a></td>
   </tr>
   <tr>
-	<td>This expression was expected to have (function type) but here has (simple type)</td>
-	<td><a href="#FS0001C">C. Passing too many arguments to a function.</a></td>
+  <td>この式は、(関数型)を持つことが期待されていましたが、ここでは(単純型)を持ちます</td>
+	<td><a href="#FS0001C">C. 関数に渡す引数の数が多すぎる</a></td>
   </tr>
   <tr>
-	<td>This expression was expected to have (N part function) but here has (N-1 part function)</td>
-	<td><a href="#FS0001C">C. Passing too many arguments to a function.</a></td>
+  <td>この式は(N部の関数)を持つことが期待されましたが、ここでは(N-1部の関数)を持ちます</td>
+	<td><a href="#FS0001C">C. 関数に渡す引数の数が多すぎる</a></td>
   </tr>
   <tr>
-	<td>This expression was expected to have (simple type) but here has (function type)</td>
-	<td><a href="#FS0001D">D. Passing too few arguments to a function.</a></td>
+  <td>この式は(単純型)を持つことが期待されましたが、ここでは(関数型)を持ちます</td>
+	<td><a href="#FS0001D">D. 関数に渡す引数の数が少なすぎる</a></td>
   </tr>
   <tr>
-	<td>This expression was expected to have (type) but here has (other type)</td>
-	<td><a href="#FS0001E">E. Straightforward type mismatch.</a><br>
-	<a href="#FS0001F">F. Inconsistent returns in branches or matches.</a><br>
-	<a href="#FS0001G">G. Watch out for type inference effects buried in a function.</a><br>
+  <td>この式は、(型)を持つことが期待されていましたが、ここでは(他の型)を持っています</td>
+	<td><a href="#FS0001E">E. ストレートなタイプミスマッチです。</a><br>
+	<a href="#FS0001F">F. ブランチやマッチで一貫性のないリターンがある場合</a><br>
+	<a href="#FS0001G">G. 関数の中に埋もれた型推論効果に注意。</a><br>
 	</td>
   </tr>
   <tr>
-	<td>Type mismatch. Expecting a (simple type) but given a (tuple type). Note: tuple types have a star in them, like <code>'a * 'b</code>.</td>
-	<td><a href="#FS0001H">H. Have you used a comma instead of space or semicolon?</a></td>
+	<td>タイプミスマッチ。(単純な型)を期待しているのに、(タプル型)が与えられた。注意：タプル型には、<code>'a * 'b</code>のように星マークがついています。</td>
+	<td><a href="#FS0001H">H. スペースやセミコロンの代わりにコンマを使用しましたか？</a></td>
   </tr>
   <tr>
-	<td>Type mismatch. Expecting a (tuple type) but given a (different tuple type). </td>
-	<td><a href="#FS0001I">I. Tuples must be the same type to be compared.</a></td>
+	<td>タイプミスマッチ。(タプルタイプ)を期待しているのに、(異なるタプルタイプ)が与えられた。</td>
+  <td><a href="#FS0001I">I. タプルは同じタイプでなければ比較できません。</a></td>
   </tr>
   <tr>
-	<td>This expression was expected to have type <code>'a ref</code> but here has type X</td>
-	<td><a href="#FS0001J">J. Don't use ! as the "not" operator.</a></td>
+  <td>この式は<code>'a ref</code>という型を持つことが期待されましたが、ここではXという型を持ちます</td>
+	<td><a href="#FS0001J">J. 「not」演算子に「！」を使ってはいけません</a></td>
   </tr>
   <tr>
-	<td>The type (type) does not match the type (other type)</td>
-	<td><a href="#FS0001K">K. Operator precedence (especially functions and pipes).</a></td>
+	<td>タイプ(型)がタイプ(他の型)と一致しない</td>
+	<td><a href="#FS0001K">K. 演算子の優先順位（特に関数やパイプ）</a></td>
   </tr>
-  <tr>
-	<td>This expression was expected to have type (monadic type) but here has type <code>'b * 'c</code></td>
-	<td><a href="#FS0001L">L. let! error in computation expressions.</a></td>
+  <td>この式は型(モナディック型)を持つことが期待されていましたが、ここでは型 <code>'b * 'c</code>を持ちます。</td>
+	<td><a href="#FS0001L">L. let! 計算式のエラー</a></td>
   </tr>
 </tbody>
 </table>
 {{</rawtable>}}
 
-### A. Can't mix ints and floats {#FS0001A}
+### A. intsとfloatsを混在させることはできない{#FS0001A}。
 
-Unlike C# and most imperative languages, ints and floats cannot be mixed in expressions. You will get a type error if you attempt this:
+C#や多くの命令型言語とは異なり、intsとfloatsを式の中で混在させることはできません。これを試みるとタイプエラーが発生します。
 
 ```fsharp
 1 + 2.0  //wrong
    // => error FS0001: The type 'float' does not match the type 'int'
 ```
 
-The fix is to cast the int into a `float` first:
+この問題を解決するには，まずint型を`float`型にキャストする必要があります。
 
 ```fsharp
 float 1 + 2.0  //correct
 ```
 
-This issue can also manifest itself in library functions and other places. For example, you cannot do "`average`" on a list of ints.
+この問題は、ライブラリ関数やその他の場所でも発生します。例えば、intのリストに対して「`average`」を行うことはできません。
 
 ```fsharp
 [1..10] |> List.average   // wrong
@@ -273,16 +272,16 @@ This issue can also manifest itself in library functions and other places. For e
    //    operators named 'DivideByInt'
 ```
 
-You must cast each int to a float first, as shown below:
+以下のように，それぞれのintをまずfloatにキャストする必要があります。
 
 ```fsharp
 [1..10] |> List.map float |> List.average  //correct
 [1..10] |> List.averageBy float  //correct (uses averageBy)
 ```
 
-### B. Using the wrong numeric type {#FS0001B}
+### B. 誤った数値型の使用 {#FS0001B}。
 
-You will get a "not compatible" error when a numeric cast failed.
+数値型のキャストに失敗すると、「互換性がありません」というエラーが発生します。
 
 ```fsharp
 printfn "hello %i" 1.0  // should be a int not a float
@@ -290,14 +289,14 @@ printfn "hello %i" 1.0  // should be a int not a float
   //               with any of the types byte,int16,int32...
 ```
 
-One possible fix is to cast it if appropriate.
+1つの可能な修正方法は、適切にキャストすることです。
 
 ```fsharp
 printfn "hello %i" (int 1.0)
 ```
 
 
-### C. Passing too many arguments to a function  {#FS0001C}
+### C. 関数に渡す引数の数が多すぎる {#FS0001C}.
 
 ```fsharp
 let add x y = x + y
@@ -305,11 +304,11 @@ let result = add 1 2 3
 // ==> error FS0001: The type ''a -> 'b' does not match the type 'int'
 ```
 
-The clue is in the error.
+手がかりはこのエラーの中にあります。
 
-The fix is to remove one of the arguments!
+修正方法は，引数の1つを削除することです!
 
-Similar errors are caused by passing too many arguments to `printf`.
+同様のエラーは，`printf`に渡す引数の数が多すぎる場合に発生します．
 
 ```fsharp
 printfn "hello" 42
@@ -325,9 +324,9 @@ printfn "hello %i %i" 42 43 44
 //                   but given a 'a -> 'b -> unit
 ```
 
-### D. Passing too few arguments to a function {#FS0001D}
+### D. 関数に渡す引数の数が少なすぎる場合 {#FS0001D}。
 
-If you do not pass enough arguments to a function, you will get a partial application. When you later use it, you get an error because it is not a simple type.
+関数に渡す引数の数が少ないと、部分的に適用されてしまいます。後で使うときには、単純な型ではないのでエラーになります。
 
 ```fsharp
 let reader = new System.IO.StringReader("hello");
@@ -338,9 +337,9 @@ printfn "The line is %s" line     //compiler error here!
 //                   but here has type unit -> string
 ```
 
-This is particularly common for some .NET library functions that expect a unit parameter, such as `ReadLine` above.
+これは、上記の `ReadLine` のように、ユニットパラメータを要求するいくつかの .NET ライブラリ関数で特によく見られます。
 
-The fix is to pass the correct number of parameters. Check the type of the result value to make sure that it is indeed a simple type.  In the `ReadLine` case, the fix is to pass a `()` argument.
+この問題を解決するには、正しい数のパラメータを渡す必要があります。結果の値の型をチェックして，それが本当に単純な型であることを確認してください。 `ReadLine`のケースでは、`()`の引数を渡すことで解決します。
 
 ```fsharp
 let line = reader.ReadLine()      //correct
@@ -348,9 +347,9 @@ printfn "The line is %s" line     //no compiler error
 ```
 
 
-### E. Straightforward type mismatch {#FS0001E}
+### E. ストレートな型のミスマッチ {#FS0001E}。
 
-The simplest case is that you have the wrong type, or you are using the wrong type in a print format string.
+最も単純なケースは、型が間違っているか、プリントフォーマット文字列で間違った型を使用していることです。
 
 ```fsharp
 printfn "hello %s" 1.0
@@ -358,9 +357,9 @@ printfn "hello %s" 1.0
 //                  but here has type float
 ```
 
-### F. Inconsistent return types in branches or matches {#FS0001F}
+### F. ブランチやマッチでの一貫性のない戻り値の型 {#FS0001F}.
 
-A common mistake is that if you have a branch or match expression, then every branch MUST return the same type.  If not, you will get a type error.
+よくある間違いは、分岐式やマッチ式がある場合、すべての分岐が同じ型を返さなければならないというものです。 そうでない場合は、型エラーが発生します。
 
 ```fsharp
 let f x =
@@ -379,7 +378,7 @@ let g x =
 //               string but here has type int
 ```
 
-Obviously, the straightforward fix is to make each branch return the same type.
+明らかに，ストレートな修正方法は，各ブランチが同じ型を返すようにすることです．
 
 ```fsharp
 let f x =
@@ -392,7 +391,7 @@ let g x =
   | _ -> "42"
 ```
 
-Remember that if an "else" branch is missing, it is assumed to return unit, so the "true" branch must also return unit.
+"else"ブランチがない場合、unitを返すと仮定されるので、"true"ブランチもunitを返さなければならないことを覚えておいてください。
 
 ```fsharp
 let f x =
@@ -401,7 +400,7 @@ let f x =
 //               unit but here has type string
 ```
 
-If both branches cannot return the same type, you may need to create a new union type that can contain both types.
+両方のブランチが同じ型を返すことができない場合、両方の型を含むことができる新しいユニオン型を作成する必要があるかもしれません。
 
 ```fsharp
 type StringOrInt = | S of string | I of int  // new union type
@@ -411,9 +410,9 @@ let f x =
 ```
 
 
-### G. Watch out for type inference effects buried in a function {#FS0001G}
+### G. 関数に埋もれた型推論の効果に注意{#FS0001G}。
 
-A function may cause an unexpected type inference that ripples around your code. For example, in the following, the innocent print format string accidentally causes `doSomething` to expect a string.
+関数が予期せぬ型推論を引き起こし、コードに波及することがあります。例えば、以下の例では、無害な print format string が、誤って `doSomething` に文字列を期待させています。
 
 ```fsharp
 let doSomething x =
@@ -426,11 +425,11 @@ doSomething 1
 //    but here has type int
 ```
 
-The fix is to check the function signatures and drill down until you find the guilty party.  Also, use the most generic types possible, and avoid type annotations if possible.
+修正方法は、関数のシグネチャをチェックして、罪を犯した人を見つけるまで掘り下げていくことです。 また、可能な限り汎用的な型を使用し、可能な限り型アノテーションを避けるようにしてください。
 
-### H. Have you used a comma instead of space or semicolon? {#FS0001H}
+### H. スペースやセミコロンの代わりにコンマを使っていませんか？{#FS0001H}。
 
-If you are new to F#, you might accidentally use a comma instead of spaces to separate function arguments:
+F#に慣れていないと、関数の引数を区切るのに、スペースではなくコンマを誤って使ってしまうことがあります。
 
 ```fsharp
 // define a two parameter function
@@ -440,14 +439,14 @@ add(x,y)   // FS0001: This expression was expected to have
            // type int but here has type  'a * 'b
 ```
 
-The fix is: don't use a comma!
+修正方法は、カンマを使わないことです。
 
 ```fsharp
 add x y    // OK
 ```
 
-One area where commas *are* used is when calling .NET library functions.
-These all take tuples as arguments, so the comma form is correct. In fact, these calls look just the same as they would from C#:
+カンマが使われるのは、.NETライブラリ関数を呼び出すときです。
+これらの関数はすべてタプルを引数として取るので、コンマの形式は正しいです。実際には，これらの呼び出しはC#からの呼び出しと同じように見えます。
 
 ```fsharp
 // correct
@@ -459,9 +458,9 @@ System.String.Compare "a" "b"
 
 
 
-### I. Tuples must be the same type to be compared or pattern matched {#FS0001I}
+### I. タプルの比較やパターンマッチを行うには、同じタイプである必要があります {#FS0001I}。
 
-Tuples with different types cannot be compared. Trying to compare a tuple of type `int * int`, with a tuple of type `int * string` results in an error:
+異なるタイプのタプルは比較できません。タイプ `int * int` のタプルとタイプ `int * string` のタプルを比較しようとすると、エラーが発生します。
 
 ```fsharp
 let  t1 = (0, 1)
@@ -472,7 +471,7 @@ t1 = t2
 //    The type 'int' does not match the type 'string'
 ```
 
-And the length must be the same:
+また、長さも同じでなければなりません。
 
 ```fsharp
 let  t1 = (0, 1)
@@ -483,7 +482,7 @@ t1 = t2
 //    The tuples have differing lengths of 2 and 3
 ```
 
-You can get the same issue when pattern matching tuples during binding:
+バインディング時にタプルをパターンマッチさせると，同じ問題が発生します．
 
 ```fsharp
 let x,y = 1,2,3
@@ -501,9 +500,9 @@ let result = f z
 
 
 
-### J. Don't use ! as the "not" operator {#FS0001J}
+### J. ! を "not" 演算子として使用しないでください {#FS0001J}。
 
-If you use `!` as a "not" operator, you will get a type error mentioning the word "ref".
+not "演算子として`!`を使うと、"ref "という単語に言及した型エラーが発生します。
 
 ```fsharp
 let y = true
@@ -512,7 +511,7 @@ let z = !y     //wrong
 //    type 'a ref but here has type bool
 ```
 
-The fix is to use the "not" keyword instead.
+修正方法は，代わりに "not "キーワードを使うことです．
 
 ```fsharp
 let y = true
@@ -520,9 +519,9 @@ let z = not y   //correct
 ```
 
 
-### K. Operator precedence (especially functions and pipes) {#FS0001K}
+### K. 演算子の優先順位 (特に関数とパイプ) {#FS0001K}。
 
-If you mix up operator precedence, you may get type errors.  Generally, function application is highest precedence compared to other operators, so you get an error in the case below:
+演算子の優先順位を間違えてしまうと、型エラーが発生することがあります。 一般に、関数の適用は他の演算子に比べて優先順位が高いので、以下のようなケースではエラーになります。
 
 ```fsharp
 String.length "hello" + "world"
@@ -532,13 +531,13 @@ String.length "hello" + "world"
 (String.length "hello") + "world"
 ```
 
-The fix is to use parentheses.
+修正方法は、括弧を使うことです。
 
 ```fsharp
 String.length ("hello" + "world")  // corrected
 ```
 
-Conversely, the pipe operator is low precedence compared to other operators.
+逆に，パイプ演算子は他の演算子に比べて優先順位が低い．
 
 ```fsharp
 let result = 42 + [1..10] |> List.sum
@@ -548,16 +547,16 @@ let result = 42 + [1..10] |> List.sum
 let result = (42 + [1..10]) |> List.sum
 ```
 
-Again, the fix is to use parentheses.
+繰り返しになりますが，修正方法は括弧を使うことです。
 
 ```fsharp
 let result = 42 + ([1..10] |> List.sum)
 ```
 
 
-### L. let! error in computation expressions (monads) {#FS0001L}
+### L. let! コンピュテーション式(モナド)のエラー {#FS0001L}.
 
-Here is a simple computation expression:
+以下に簡単なコンピュテーション式を示します。
 
 ```fsharp
 type Wrapper<'a> = Wrapped of 'a
@@ -573,7 +572,7 @@ type wrapBuilder() =
 let wrap = new wrapBuilder()
 ```
 
-However, if you try to use it, you get an error.
+しかし、これを使おうとすると、エラーが発生します。
 
 ```fsharp
 wrap {
@@ -586,9 +585,9 @@ wrap {
 //               but here has type 'b * 'c
 ```
 
-The reason is that "`Bind`" expects a tuple `(wrapper,func)`, not two parameters.  (Check the signature for bind in the F# documentation).
+その理由は、「`Bind`」は、2つのパラメータではなく、タプル `(wrapper,func)` を期待しているからです。 (F#のドキュメントでbindのシグネチャを確認してください)。
 
-The fix is to change the bind function to accept a tuple as its (single) parameter.
+修正方法は，bind関数がタプルを（1つの）パラメータとして受け取るように変更することです．
 
 ```fsharp
 type wrapBuilder() =
@@ -597,9 +596,9 @@ type wrapBuilder() =
         | Wrapped(innerThing) -> func innerThing
 ```
 
-## FS0003: This value is not a function and cannot be applied {#FS0003}
+## FS0003: この値は関数ではないので、適用できません {#FS0003}。
 
-This error typically occurs when passing too many arguments to a function.
+このエラーは通常、関数に引数を多く渡したときに発生します。
 
 ```fsharp
 let add1 x = x + 1
@@ -607,7 +606,7 @@ let x = add1 2 3
 // ==>   error FS0003: This value is not a function and cannot be applied
 ```
 
-It can also occur when you do operator overloading, but the operators cannot be used as prefix or infix.
+演算子のオーバーロードを行った場合にも発生しますが、その演算子をプレフィックスやインフィックスとして使用することはできません。
 
 ```fsharp
 let (!!) x y = x + y
@@ -616,9 +615,9 @@ let (!!) x y = x + y
 // error FS0003: This value is not a function and cannot be applied
 ```
 
-## FS0008: This runtime coercion or type test involves an indeterminate type {#FS0008}
+## FS0008: FS0008: この実行時強制または型テストには不確定な型が含まれています {#FS0008}。
 
-You will often see this when attempting to use "`:?`" operator to match on a type.
+これは "`:?`" 演算子を使って型にマッチさせようとしたときによく見られます。
 
 ```fsharp
 let detectType v =
@@ -630,9 +629,9 @@ let detectType v =
 // Runtime type tests are not allowed on some types. Further type annotations are needed.
 ```
 
-The message tells you the problem: "runtime type tests are not allowed on some types".
+このメッセージは、「ランタイムの型テストが一部の型では許可されていない」という問題点を伝えています。
 
-The answer is to "box" the value which forces it into a reference type, and then you can type check it:
+答えは、値を強制的に参照型にする "ボックス化 "することで、型チェックができるようになります。
 
 ```fsharp
 let detectTypeBoxed v =
@@ -646,9 +645,9 @@ detectTypeBoxed 3.14
 ```
 
 
-## FS0010: Unexpected identifier in binding {#FS0010a}
+## FS0010: バインディング内の予期せぬ識別子 {#FS0010a}。
 
-Typically caused by breaking the "offside" rule for aligning expressions in a block.
+典型的な原因は、ブロック内の式を整列させるための「オフサイド」ルールを破ったことです。
 
 ```fsharp
 //3456789
@@ -658,13 +657,13 @@ let f =
               // error FS0010: Unexpected identifier in binding
 ```
 
-The fix is to align the code correctly!
+修正方法は、コードを正しく整列させることです
 
-See also [FS0588: Block following this 'let' is unfinished](#FS0588) for another issue caused by alignment.
+アラインメントに起因する別の問題については、[FS0588: Block following this 'let' is unfinished](#FS0588)もご覧ください。
 
-## FS0010: Incomplete structured construct {#FS0010b}
+## FS0010: 不完全な構造化された構造 {#FS0010b}。
 
-Often occurs if you are missing parentheses from a class constructor:
+クラスのコンストラクタから括弧が抜けている場合によく発生します。
 
 ```fsharp
 type Something() =
@@ -674,7 +673,7 @@ let x1 = new Something     // Error FS0010
 let x2 = new Something()   // OK!
 ```
 
-Can also occur if you forgot to put parentheses around an operator:
+演算子を括弧で囲むのを忘れた場合にも発生します。
 
 ```fsharp
 // define new operator
@@ -686,14 +685,14 @@ let (|+) a = -a
 (|+) 1  // with parentheses -- OK!
 ```
 
-Can also occur if you are missing one side of an infix operator:
+infix演算子の片側が欠けている場合にも発生します。
 
 ```fsharp
 || true  // error FS0010: Unexpected symbol '||'
 false || true  // OK
 ```
 
-Can also occur if you attempt to send a namespace definition to F# interactive. The interactive console does not allow namespaces.
+名前空間の定義をF#インタラクティブに送ろうとした場合にも発生します。インタラクティブコンソールでは、名前空間を使用できません。
 
 ```fsharp
 namespace Customer  // FS0010: Incomplete structured construct
@@ -703,20 +702,20 @@ type Person= {First:string; Last:string}
 ```
 
 
-## FS0013: The static coercion from type X to Y involves an indeterminate type {#FS0013}
+## FS0013: X型からY型への静的な強制には、不確定な型が含まれています {#FS0013}。
 
-This is generally caused by implic
+これは一般的に暗黙の了解によって引き起こされます。
 
-## FS0020: This expression should have type 'unit' {#FS0020}
+## FS0020 この式の型は'unit'でなければなりません {#FS0020}。
 
-This error is commonly found in two situations:
+このエラーは以下の2つの状況でよく見られます。
 
-* Expressions that are not the last expression in the block
-* Using wrong assignment operator
+* ブロック内の最後の式ではない式
+* 誤った代入演算子の使用
 
-### FS0020 with expressions that are not the last expression in the block ###
+### FS0020 ブロック内の最後の式ではない式である場合 ###
 
-Only the last expression in a block can return a value. All others must return unit. So this typically occurs when you have a function in a place that is not the last function.
+ブロック内の最後の式のみが値を返すことができます。他の式はユニットを返さなければなりません。そのため、一般的には、最後の関数ではない場所に関数がある場合に発生します。
 
 ```fsharp
 let something =
@@ -724,7 +723,7 @@ let something =
   "hello"
 ```
 
-The easy fix is use `ignore`.  But ask yourself why you are using a function and then throwing away the answer -- it might be a bug.
+簡単な方法は `ignore` を使うことです。 しかし、なぜ関数を使って、その答えを捨ててしまうのかを考えてみてください。
 
 ```fsharp
 let something =
@@ -732,7 +731,7 @@ let something =
   "hello"
 ```
 
-This also occurs if you think you writing C# and you accidentally use semicolons to separate expressions:
+これは，C#を書いているつもりで，誤ってセミコロンで式を区切ってしまった場合にも起こります。
 
 ```fsharp
 // wrong
@@ -742,13 +741,13 @@ let result = 2+2; "hello";
 let result = 2+2 |> ignore; "hello";
 ```
 
-### FS0020 with assignment ###
+### FS0020 代入時 ###
 
-Another variant of this error occurs when assigning to a property.
+このエラーの別のバリエーションは、プロパティへの代入時に発生します。
 
-    This expression should have type 'unit', but has type 'Y'.
+    この式の型は'unit'であるべきですが、型は'Y'です。
 
-With this error, chances are you have confused the assignment operator "`<-`" for mutable values, with the equality comparison operator "`=`".
+このエラーでは、可変値の代入演算子「`<-`」と、等比演算子「`=`」を混同している可能性があります。
 
 ```fsharp
 // '=' versus '<-'
@@ -758,7 +757,7 @@ let add() =
     printfn "%d" x
 ```
 
-The fix is to use the proper assignment operator.
+修正方法は、適切な代入演算子を使うことです。
 
 ```fsharp
 // fixed
@@ -769,11 +768,11 @@ let add() =
 ```
 
 
-## FS0030: Value restriction {#FS0030}
+## FS0030: 値の制限{#FS0030}。
 
-This is related to F#'s automatic generalization to generic types whenever possible.
+これは、F#が可能な限り自動的にジェネリック型に一般化することに関連しています。
 
-For example, given :
+例えば，以下のような場合です．
 
 ```fsharp
 let id x = x
@@ -781,7 +780,7 @@ let compose f g x = g (f x)
 let opt = None
 ```
 
-F#'s type inference will cleverly figure out the generic types.
+F#の型推論は、ジェネリック型を巧妙に把握します。
 
 ```fsharp
 val id : 'a -> 'a
@@ -789,25 +788,25 @@ val compose : ('a -> 'b) -> ('b -> 'c) -> 'a -> 'c
 val opt : 'a option
 ```
 
-However in some cases, the F# compiler feels that the code is ambiguous, and, even though it looks like it is guessing the type correctly, it needs you to be more specific:
+しかし，いくつかのケースでは，F#コンパイラはコードが曖昧であると感じ，型を正しく推測しているように見えても，より具体的に記述する必要があると考えます。
 
 ```fsharp
 let idMap = List.map id             // error FS0030
 let blankConcat = String.concat ""  // error FS0030
 ```
 
-Almost always this will be caused by trying to define a partially applied function, and almost always, the easiest fix is to explicitly add the missing parameter:
+ほとんどの場合、この現象は、部分的に適用された関数を定義しようとしたことが原因です。そして、ほとんどの場合、最も簡単な修正方法は、不足しているパラメータを明示的に追加することです。
 
 ```fsharp
 let idMap list = List.map id list             // OK
 let blankConcat list = String.concat "" list  // OK
 ```
 
-For more details see the MSDN article on ["automatic generalization"](http://msdn.microsoft.com/en-us/library/dd233183%28v=VS.100%29.aspx).
+詳細はMSDNの["自動汎化"]の記事(http://msdn.microsoft.com/en-us/library/dd233183%28v=VS.100%29.aspx)を参照してください。
 
-## FS0035: This construct is deprecated {#FS0035}
+## FS0035: This construct is deprecated {#FS0035}.
 
-F# syntax has been cleaned up over the last few years, so if you are using examples from an older F# book or webpage, you may run into this.  See the MSDN documentation for the correct syntax.
+F# の構文はここ数年で整理されてきているので、古い F# の本や Web ページの例を使っていると、この問題に遭遇するかもしれません。 正しい構文については、MSDNのドキュメントを参照してください。
 
 ```fsharp
 let x = 10
@@ -816,22 +815,22 @@ let rnd2 = new System.Random(x)    // Good
 let rnd3 = new System.Random x     // error FS0035
 ```
 
-## FS0039: The field, constructor or member X is not defined {#FS0039}
+## FS0039: The field, constructor or member X is not defined {#FS0039}.
 
-This error is commonly found in four situations:
+このエラーは4つの状況でよく見られます。
 
-* The obvious case where something really isn't defined! And make sure that you don't have a typo or case mismatch either.
-* Interfaces
-* Recursion
-* Extension methods
+* 明らかに何かが本当に定義されていない場合です。また、タイプミスや大文字小文字の不一致がないかどうかも確認してください。
+* インターフェイス
+* 再帰
+* 拡張メソッド
 
-### FS0039 with interfaces ###
+### FS0039 インターフェイスについて ###
 
-In F# all interfaces are "explicit" implementations rather than "implicit". (Read the C# documentation on ["explicit interface implementation"](http://msdn.microsoft.com/en-us/library/aa288461%28v=vs.71%29.aspx) for an explanation of the difference).
+F#では、すべてのインターフェイスは「暗黙的」ではなく「明示的」な実装です。(この違いについては、C#のドキュメント["explicit interface implementation"](http://msdn.microsoft.com/en-us/library/aa288461%28v=vs.71%29.aspx)をお読みください)。
 
-The key point is that when a interface member is explicitly implemented, it cannot be accessed through a normal class instance, but only through an instance of the interface, so you have to cast to the interface type by using the `:>` operator.
+重要な点は、インターフェイスのメンバーが明示的に実装されている場合、通常のクラスのインスタンスからはアクセスできず、インターフェイスのインスタンスからしかアクセスできないということで、`:>`演算子を使ってインターフェイスの型にキャストする必要があります。
 
-Here's an example of a class that implements an interface:
+以下は，インターフェイスを実装したクラスの例です．
 
 ```fsharp
 type MyResource() =
@@ -839,7 +838,7 @@ type MyResource() =
        member this.Dispose() = printfn "disposed"
 ```
 
-This doesn't work:
+これではうまくいきません。
 
 ```fsharp
 let x = new MyResource()
@@ -847,7 +846,7 @@ x.Dispose()  // error FS0039: The field, constructor
              // or member 'Dispose' is not defined
 ```
 
-The fix is to cast the object to the interface, as below:
+修正方法は、以下のようにオブジェクトをインターフェイスにキャストすることです。
 
 ```fsharp
 // fixed by casting to System.IDisposable
@@ -860,7 +859,7 @@ y.Dispose()   // OK
 
 ### FS0039 with recursion ###
 
-Here's a standard Fibonacci implementation:
+標準的なフィボナッチの実装を紹介します。
 
 ```fsharp
 let fib i =
@@ -870,13 +869,13 @@ let fib i =
    | n -> fib(n-1) + fib(n-2)
 ```
 
-Unfortunately, this will not compile:
+残念ながら、これはコンパイルできません。
 
-    Error FS0039: The value or constructor 'fib' is not defined
+    エラー FS0039: The value or constructor 'fib' is not defined
 
-The reason is that when the compiler sees 'fib' in the body, it doesn't know about the function because it hasn't finished compiling it yet!
+これは、コンパイラがボディ内の'fib'を見たときに、まだコンパイルが終わっていないために、その関数について知らないからです。
 
-The fix is to use the "`rec`" keyword.
+これを解決するには、"`rec`"キーワードを使います。
 
 ```fsharp
 let rec fib i =
@@ -886,7 +885,7 @@ let rec fib i =
    | n -> fib(n-1) + fib(n-2)
 ```
 
-Note that this only applies to "`let`" functions. Member functions do not need this, because the scope rules are slightly different.
+これは、「`let`」関数にのみ適用されることに注意してください。メンバ関数では、スコープのルールが若干異なるため、これは必要ありません。
 
 ```fsharp
 type FibHelper() =
@@ -897,11 +896,11 @@ type FibHelper() =
        | n -> fib(n-1) + fib(n-2)
 ```
 
-### FS0039 with extension methods ###
+### FS0039 拡張メソッドについて ###
 
-If you have defined an extension method, you won't be able to use it unless the module is in scope.
+拡張メソッドを定義した場合、そのモジュールがスコープ内にないと使用できません。
 
-Here's a simple extension to demonstrate:
+ここでは、簡単な拡張機能を紹介します。
 
 ```fsharp
 module IntExtensions =
@@ -909,7 +908,7 @@ module IntExtensions =
         member this.IsEven = this % 2 = 0
 ```
 
-If you try to use it the extension, you get the FS0039 error:
+この拡張機能を使おうとすると、FS0039エラーが発生します。
 
 ```fsharp
 let i = 2
@@ -918,7 +917,7 @@ let result = i.IsEven
     // member 'IsEven' is not defined
 ```
 
-The fix is just to open the `IntExtensions` module.
+この問題を解決するには、`IntExtensions`モジュールを開くだけです。
 
 ```fsharp
 open IntExtensions // bring module into scope
@@ -926,27 +925,27 @@ let i = 2
 let result = i.IsEven  // fixed!
 ```
 
-## FS0041: A unique overload for could not be determined {#FS0041}
+## FS0041: A unique overload for could not be determined {#FS0041}.
 
-This can be caused when calling a .NET library function that has multiple overloads:
+この現象は、複数のオーバーロードを持つ.NETライブラリ関数を呼び出した場合に発生します。
 
 ```fsharp
 let streamReader filename = new System.IO.StreamReader(filename) // FS0041
 ```
 
-There a number of ways to fix this. One way is to use an explicit type annotation:
+この問題を解決する方法はいくつかあります。1つの方法は、明示的な型アノテーションを使用することです。
 
 ```fsharp
 let streamReader filename = new System.IO.StreamReader(filename:string) // OK
 ```
 
-You can sometimes use a named parameter to avoid the type annotation:
+型のアノテーションを使わずに、名前付きのパラメータを使うこともできます。
 
 ```fsharp
 let streamReader filename = new System.IO.StreamReader(path=filename) // OK
 ```
 
-Or you can try to create intermediate objects that help the type inference, again without needing type annotations:
+あるいは、型アノテーションを必要とせずに、型推論を助ける中間オブジェクトを作成することもできます。
 
 ```fsharp
 let streamReader filename =
@@ -954,11 +953,11 @@ let streamReader filename =
     new System.IO.StreamReader(fileInfo.FullName) // OK
 ```
 
-## FS0049: Uppercase variable identifiers should not generally be used in patterns {#FS0049}
+## FS0049: Uppercase variable identifiers should not generally be used in patterns {#FS0049}.
 
-When pattern matching, be aware of a subtle difference between the pure F# union types which consist of a tag only, and a .NET Enum type.
+パターンマッチングの際には、タグのみで構成される純粋なF#のユニオン型と、.NETのEnum型の微妙な違いに注意してください。
 
-Pure F# union type:
+純粋なF#のユニオン型:
 
 ```fsharp
 type ColorUnion = Red | Yellow
@@ -969,7 +968,7 @@ match redUnion with
 | _ -> printfn "something else"
 ```
 
-But with .NET enums you must fully qualify them:
+しかし、.NETのenumでは、完全に修飾しなければなりません:
 
 ```fsharp
 type ColorEnum = Green=0 | Blue=1      // enum
@@ -980,7 +979,7 @@ match blueEnum with
 | _ -> printfn "something else"
 ```
 
-The fixed version:
+修正版です:
 
 ```fsharp
 match blueEnum with
@@ -988,49 +987,49 @@ match blueEnum with
 | _ -> printfn "something else"
 ```
 
-## FS0072: Lookup on object of indeterminate type {#FS0072}
+## FS0072: 型が不明なオブジェクトの検索{#FS0072}について
 
-This occurs when "dotting into" an object whose type is unknown.
+これは、型が不明なオブジェクトに "ドットイン"したときに発生します。
 
-Consider the following example:
+次のような例を考えてみましょう。
 
 ```fsharp
 let stringLength x = x.Length // Error FS0072
 ```
 
-The compiler does not know what type "x" is, and therefore does not know if "`Length`" is a valid method.
+コンパイラは "x "の型を知らないので、"`Length`"が有効なメソッドであるかどうかもわかりません。
 
-There a number of ways to fix this. The crudest way is to provide an explicit type annotation:
+これを修正する方法はいくつかあります。最も粗野な方法は、明示的な型アノテーションを行うことです。
 
 ```fsharp
 let stringLength (x:string) = x.Length  // OK
 ```
 
-In some cases though, judicious rearrangement of the code can help. For example, the example below looks like it should work. It's obvious to a human that the `List.map` function is being applied to a list of strings, so why does `x.Length` cause an error?
+しかし、いくつかのケースでは、コードを適切に再配置することで解決できます。たとえば、下の例はうまくいくように見えます。`List.map`関数が文字列のリストに適用されていることは人間には明らかですが、なぜ`x.Length`がエラーになるのでしょうか？
 
 ```fsharp
 List.map (fun x -> x.Length) ["hello"; "world"] // Error FS0072
 ```
 
-The reason is that the F# compiler is currently a one-pass compiler, and so type information present later in the program cannot be used if it hasn't been parsed yet.
+その理由は、F#コンパイラは現在ワンパスコンパイラなので、プログラムの後半に存在する型情報がまだ解析されていない場合には、それを使用できないからです。
 
-Yes, you can always explicitly annotate:
+はい，いつでも明示的にアノテーションすることができます．
 
 ```fsharp
 List.map (fun x:string -> x.Length) ["hello"; "world"] // OK
 ```
 
-But another, more elegant way that will often fix the problem is to rearrange things so the known types come first, and the compiler can digest them before it moves to the next clause.
+しかし、別のもっとエレガントな方法では、既知の型が最初に来るように並べ替えて、コンパイラが次の節に移る前にそれらを消化できるようにすることで、しばしば問題を解決できます。
 
 ```fsharp
 ["hello"; "world"] |> List.map (fun x -> x.Length)   // OK
 ```
 
-It's good practice to avoid explicit type annotations, so this approach is best, if it is feasible.
+明示的な型のアノテーションは避けるのは良いことなので、実現可能であれば、この方法がベストです。
 
-## FS0588: Block following this 'let' is unfinished {#FS0588}
+## FS0588: この'let'に続くブロックは未完成です {#FS0588}.
 
-Caused by outdenting an expression in a block, and thus breaking the "offside rule".
+ブロック内の式をアウトデントすることで、"オフサイドルール "を破っていることが原因です。
 
 ```fsharp
 //3456789
@@ -1041,6 +1040,6 @@ let f =
              // 'let' is unfinished
 ```
 
-The fix is to align the code correctly.
+修正方法は、コードを正しく整列させることです。
 
-See also [FS0010: Unexpected identifier in binding](#FS0010a) for another issue caused by alignment.
+アラインメントに起因する別の問題については、[FS0010: Unexpected identifier in binding](#FS0010a)も参照してください。
