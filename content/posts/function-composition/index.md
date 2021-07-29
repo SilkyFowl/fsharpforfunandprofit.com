@@ -10,56 +10,56 @@ categories: [Functions]
 image: "/posts/function-composition/Functions_Composition.png"
 ---
 
-## Function associativity ##
+## 関数の結合性 ##
 
-If we have a chain of functions in a row, how are they combined?
+関数が連鎖している場合、どのように結合されるのでしょう?
 
-For example, what does this mean?
+例えば、これは何を意味しているのでしょうか?
 
 ```fsharp
 let F x y z = x y z
 ```
 
-Does it mean apply the function y to the argument z, and then take the result and use it as an argument for x? In which case it is the same as:
+関数yにパラメータzを代入し、その結果をxに適用するということですか?その場合は、次のようになります:
 
 ```fsharp
 let F x y z = x (y z)
 ```
 
-Or does it mean apply the function x to the argument y, and then take the resulting function and evaluate it with the argument z? In which case it is the same as:
+それとも、関数xにパラメータyを代入し、その結果得られた関数をパラメータzで評価するということでしょうか?その場合は、次のようになります:
 
 ```fsharp
 let F x y z = (x y) z
 ```
 
-The answer is the latter.  Function application is *left associative*. That is, evaluating `x y z` is the same as evaluating `(x y) z`.  And evaluating `w x y z` is the same as evaluating `((w x) y) z`. This should not be a surprise. We have already seen that this is how partial application works. If you think of x as a two parameter function, then `(x y) z` is the result of partial application of the first parameter, followed by passing the z argument to the intermediate function.
+答えは後者です。関数適用は*左結合*です。つまり、`x y z`を評価することは、` (x y) z`を評価することと同義です。また、`w x y z`を評価することは、` ( (w x) y) z`を評価することと同義です。これは驚くべきことではありません。これが部分適用の仕組みであることはすでに見ました。xを2パラメータ関数と考える場合、` (x y) z`は最初のパラメータを部分適用した後、z引数を中間関数に渡した結果です。
 
-If you do want to do right association, you can use explicit parentheses, or you can use a pipe. The following three forms are equivalent.
+適切に結合するには、明示的に括弧を使用するか、パイプを使用します。次の3つの形式は同等です。
 
 ```fsharp
 let F x y z = x (y z)
-let F x y z = y z |> x    // using forward pipe
-let F x y z = x <| y z    // using backward pipe
+let F x y z = y z |> x    // 順方向パイプを使用
+let F x y z = x <| y z    // 逆方向パイプを使用
 ```
 
-As an exercise, work out the signatures for these functions without actually evaluating them!
+練習として、これらの関数のシグネチャを実際に評価せずに考えてみてください！
 
-## Function composition ##
+## 関数の合成 ##
 
-We've mentioned function composition a number of times in passing now, but what does it actually mean? It can seem quite intimidating at first, but it is actually quite simple.
+関数合成はこれまで何度も言及してきましたが、実際には何を意味するのでしょうか?最初はかなり威圧的に見えるかもしれませんが、実際はとても単純です。
 
-Say that you have a function "f" that maps from type "T1" to type "T2", and say that you also have a function "g" that maps from type "T2" to type "T3". Then you can connect the output of "f" to the input of "g", creating a new function that maps from type "T1" to type "T3".
+型「T1」から型「T2」 への写像である関数「f」があり、型「T2」から型「T3」への写像である関数「g」があるとします。すると、「f」の出力を「g」の入力に接続し、型「T1」から型「T3」への写像である新しい関数を生成することができます。
 
 ![](./Functions_Composition.png)
 
-Here's an example
+以下はその例です。
 
 ```fsharp
 let f (x:int) = float x * 3.0  // f is int->float
 let g (x:float) = x > 4.0      // g is float->bool
 ```
 
-We can create a new function h that takes the output of "f" and uses it as the input for "g".
+「f」の出力を受け取り、それを「g」の入力として使用する新しい関数 「h」 を作成できます。
 
 ```fsharp
 let h (x:int) =
@@ -67,7 +67,7 @@ let h (x:int) =
     g(y)                   // return output of g
 ```
 
-A much more compact way is this:
+もっとコンパクトな方法はこれです。
 
 ```fsharp
 let h (x:int) = g ( f(x) ) // h is int->bool
@@ -77,27 +77,27 @@ h 1
 h 2
 ```
 
-So far, so straightforward. What is interesting is that we can define a new function called "compose" that, given functions "f" and "g", combines them in this way without even knowing their signatures.
+これでは簡単です。面白いのは、「compose」という新しい関数を定義できることです。「compose」は、関数 「f」と「g」 を引数にとり、そのシグネチャを知らないまま、これらをこのように結合します。
 
 ```fsharp
 let compose f g x = g ( f(x) )
 ```
 
-If you evaluate this, you will see that the compiler has correctly deduced that if "`f`" is a function from generic type `'a` to generic type `'b`, then "`g`" is constrained to have generic type `'b` as an input. And the overall signature is:
+これを評価すると、コンパイラは 「`f`」 がジェネリック型「`'a`」からジェネリック型「`'b`」への関数である場合、 「`g`」 は入力としてジェネリック型「`'b`」を持つように制約します。全体的なシグネチャは次のとおりです:
 
 ```fsharp
 val compose : ('a -> 'b) -> ('b -> 'c) -> 'a -> 'c
 ```
 
-(Note that this generic composition operation is only possible because every function has one input and one output. This approach would not be possible in a non-functional language.)
+(この汎用的な合成処理は、すべての関数の入出力が1つであるため可能となるのです。この方法は、関数型でない言語ではできないでしょう)
 
-As we have seen, the actual definition of compose uses the "`>>`" symbol.
+これまで見てきたように、実際のcomposeは 「`>>`」 記号で定義されています。
 
 ```fsharp
 let (>>) f g x = g ( f(x) )
 ```
 
-Given this definition, we can now use composition to build new functions from existing ones.
+この定義により、既存の関数から新しい関数を構築するために合成を使用することができます。
 
 ```fsharp
 let add1 x = x + 1
@@ -108,21 +108,21 @@ let add1Times2 x = (>>) add1 times2 x
 add1Times2 3
 ```
 
-This explicit style is quite cluttered. We can do a few things to make it easier to use and understand.
+この明示的なスタイルはかなり雑然としています。使いやすく、理解しやすくするための手順は以下のとおりです。
 
-First, we can leave off the x parameter so that the composition operator returns a partial application.
+まず、xパラメータを省略して、合成演算子が部分適用を返すようにします。
 
 ```fsharp
 let add1Times2 = (>>) add1 times2
 ```
 
-And now we have a binary operation, so we can put the operator in the middle.
+これで2項演算となり、演算子を中間に置くことができます。
 
 ```fsharp
 let add1Times2 = add1 >> times2
 ```
 
-And there you have it. Using the composition operator allows code to be cleaner and more straightforward.
+これで出来上がりです。合成演算子を使うことで、コードをより簡潔で分かりやすくできます。
 
 ```fsharp
 let add1 x = x + 1
@@ -135,11 +135,11 @@ let add1Times2 x = times2(add1 x)
 let add1Times2 = add1 >> times2
 ```
 
-## Using the composition operator in practice ##
+## 実際に合成演算子を使用する ##
 
-The composition operator (like all infix operators) has lower precedence than normal function application. This means that the functions used in composition can have arguments without needing to use parentheses.
+合成演算子 は (他の中置演算子と同様に) 通常の関数適用よりも優先順位が低いです。つまり、合成で使用される関数は、括弧を使わずに引数を持つことができます。
 
-For example, if the "add" and "times" functions have an extra parameter, this can be passed in during the composition.
+たとえば、「add」 関数と 「times」 関数に追加のパラメータがある場合、これを合成時に引数として渡すことができます。
 
 ```fsharp
 let add n x = x + n
@@ -151,15 +151,15 @@ let add5Times3 = add 5 >> times 3
 add5Times3 1
 ```
 
-As long as the inputs and outputs match, the functions involved can use any kind of value. For example, consider the following, which performs a function twice:
+入力と出力が一致しているならば、その関数にはどんな値でも入力できます。たとえば、関数を2回実行する次の例を考えてみます:
 
 ```fsharp
 let twice f = f >> f    //signature is ('a -> 'a) -> ('a -> 'a)
 ```
 
-Note that the compiler has deduced that the function f must use the same type for both input and output.
+コンパイラは、関数fが入出力の両方で同一型を使用すると推定していることに注目してください。
 
-Now consider a function like "`+`". As we have seen earlier, the input is an `int`, but the output is actually a partially applied function `(int->int)`. The output of "`+`" can thus be used as the input of "`twice`". So we can write something like:
+ここで、「`+`」のような関数を考えてみましょう。前述したように、入力は 「`int`」 ですが、出力は実際には部分的に適用された関数 「` (int->int) `」 です。したがって、「`+`」の出力は、「`twice`」 の入力として使用できます。次のように記述します:
 
 ```fsharp
 let add1 = (+) 1           // signature is (int -> int)
@@ -169,32 +169,32 @@ let add1Twice = twice add1 // signature is also (int -> int)
 add1Twice 9
 ```
 
-On the other hand, we can't write something like:
+一方で，次のような書き方はできません。
 
 ```fsharp
 let addThenMultiply = (+) >> (*)
 ```
 
-because the input to "*" must be an `int` value, not an `int->int` function (which is what the output of addition is).
+なぜなら、「*」への入力は、`int`値でなければなりません、`int->int`関数ではありません (これは加算の出力となります) 。
 
-But if we tweak it so that the first function has an output of just `int` instead, then it does work:
+しかし、最初の関数の出力が `int`だけになるように調整すれば、動作します。
 
 ```fsharp
 let add1ThenMultiply = (+) 1 >> (*)
-// (+) 1 has signature (int -> int) and output is an 'int'
+// (+) 1 はシグネチャ (int->int) を持ち、出力は'int'
 
 //test
 add1ThenMultiply 2 7
 ```
 
-Composition can also be done backwards using the "`<<`" operator, if needed.
+必要に応じて、「`<<`」演算子を使用して逆方向に合成することもできます。
 
 ```fsharp
 let times2Add1 = add 1 << times 2
 times2Add1 3
 ```
 
-Reverse composition is mainly used to make code more English-like. For example, here is a simple example:
+逆合成は、主にコードをより英語らしくするために使用されます。次に簡単な例を示します:
 
 ```fsharp
 let myList = []
@@ -203,17 +203,17 @@ myList |> List.isEmpty |> not    // straight pipeline
 myList |> (not << List.isEmpty)  // using reverse composition
 ```
 
-## Composition vs. pipeline ##
+## 合成 vs. パイプライン ##
 
-At this point, you might be wondering what the difference is between the composition operator and the pipeline operator, as they can seem quite similar.
+ここでは、合成演算子とパイプライン演算子が非常によく似ているように見えるため、どのような違いがあるのか疑問に思うかもしれません。
 
-First let's look again at the definition of the pipeline operator:
+まず、パイプライン演算子の定義をもう一度見てみましょう。
 
 ```fsharp
 let (|>) x f = f x
 ```
 
-All it does is allow you to put the function argument in front of the function rather than after. That's all. If the function has multiple parameters, then the input would be the final parameter. Here's the example used earlier.
+これにより、関数の引数を関数の後ではなく前に配置できるようになります。それだけです。関数にパラメータが複数ある場合は、パイプ入力された値が最後のパラメータになります。前に使用した例を次に示します:
 
 ```fsharp
 let doSomething x y z = x+y+z
@@ -221,19 +221,19 @@ doSomething 1 2 3       // all parameters after function
 3 |> doSomething 1 2    // last parameter piped in
 ```
 
-Composition is not the same thing and cannot be a substitute for a pipe. In the following case the number 3 is not even a function, so its "output" cannot be fed into `doSomething`:
+合成は別物で、パイプの代替にはなりません。次の例では、数値3は関数ではないため、その「出力」を`doSomething`に渡すことはできません。
 
 ```fsharp
 3 >> doSomething 1 2     // not allowed
-// f >> g is the same as  g(f(x)) so rewriting it we have:
-doSomething 1 2 ( 3(x) ) // implies 3 should be a function!
+// f >> g は g(f(x))と同じなので、次のように書き換えます:
+doSomething 1 2 ( 3(x) ) // つまり、3は関数でなければなりません!
 // error FS0001: This expression was expected to have type 'a->'b
 //               but here has type int
 ```
 
-The compiler is complaining that "3" should be some sort of function `'a->'b`.
+コンパイラは、「3」が何らかの関数`'a->'b`であるべきだと不満を言っています。
 
-Compare this with the definition of composition, which takes 3 arguments, where the first two must be functions.
+これを、3つの引数を取る合成関数の定義と比較してください。最初の2つは関数である必要があります。
 
 ```fsharp
 let (>>) f g x = g ( f(x) )
@@ -243,13 +243,13 @@ let times n x = x * n
 let add1Times2 = add 1 >> times 2
 ```
 
-Trying to use a pipe instead doesn't work. In the following example, "`add 1`" is a (partial) function of type `int->int`, and cannot be used as the second parameter of "`times 2`".
+パイプを代用することもできません。次の例では、「`add1`」は`int->int`型の (部分的な) 関数であり、「`times 2`」の2番目のパラメータとして使用することはできません。
 
 ```fsharp
 let add1Times2 = add 1 |> times 2   // not allowed
-// x |> f is the same as  f(x) so rewriting it we have:
-let add1Times2 = times 2 (add 1)    // add1 should be an int
+// x |> fは f(x) と同じなので、次のように書き換えます:
+let add1Times2 = times 2 (add 1)    // add1はintである必要があります
 // error FS0001: Type mismatch. 'int -> int' does not match 'int'
 ```
 
-The compiler is complaining that "`times 2`" should take an `int->int` parameter, that is, be of type `(int->int)->'a`.
+コンパイラは、「`times2`」が`int->int`パラメータ、つまり`(int->int) ->'a`型を取るべきだと文句を言ってきます。
