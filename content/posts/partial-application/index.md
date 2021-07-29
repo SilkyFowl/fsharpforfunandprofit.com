@@ -10,66 +10,66 @@ categories: [Currying, Partial Application]
 ---
 
 
-In the previous post on currying, we looked at breaking multiple parameter functions into smaller one parameter functions. It is the mathematically correct way of doing it, but that is not the only reason it is done -- it also leads to a very powerful technique called **partial function application**. This is a very widely used style in functional programming, and it is important to understand it.
+前の記事では、複数パラメータ関数をより小さな1つのパラメータ関数に分割する方法について説明しました。これは数学的に正しい方法ですが、それだけではありません--これは**部分適用**と呼ばれる非常に強力なテクニックにもつながります。これは関数型プログラミングで非常に広く使われているスタイルで、理解することが重要です。
 
-The idea of partial application is that if you fix the first N parameters of the function, you get a function of the remaining parameters. From the discussion on currying, you can probably see how this comes about naturally.
+部分適用の考え方は、関数の最初のN個のパラメータを固定すると、残りのパラメータを引数とする関数が得られるというものです。カリー化の話から、これは当たり前に起こることであると分かるでしょう。
 
-Here are some simple examples that demonstrate this:
+これを示す簡単な例をいくつか示します。
 
 ```fsharp {src=#demo1}
-// create an "adder" by partial application of add
-let add42 = (+) 42    // partial application
+// addの部分適用による「加算器」の作成
+let add42 = (+) 42    // 部分適用
 add42 1
 add42 3
 
-// create a new list by applying the add42 function
-// to each element
+// 各要素にadd42関数を適用して
+// 新しいリストを作成する
 [1;2;3] |> List.map add42
 
-// create a "tester" by partial application of "less than"
-let twoIsLessThan = (<) 2   // partial application
+// 「less than」 の部分適用による 「テスター」 の作成
+let twoIsLessThan = (<) 2   //  部分適用
 twoIsLessThan 1
 twoIsLessThan 3
 
-// filter each element with the twoIsLessThan function
+// twoIsLessThan関数で各要素をフィルタリング
 [1;2;3] |> List.filter twoIsLessThan
 
-// create a "printer" by partial application of printfn
+// printfnを部分適用し 「プリンタ」 を作成する
 let printer = printfn "printing param=%i"
 
-// loop over each element and call the printer function
+// 各要素をループしてprinter関数を呼び出す
 [1;2;3] |> List.iter printer
 ```
 
-In each case, we create a partially applied function that we can then reuse in multiple contexts.
+いずれの場合も、部分適用された関数を作成し、複数のコンテキストで再利用できます。
 
-The partial application can just as easily involve fixing function parameters, of course. Here are some examples:
+もちろん、関数パラメータを固定することも、部分適用で簡単に行えます。次に例を示します。
 
 ```fsharp {src=#listDemo}
-// an example using List.map
+// List.mapを使用した例
 let add1 = (+) 1
-let add1ToEach = List.map add1   // fix the "add1" function
+let add1ToEach = List.map add1   // 「add1」 関数を修正
 
 // test
 add1ToEach [1;2;3;4]
 
-// an example using List.filter
+// List.filterを使用した例
 let filterEvens =
-  List.filter (fun i -> i%2 = 0) // fix the filter function
+  List.filter (fun i -> i%2 = 0) // フィルタ関数を修正
 
 // test
 filterEvens [1;2;3;4]
 ```
 
-The following more complex example shows how the same approach can be used to create "plug in" behavior that is transparent.
+次のより複雑な例は、同じ方法で透過的な 「プラグイン」 動作を実現する方法を示しています。
 
-* We create a function that adds two numbers, but in addition takes a logging function that will log the two numbers and the result.
-* The logging function has two parameters: (string) "name" and (generic) "value", so it has signature `string->'a->unit`.
-* We then create various implementations of the logging function, such as a console logger or a colored logger.
-* And finally we partially apply the main function to create new functions that have a particular logger baked into them.
+* 2つの数値を加算する関数を作成し、さらに2つの数値とその結果をログに出力するロギング関数を引数とします。
+* ロギング関数には (string) 「name」 と (generic) 「value」 の2つのパラメータがあるため、シグネチャ`string->'a->unit`があります。
+* 次に、コンソールロガーや色付きロガーなど、ロギング機能のさまざまな実装を作成します。
+* 最後に、main関数で部分適用することで、特定のロガーを組み込んだ新しい関数を作成します。
 
 ```fsharp {src=#logger}
-// create an adder that supports a pluggable logging function
+// プラグイン可能なロギング関数をサポートする加算器を作成
 let adderWithPluggableLogger logger x y =
   logger "x" x
   logger "y" y
@@ -77,46 +77,46 @@ let adderWithPluggableLogger logger x y =
   logger "x+y"  result
   result
 
-// create a logging function that writes to the console
+// コンソールに出力するロギング関数を作成
 let consoleLogger argName argValue =
   printfn "%s=%A" argName argValue
 
-//create an adder with the console logger partially applied
+//コンソールロガーが部分適用された加算器を作成
 let addWithConsoleLogger = adderWithPluggableLogger consoleLogger
 addWithConsoleLogger 1 2
 addWithConsoleLogger 42 99
 
-// create a logging function that uses red text
+// 赤文字を使用するロギング関数を作成
 let redLogger argName argValue =
   let message = sprintf "%s=%A" argName argValue
   System.Console.ForegroundColor <- System.ConsoleColor.Red
   System.Console.WriteLine("{0}",message)
   System.Console.ResetColor()
 
-//create an adder with the popup logger partially applied
+// 部分適用されたポップアップロガーを使用する加算器を作成
 let addWithRedLogger = adderWithPluggableLogger redLogger
 addWithRedLogger 1 2
 addWithRedLogger 42 99
 ```
 
-These functions with the logger baked in can in turn be used like any other function. For example, we can create a partial application to add 42, and then pass that into a list function, just like we did for the simple "`add42`" function.
+ロガーを組み込んだこれらの関数は、他の関数と同様に使用できます。例えば、単純な「`add42`」 関数で行ったように、42を追加して部分適用された関数を作成し、それをリスト関数に渡すことができます。
 
 ```fsharp {src=#add42WithConsoleLogger}
-// create a another adder with 42 baked in
+// 42を組み込んだ別の加算器を作成
 let add42WithConsoleLogger = addWithConsoleLogger 42
 [1;2;3] |> List.map add42WithConsoleLogger
-[1;2;3] |> List.map add42               //compare without logger
+[1;2;3] |> List.map add42               //ロガーなしとの比較
 ```
 
-These partially applied functions are a very useful tool. We can create library functions which are flexible (but complicated), yet make it easy to create reusable defaults so that callers don't have to be exposed to the complexity all the time.
+これらの部分適用された関数は非常に有用なツールです。柔軟な (しかし複雑な) ライブラリ関数を作りつつ、再使用可能な既定値を簡単に作ることができるので、呼出し側が常にその複雑さにさらされる必要がなくなります。
 
-## Designing functions for partial application ##
+## 部分適用のための関数設計 ##
 
-You can see that the order of the parameters can make a big difference in the ease of use for partial application. For example, most of the functions in the `List` library such as `List.map` and `List.filter` have a similar form, namely:
+パラメータの順序によって、部分適用の使いやすさは大きく異なります。たとえば、`List.map`や`List.filter`など、`List`ライブラリ内のほとんどの関数は、次のような似た形式を持っています。
 
 	List-function [function parameter(s)] [list]
 
-The list is always the last parameter. Here are some examples of the full form:
+リストは常に最後の引数です。完全な形式の例を次に示します。
 
 ```fsharp {src=#listWithoutPa}
 List.map    (fun i -> i+1) [0;1;2;3]
@@ -124,7 +124,7 @@ List.filter (fun i -> i>1) [0;1;2;3]
 List.sortBy (fun i -> -i ) [0;1;2;3]
 ```
 
-And the same examples using partial application:
+部分適用を使った同じ例:
 
 ```fsharp {src=#listWithPa}
 let eachAdd1 = List.map (fun i -> i+1)
@@ -137,20 +137,20 @@ let sortDesc = List.sortBy (fun i -> -i)
 sortDesc [0;1;2;3]
 ```
 
-If the library functions were written with the parameters in a different order, it would be much more inconvenient to use them with partial application.
+もし、ライブラリ関数が異なる順序の引数で書かれていたら、部分適用を使うことがずっと不便になってしたたでしょう。
 
-As you write your own multi-parameter functions, you might wonder what the best parameter order is. As with all design questions, there is no "right" answer to this question, but here are some commonly accepted guidelines:
+独自の複数パラメータ関数を作成する場合、最適なパラメータの順序は何か気になるかもしれません。他の設計に関する質問と同様、この質問に対する 「正しい」 回答はありませんが、一般的に受け入れられているガイドラインをいくつか示します。
 
-1.	Put earlier: parameters more likely to be static
-2.	Put last: the data structure or collection (or most varying argument)
-3.	For well-known operations such as "subtract", put in the expected order
+1. 先に配置:静的になりやすいパラメータ
+2. 最後に配置:データ構造またはコレクション (あるいは最も変わりやすい引数)
+3. 「減算する」など、よく知られる処理については、想定される順序で配置します。
 
-Guideline 1 is straightforward. The parameters that are most likely to be "fixed" with partial application should be first. We saw this with the logger example earlier.
+ガイドライン1は簡単です。部分的適用で「固定」 される可能性が最も高いパラメータが最初になります。先ほどのロガーの例でこれを見ました。
 
-Guideline 2 makes it easier to pipe a structure or collection from function to function. We have seen this many times already with list functions.
+ガイドライン2で、構造またはコレクションを関数から関数へパイプすることが容易になります。これはリスト関数で既に何度も見てきました。
 
 ```fsharp {src=#listPipe}
-// piping using list functions
+// リスト関数を使用したパイプ処理
 let result =
   [1..10]
   |> List.map (fun i -> i+1)
@@ -158,24 +158,24 @@ let result =
 // output => [6; 7; 8; 9; 10; 11]
 ```
 
-Similarly, partially applied list functions are easy to compose, because the list parameter itself can be easily elided:
+同様に、部分適用されたリスト関数は簡単に合成できます。これは、リストパラメータ自体を簡単に省略できるためです。
 
 ```fsharp {src=#listCompose}
 let f1 = List.map (fun i -> i+1)
 let f2 = List.filter (fun i -> i>5)
-let compositeOp = f1 >> f2 // compose
+let compositeOp = f1 >> f2 // 合成
 let result = compositeOp [1..10]
 // output => [6; 7; 8; 9; 10; 11]
 ```
 
-### Wrapping BCL functions for partial application ###
+### 部分適用のための基本クラスライブラリのラッパー関数 ###
 
-The .NET base class library functions are easy to access in F#, but are not really designed for use with a functional language like F#. For example, most functions have the data parameter first, while with F#, as we have seen, the data parameter should normally come last.
+.NET基本クラスライブラリの機能はF#で簡単にアクセスできますが、実際のところF#のような関数型言語で使うようには設計されていません。例えば、ほとんどの関数は最初にdataパラメータを要求しますが、先ほど説明したようにF#ではdataパラメータは通常最後になります。
 
-However, it is easy enough to create wrappers for them that are more idiomatic. For example, in the snippet below, the .NET string functions are rewritten to have the string target be the last parameter rather than the first:
+しかし、より慣用的なラッパーを作成するのは簡単です。たとえば次のスニペットでは、.NET string関数は、stringターゲットが最初ではなく最後のパラメータになるように書き換えられます。
 
 ```fsharp {src=#wrapper}
-// create wrappers for .NET string functions
+// .NET string関数のラッパーを作成します。
 let replace oldStr newStr (s:string) =
   s.Replace(oldValue=oldStr, newValue=newStr)
 
@@ -183,7 +183,7 @@ let startsWith (lookFor:string) (s:string) =
   s.StartsWith(lookFor)
 ```
 
-Once the string becomes the last parameter, we can then use them with pipes in the expected way:
+文字列が最後のパラメータになると、期待通りにパイプで使用できます:
 
 ```fsharp {src=#wrapperPipes}
 let result =
@@ -195,73 +195,73 @@ let result =
   |> List.filter (startsWith "f")
 ```
 
-or with function composition:
+関数合成を使用する場合:
 
 ```fsharp {src=#wrapperCompose}
 let compositeOp = replace "h" "j" >> startsWith "j"
 let result = compositeOp "hello"
 ```
 
-### Understanding the "pipe" function ###
+### "pipe"関数を理解する ###.
 
-Now that you have seen how partial application works, you should be able to understand how the "pipe" function works.
+部分適用の仕組みが分かったなら、「pipe」 関数の仕組みも理解できるはずです。
 
-The pipe function is defined as:
+pipe関数は次のように定義されます:
 
 ```fsharp {src=#pipeDefinition}
 let (|>) x f = f x
 ```
 
-All it does is allow you to put the function argument in front of the function rather than after. That's all.
+この関数は、引数を関数の後ではなく前に配置できるようにします。それだけです。
 
 ```fsharp {src=#pipe1}
 let doSomething x y z = x+y+z
-doSomething 1 2 3       // all parameters after function
+doSomething 1 2 3       // 全てのパラメータが関数の後に配置されてる
 ```
 
-If the function has multiple parameters, then it appears that the input is the final parameter. Actually what is happening is that the function is partially applied, returning a function that has a single parameter: the input
+関数に複数パラメータがある場合は、入力が最終パラメータになるように見えます。しかし実際には、関数は部分適用され、単一のパラメータを持つ関数を返します。
 
-Here's the same example rewritten to use partial application
+同じ例を、部分適用を用いて書き直しました。
 
 ```fsharp {src=#pipe2}
 let doSomething x y  =
   let intermediateFn z = x+y+z
-  intermediateFn        // return intermediateFn
+  intermediateFn        // intermediateFnを返す
 
 let doSomethingPartial = doSomething 1 2
-doSomethingPartial 3     // only one parameter after function now
-3 |> doSomethingPartial  // same as above - last parameter piped in
+doSomethingPartial 3     // この時点では関数の後のパラメータは1つだけ
+3 |> doSomethingPartial  // 上と同等 - 最終パラメータをパイプで入力
 ```
 
-As you have already seen, the pipe operator is extremely common in F#, and used all the time to preserve a natural flow. Here are some more usages that you might see:
+既に説明したように、F#ではパイプ演算子は極めて一般的であり、自然な流れを維持するためにいつも使用されます。その他の使用方法を次に示します:
 
 ```fsharp {src=#pipe3}
-"12" |> int               // parses string "12" to an int
-1 |> (+) 2 |> (*) 3       // chain of arithmetic
+"12" |> int               // 文字列「12」をintに変換
+1 |> (+) 2 |> (*) 3       // 算術の連鎖
 ```
 
-### The reverse pipe function ###
+### 逆パイプ関数 ###
 
-You might occasionally see the reverse pipe function "<|" being used.
+パイプの逆関数「<|」が使用されていることがあります。
 
 ```fsharp {src=#reversePipe}
 let (<|) f x = f x
 ```
 
-It seems that this function doesn't really do anything different from normal, so why does it exist?
+この機能を使っても通常どおりの動作しかしないように見えますが、なぜ存在するのでしょうか?
 
-The reason is that, when used in the infix style as a binary operator, it reduces the need for parentheses and can make the code cleaner.
+その理由は、中置形式で二項演算子として使用すると、括弧の必要性が減り、コードが簡潔になるためです。
 
 ```fsharp {src=#reversePipeDemo1}
 printf "%i" 1+2          // error
-printf "%i" (1+2)        // using parens
-printf "%i" <| 1+2       // using reverse pipe
+printf "%i" (1+2)        // 括弧を使用
+printf "%i" <| 1+2       // 逆パイプを使用
 ```
 
-You can also use piping in both directions at once to get a pseudo infix notation.
+一度に両方向のパイプを使用して、擬似的に中置記法を使用することもできます。
 
 ```fsharp {src=#reversePipeDemo2}
 let add x y = x + y
 (1+2) add (3+4)          // error
-1+2 |> add <| 3+4        // pseudo infix
+1+2 |> add <| 3+4        // 中値記法
 ```
