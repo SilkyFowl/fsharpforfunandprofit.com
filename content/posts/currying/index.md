@@ -9,11 +9,11 @@ seriesOrder: 5
 categories: [Currying]
 ---
 
-After that little digression on basic types, we can turn back to functions again, and in particular the puzzle we mentioned earlier: if a mathematical function can only have one parameter, then how is it possible that an F# function can have more than one?
+基本型について少し説明した後で、改めて関数について説明します。ここで前述のパズルを思い出してください。数学関数が1つのパラメータしか持てないのであれば、F#関数が複数のパラメータを持つことできるのは何故でしょう?
 
-The answer is quite simple: a function with multiple parameters is rewritten as a series of new functions, each with only one parameter. And this is done automatically by the compiler for you. It is called "**currying**", after Haskell Curry, a mathematician who was an important influence on the development of functional programming.
+その答えは非常に単純です。複数のパラメータを持つ関数は、それぞれ1つのパラメータだけを持つ新しい関数の連続に書き換えられます。これはコンパイラによって自動的に行われます。関数型プログラミングの開発に大きな影響を与えた数学者Haskell Curry氏にちなんで「**カリー化**」 と呼ばれています。
 
-To see how this works in practice, let's use a very basic example that prints two numbers:
+これが実際にどのように機能するか見るために、2つの数値を出力する非常に基本的な例を見てみましょう:
 
 ```fsharp
 //normal version
@@ -21,7 +21,7 @@ let printTwoParameters x y =
    printfn "x=%i y=%i" x y
 ```
 
-Internally, the compiler rewrites it as something more like:
+内部的には、コンパイラーはこれを次のようなものに書き換えます。
 
 ```fsharp
 //explicitly curried version
@@ -31,14 +31,14 @@ let printTwoParameters x  =    // only one parameter!
    subFunction                 // return the subfunction
 ```
 
-Let's examine this in more detail:
+詳しく見てみましょう。
 
-1.	Construct the function called "`printTwoParameters`" but with only *one* parameter: "x"
-2.	Inside that, construct a subfunction that has only *one* parameter: "y". Note that this inner function uses the "x" parameter but x is not passed to it explicitly as a parameter. The "x" parameter is in scope, so the inner function can see it and use it without needing it to be passed in.
-3.	Finally, return the newly created subfunction.
-4.	This returned function is then later used against "y".  The "x" parameter is baked into it, so the returned function only needs the y param to finish off the function logic.
+1. 「`printTwoParameters`」という名前の関数を*1つの*パラメータ 「x」 のみで構築します。
+2. その中で、*1つの*パラメータ 「y」 のみを持つ副関数を定義します。この内部関数は 「x」 パラメータを使用しますが、xはパラメータとして明示的に渡されないことに注意してください。「x」パラメータはスコープ内にあるため、内部関数はこれを参照し、渡されなくても使用できます。
+3. 最後に、新しく作成した副関数を返します。
+4. この戻された関数は、後で「y」に対して使用されます。「x」パラメータが組み込まれているため、返される関数に必要なのは、関数ロジックを完了させるための 「y」 パラメータだけです。
 
-By rewriting it this way, the compiler has ensured that every function has only one parameter, as required. So when you use "`printTwoParameters`", you might think that you are using a two parameter function, but it is actually only a one parameter function!  You can see for yourself by passing only one argument instead of two:
+このように書き換えることで、コンパイラはすべての関数が必要に応じてパラメータを1つだけ持つことを保証します。したがって、「`printTwoParameters`」を使用すると、2つのパラメータ関数を使用しているように思われるかもしれませんが、実際には1つのパラメータ関数です。2つではなく1つの引数を渡すだけなのは、自分で確認できます:
 
 ```fsharp
 // eval with one argument
@@ -48,15 +48,15 @@ printTwoParameters 1
 val it : (int -> unit) = <fun:printTwoParameters@286-3>
 ```
 
-If you evaluate it with one argument, you don't get an error, you get back a function.
+1つの引数で評価すると、エラーは発生せずに関数が返されます。
 
-So what you are really doing when you call `printTwoParameters` with two arguments is:
+したがって、2つの引数を指定して`printTwoParameters`を呼び出すと、実際には次のようになります。
 
-* You call `printTwoParameters` with the first argument (x)
-* `printTwoParameters` returns a new function that has "x" baked into it.
-* You then call the new function with the second argument (y)
+* 最初の引数 (x) を指定して`printTwoParameters`を呼び出します。
+* `printTwoParameters`は、「x」が組み込まれた新しい関数を返します。
+* 次に、2番目の引数 (y) で新しい関数を呼び出します。
 
-Here is an example of the step by step version, and then the normal version again.
+ここでは、ステップ・バイ・ステップ・バージョンと通常バージョンの例を示します。
 
 ```fsharp
 // step by step version
@@ -73,7 +73,7 @@ let result  = (printTwoParameters x) y
 let result  = printTwoParameters x y
 ```
 
-Here is another example:
+別の例を示します。
 
 ```fsharp
 //normal version
@@ -97,13 +97,13 @@ let result  = intermediateFn y
 let result  = addTwoParameters x y
 ```
 
-Again, the "two parameter function" is actually a one parameter function that returns an intermediate function.
+ここでも、「2パラメータ関数」は実際には、中間関数を返す1パラメータ関数です。
 
-But wait a minute -- what about the "`+`" operation itself? It's a binary operation that must take two parameters, surely? No, it is curried like every other function. There is a function called "`+`" that takes one parameter and returns a new intermediate function, exactly like `addTwoParameters` above.
+でもちょっと待ってください「`+`」操作自体はどうでしょう?これは2つのパラメータを必要とするバイナリ操作ですよね?いいえ、他のすべての機能と同じようにカリー化されています。上記の`addTwoParameters`のように、1つのパラメータを取り、新しい中間関数を返す「`+`」という関数があります。
 
-When we write the statement `x+y`, the compiler reorders the code to remove the infix and turns it into `(+) x y`, which is the function named `+` called with two parameters.  Note that the function named "+" needs to have parentheses around it to indicate that it is being used as a normal function name rather than as an infix operator.
+ステートメント`x+y`を記述すると、コンパイラはコードを並べ替えて接頭辞を削除し、2つのパラメータで呼び出される`+`という名前の関数である` (+) x y`に変換します。「+」という名前の関数は、中接演算子としてではなく通常の関数名として使用されることを示すために、括弧で囲む必要があることに注意してください。
 
-Finally, the two parameter function named `+` is treated as any other two parameter function would be.
+最終的に、`+`という名前の2つのパラメータ関数は、他のパラメータ関数と同様に扱われます:
 
 ```fsharp
 // using plus as a single value function
@@ -119,7 +119,7 @@ let result  = (+) x y
 let result  = x + y
 ```
 
-And yes, this works for all other operators and built in functions like printf.
+これは，他のすべての演算子やprintfのような組み込み関数にも使えます．
 
 ```fsharp
 // normal version of multiply
@@ -137,71 +137,71 @@ let intermediateFn = printfn "x=%i y=%i" 3  // "3" is baked in
 let result  = intermediateFn 5
 ```
 
-## Signatures of curried functions ##
+## カリー化された関数の特徴 ##)
 
-Now that we know how curried functions work, what should we expect their signatures to look like?
+カリー化された関数がどのように機能するかを理解しましたが、そのシグネチャはどのようなものなのでしょうか?
 
-Going back to the first example, "`printTwoParameters`", we saw that it took one argument and returned an intermediate function. The intermediate function also took one argument and returned nothing (that is, unit). So the intermediate function has type `int->unit`. In other words, the domain of `printTwoParameters` is `int` and the range is `int->unit`. Putting this together we see that the final signature is:
+最初の例「`printTwoParameters`」に戻ると、1つの引数を取り、中間関数を返すことがわかりました。中間関数も引数を1つ取り、何も返しません(つまり、unit) 。したがって、中間関数の型は`int->unit`になります。つまり、`printTwoParameters`の定義域は`int`で、値域は`int->unit`です。これをまとめると、最終的なシグネチャは次のようになります。
 
 ```fsharp
 val printTwoParameters : int -> (int -> unit)
 ```
 
-If you evaluate the explicitly curried implementation, you will see the parentheses in the signature, as written above, but if you evaluate the normal implementation, which is implicitly curried, the parentheses are left off, like so:
+明示的にカリー化された処理を評価すると、前述のようにシグネチャ内に括弧が表示されますが、暗黙的にカリー化された通常の処理を評価すると、次のように括弧が省略されます。
 
 ```fsharp
 val printTwoParameters : int -> int -> unit
 ```
 
-The parentheses are optional. If you are trying to make sense of function signatures it might be helpful to add them back in mentally.
+括弧は省略できます。関数シグネチャの意味を把握したいなら、頭の中で関数シグネチャを追加しなおすと良いでしょう。
 
-At this point you might be wondering, what is the difference between a function that returns an intermediate function and a regular two parameter function?
+ここで疑問に思うかもしれません、中間関数を返す関数と通常の2パラメータ関数の違いは何でしょうか?
 
-Here's a one parameter function that returns a function:
+中間関数を返す1パラメータ関数を次に示します。
 
 ```fsharp
 let add1Param x = (+) x
 // signature is = int -> (int -> int)
 ```
 
-Here's a two  parameter function that returns a simple value:
+単純な値を返す2パラメータ関数を次に示します。
 
 ```fsharp
 let add2Params x y = (+) x y
 // signature is = int -> int -> int
 ```
 
-The signatures are slightly different, but in practical terms, there *is* no difference*, only that the second function is automatically curried for you.
+シグネチャは少し異なりますが、実際には*違いは*ありません*、2番目の関数が自動的にカリー化されるだけです。
 
-## Functions with more than two parameters ##
+## 2つ以上のパラメータを持つ関数 ##
 
-How does currying work for functions with more than two parameters? Exactly the same way: for each parameter except the last one, the function returns an intermediate function with the previous parameters baked in.
+2パラメータ以上の関数では、どのような処理が行われるのでしょう?これまでと全く同じ方法で、最後のパラメータ以外の各パラメータに対して、関数は前のパラメータを組み込んだ中間関数を返します。
 
-Consider this contrived example. I have explicitly specified the types of the parameters, but the function itself does nothing.
+この意図的な例を考えましょう。パラメータ型を明示的に指定しましたが、関数自体は何もしません。
 
 ```fsharp
 let multiParamFn (p1:int)(p2:bool)(p3:string)(p4:float)=
-   ()   //do nothing
+   ()   //何もしない
 
 let intermediateFn1 = multiParamFn 42
-   // intermediateFn1 takes a bool
-   // and returns a new function (string -> float -> unit)
+   // intermediateFn1はboolを引数として
+   // 新しい関数 (string -> float -> unit) を返します
 let intermediateFn2 = intermediateFn1 false
-   // intermediateFn2 takes a string
-   // and returns a new function (float -> unit)
+   // intermediateFn2はstringを引数として、
+   // 新しい関数 (float -> unit) を返します
 let intermediateFn3 = intermediateFn2 "hello"
-   // intermediateFn3 takes a float
-   // and returns a simple value (unit)
+   // intermediateFn3はfloatを引数として、
+   // 単純な値 (unit) を返します
 let finalResult = intermediateFn3 3.141
 ```
 
-The signature of the overall function is:
+関数全体のシグネチャは次のとおりです。
 
 ```fsharp
 val multiParamFn : int -> bool -> string -> float -> unit
 ```
 
-and the signatures of the intermediate functions are:
+中間関数のシグネチャは次のとおりです。
 
 ```fsharp
 val intermediateFn1 : (bool -> string -> float -> unit)
@@ -210,47 +210,47 @@ val intermediateFn3 : (float -> unit)
 val finalResult : unit = ()
 ```
 
-A function signature can tell you how many parameters the function takes: just count the number of arrows outside of parentheses. If the function takes or returns other function parameters, there will be other arrows in parentheses, but these can be ignored. Here are some examples:
+関数シグネチャによって、関数のパラメータ数を知ることができます。括弧の外側にある矢印の数を数えるだけです。関数が他の関数パラメータを引数に取るか返す場合、括弧内に他の矢印が表示されますが、これらは無視できます。次に例を示します。
 
 ```fsharp
-int->int->int      // two int parameters and returns an int
+int->int->int      // 2つのintを引数として、intを返します
 
-string->bool->int  // first param is a string, second is a bool,
-                   // returns an int
+string->bool->int  // 最初の引数はstring、2番目の引数はbool、
+                   // 返り値はint
 
-int->string->bool->unit // three params (int,string,bool)
-                        // returns nothing (unit)
+int->string->bool->unit // 3つのパラメータ (int、string、bool)
+                        // 返り値はなし (unit)
 
-(int->string)->int      // has only one parameter, a function
-                        // value (from int to string)
-                        // and returns a int
+(int->string)->int      // パラメータは1つだけ、
+                        // (intを引数にとりstringを返す)関数値
+                        // 返り値はint1つ
 
-(int->string)->(int->bool) // takes a function (int to string)
-                           // returns a function (int to bool)
+(int->string)->(int->bool) // 一つの関数値(引数int、返り値string)を引数として
+                           // (引数int、返り値bool)の関数値を返します
 ```
 
 
-## Issues with multiple parameters ##
+## 複数のパラメータの問題 ##
 
-The logic behind currying can produce some unexpected results until you understand it. Remember that you will not get an error if you evaluate a function with fewer arguments than it is expecting. Instead you will get back a partially applied function. If you then go on to use this partially applied function in a context where you expect a value, you will get obscure error messages from the compiler.
+カリー化の背後にあるロジックを理解するまでは、予期しない結果が生じることがあります。関数に渡される引数が予想より少ない場合でも、エラーは発生ないことに注意してください。代わりに、部分適用された関数が返されます。値を期待するコンテキストでこの部分的適用された関数を使用すると、コンパイラから不明瞭なエラーメッセージが出力されます。
 
-Here's an innocuous looking function:
+以下に、一見無害な関数を示します。
 
 ```fsharp
-// create a function
+// 関数を作成します
 let printHello() = printfn "hello"
 ```
 
-What would you expect to happen when we call it as shown below? Will it print "hello" to the console?  Try to guess before evaluating it, and here's a hint: be sure to take a look at the function signature.
+以下のように呼ぶと何が起こると思いますか?コンソールに「hello」 と表示されますか?実行する前に予想してみてください。これがヒントです: 必ず関数シグネチャを確認してください。
 
 ```fsharp
-// call it
+// 呼び出します
 printHello
 ```
 
-It will *not* be called as expected. The original function expects a unit argument that was not supplied, so you are getting a partially applied function (in this case with no arguments).
+期待通りは呼ばれ*ません*。元の関数は引数としてunitを要求していますが指定されていません、そのため部分適用された関数が返されます (上記の場合は引数なし) 。
 
-How about this? Will it compile?
+これはどうでしょうか?コンパイルされますか?
 
 ```fsharp
 let addXY x y =
@@ -258,69 +258,69 @@ let addXY x y =
     x + y
 ```
 
-If you evaluate it, you will see that the compiler complains about the printfn line.
+評価してみると、printfn行についてコンパイラが文句を言っているのがわかります。
 
 ```fsharp
 printfn "x=%i y=%i" x
 //^^^^^^^^^^^^^^^^^^^^^
-//warning FS0193: This expression is a function value, i.e. is missing
-//arguments. Its type is  ^a -> unit.
+//warning FS0193: この式は関数値です (つまり、引数が足りません)。
+//型は  ^a -> unit です。
 ```
 
-If you didn't understand currying, this message would be very cryptic! All expressions that are evaluated standalone like this (i.e. not used as a return value or bound to something with "let") *must* evaluate to the unit value. And in this case, it is does *not* evaluate to the unit value, but instead evaluates to a function. This is a long winded way of saying that `printfn` is missing an argument.
+もしあなたがカリー化を理解してないなら、このメッセージは非常に不可解でしょう!こういった単独で評価される全ての式 (つまり、戻り値として使用されず、"let"で束縛されていない式) は、*必ず*unit値として評価されなければなりません。この場合はunit値とは*評価されず*関数と評価されてしまいました。これは、 「printfn」 の引数が足りないという長々しい表現です。
 
-A common case of errors like this is when interfacing with the .NET library. For example, the `ReadLine` method of a `TextReader` must take a unit parameter. It is often easy to forget this and leave off the parens, in which case you do not get a compiler error immediately, but only when you try to treat the result as a string.
+このようなエラーは通常、.NETライブラリとの連携時に発生します。たとえば、`TextReader`の`ReadLine`メソッドはunitパラメータを引数として要求します。このことを忘れて括弧を省略してしまうことがよくあります。このような場合、コンパイルエラーはすぐには発生せず、結果を文字列として処理しようとしたときに発生します。
 
 ```fsharp
 let reader = new System.IO.StringReader("hello");
 
-let line1 = reader.ReadLine        // wrong but compiler doesn't
-                                   // complain
-printfn "The line is %s" line1     //compiler error here!
-// ==> error FS0001: This expression was expected to have
-// type string but here has type unit -> string
+let line1 = reader.ReadLine        // 間違っていますが、コンパイラは文句を言いません
 
-let line2 = reader.ReadLine()      //correct
-printfn "The line is %s" line2     //no compiler error
+printfn "The line is %s" line1     // ここでコンパイラエラーが発生します！
+// ==> error error FS0001: この式に必要な型は 'string' ですが、
+// ここでは次の型が指定されています 'unit -> string'
+
+let line2 = reader.ReadLine()      // 正しい書き方
+printfn "The line is %s" line2     // コンパイラエラーなし
 ```
 
-In the code above, `line1` is just a pointer or delegate to the `Readline` method, not the string that we expected. The use of `()` in `reader.ReadLine()` actually executes the function.
+上記のコードでは、`line1`は単なる`Readline`メソッドへのポインタまたはデリゲートであり、期待した文字列ではありません。`()`を使用した`reader.ReadLine()`は、実際に関数を実行します。
 
 ## Too many parameters ##
 
-You can get similar cryptic messages when you have too many parameters as well. Here are some examples of passing too many parameters to printf.
+パラメータの数が多すぎる場合も、同様の不可解なメッセージが表示されます。以下はprintfにパラメータを多く渡しすぎた例です。
 
 ```fsharp
 printfn "hello" 42
-// ==> error FS0001: This expression was expected to have
-//                   type 'a -> 'b but here has type unit
+// ==> error FS0001: この式に必要な型は''a -> 'b'ですが、
+//                   ですが、ここでは次の型が指定されています 'unit'
 
 printfn "hello %i" 42 43
-// ==> Error FS0001: Type mismatch. Expecting a 'a -> 'b -> 'c
-//                   but given a 'a -> unit
+// ==> Error FS0001: 型が一致しません。 ''a -> 'b -> 'c'という指定が必要ですが、
+//                   ''a -> unit'が指定されました。型 ''a -> 'b' は型 'unit' と一致しません
 
 printfn "hello %i %i" 42 43 44
-// ==> Error FS0001: Type mismatch. Expecting a 'a->'b->'c->'d
-//                   but given a 'a -> 'b -> unit
+// ==> Error FS0001: 型が一致しません。 ''a -> 'b -> 'c -> 'd'という指定が必要ですが、
+//                   ''a -> 'b -> unit'が指定されました。型 ''a -> 'b' は型 'unit' と一致しません
 ```
 
-For example, in the last case, the compiler is saying that it expects the format argument to have three parameters (the signature `'a -> 'b -> 'c -> 'd`  has three parameters) but it is given only two (the signature `'a -> 'b -> unit`  has two parameters).
+たとえば、最後のケースでは、コンパイラはformat引数に3つのパラメータがあることを期待している (シグネチャ`'a->'b->'c->'d`には3つのパラメータがある) が、2つしか指定されていない (シグネチャ`'a->'b->unit`には2つのパラメータがある) と言っています。
 
-In cases not using `printf`, passing too many parameters will often mean that you end up with a simple value that you then try to pass a parameter to. The compiler will complain that the simple value is not a function.
+`printf`を使用していない場合、パラメータを渡しすぎると、単純な値が返された後、更にパラメータを渡そうとすることになります。コンパイラは、単純な値は関数ではないとエラーを出力します。
 
 ```fsharp
 let add1 x = x + 1
 let x = add1 2 3
-// ==>   error FS0003: This value is not a function
-//                     and cannot be applied
+// ==>   error FS0003: この値は関数ではないため、
+//                     適用できません。
 ```
 
-If you break the call into a series of explicit intermediate functions, as we did earlier, you can see exactly what is going wrong.
+先ほどのように、この呼び出しを一連の明示的な中間関数に分割すると、何が問題になっているのかがよくわかります。
 
 ```fsharp
 let add1 x = x + 1
-let intermediateFn = add1 2   //returns a simple value
-let x = intermediateFn 3      //intermediateFn is not a function!
-// ==>   error FS0003: This value is not a function
-//                     and cannot be applied
+let intermediateFn = add1 2   //単純な値を返す
+let x = intermediateFn 3      //intermediateFnは関数ではありません！
+// ==>   error FS0003: この値は関数ではないため、
+//                     適用できません。
 ```
