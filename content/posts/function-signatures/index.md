@@ -9,7 +9,7 @@ seriesOrder: 9
 categories: [Functions]
 ---
 
-It may not be obvious, but F# actually has two syntaxes - one for normal (value) expressions, and one for type definitions. For example:
+わかりにくいかもしれませんが、f#には実際には2つの構文があります。1つは通常の(値)式用で、もう1つは型定義用です。たとえば。
 
 ```fsharp
 [1;2;3]      // a normal expression
@@ -22,11 +22,11 @@ int option   // a type expression
 int * string // a type expression
 ```
 
-Type expressions have a special syntax that is *different* from the syntax used in normal expressions. You have already seen many examples of this when you use the interactive session, because the type of each expression has been printed along with its evaluation.
+型式には、通常の式で使用される構文とは*異なる*特別な構文があります。このような例は、インタラクティブ・セッションを使用するときに多く見てきました。それぞれの式の型とその評価が出力されているからです。
 
-As you know, F# uses type inference to deduce types, so you don't often need to explicitly specify types in your code, especially for functions. But in order to work effectively in F#, you *do* need to understand the type syntax, so that you can build your own types, debug type errors, and understand function signatures. In this post, we'll focus on its use in function signatures.
+ご存知のように、f#は型推論を用いて型を導き出しますので、明示的にコードの中で型指定する必要はあまりありません。特別に数の場合はそうです。しかし、f#を効果的に動作させるためには、型構文を理解し、独自の型を構築し、型エラーをデバッグし、そして関数シグネチャを理解する必要があります。この記事では、関数シグネチャの使用方法に焦点を当てます。
 
-Here are some example function signatures using the type syntax:
+以下に、型の構文を使用した関数シグネチャの例を示します。
 
 ```fsharp
 // expression syntax          // type syntax
@@ -39,89 +39,89 @@ List.filter                   // ('a -> bool) -> 'a list -> 'a list
 List.map                      // ('a -> 'b) -> 'a list -> 'b list
 ```
 
-## Understanding functions through their signatures ##
+## シグネチャによる関数の理解 ##
 
-Just by examining a function's signature, you can often get some idea of what it does. Let's look at some examples and analyze them in turn.
+関数のシグネチャを調べるだけで、その関数が何をするのかある程度把握できます。いくつかの例を見て、順番に分析してみましょう。
 
 ```fsharp
 // function signature 1
 int -> int -> int
 ```
 
-This function takes two `int` parameters and returns another, so presumably it is some sort of mathematical function such as addition, subtraction, multiplication, or exponentiation.
+この関数は、2つの `int` パラメータを受け取り、別のパラメータを返すので、おそらく、加算、減算、乗算、指数などの何らかの数学的な関数であると考えられます。
 
 ```fsharp
 // function signature 2
 int -> unit
 ```
 
-This function takes an `int` and returns a `unit`, which means that the function is doing something important as a side-effect. Since there is no useful return value, the side effect is probably something to do with writing to IO, such as logging, writing to a file or database, or something similar.
+この関数は`int`を受け取り、`unit`を返します。これは、この関数が副次的に何か重要なことを行っていることを意味します。有用な戻り値がないので、おそらくその副作用は、ロギング、ファイルやデータベースへの書き込みなど、IOへの書き込みに関係することだと思います。
 
 ```fsharp
 // function signature 3
 unit -> string
 ```
 
-This function takes no input but returns a `string`, which means that the function is conjuring up a string out of thin air! Since there is no explicit input, the function probably has something to do with reading (from a file say) or generating (a random string, say).
+この関数は入力を受け取りませんが、`string`を返します。つまり、この関数は何もないところから文字列を生成しているのです！明示的な入力がないので、この関数はおそらく読み込み (例えばファイルから) や生成(例えばランダムな文字列)に関係するものでしょう。
 
 ```fsharp
 // function signature 4
 int -> (unit -> string)
 ```
 
-This function takes an `int` input and returns a function that when called, returns strings. Again, the function probably has something to do with reading or generating. The input probably initializes the returned function somehow. For example, the input could be a file handle, and the returned function something like `readline()`. Or the input could be a seed for a random string generator. We can't tell exactly, but we can make some educated guesses.
+この関数は、`int`を入力として受け取り、呼び出されるとstringを返す関数を戻り値として返します。繰り返しますが、この関数はおそらく読み取りや生成に関係しています。入力は、何らかの方法で返される関数を初期化する可能性があります。たとえば、入力はファイルハンドルで、返される関数は`readline()`のようなものかもしれません。または、ランダムな文字列生成のためのシードを入力してるとも考えられます。正確には言えませんが、ある程度の推測はできます。
 
 ```fsharp
 // function signature 5
 'a list -> 'a
 ```
 
-This function takes a list of some type, but returns only one of that type, which means that the function is merging or choosing elements from the list. Examples of functions with this signature are `List.sum`, `List.max`, `List.head` and so on.
+この関数は、ある型のリストを受け取りますが、その型の1つだけを返します。つまり、この関数はリストの要素を結合したり、選択したりしていることを意味します。このシグネチャを持つ関数の例としては，`List.sum`，`List.max`，`List.head`などがあります。
 
 ```fsharp
 // function signature 6
 ('a -> bool) -> 'a list -> 'a list
 ```
 
-This function takes two parameters: the first is a function that maps something to a bool (a predicate), and the second is a list. The return value is a list of the same type. Predicates are used to determine whether a value meets some sort of criteria, so it looks like the function is choosing elements from the list based on whether the predicate is true or not and then returning a subset of the original list. A typical function with this signature is `List.filter`.
+この関数には2つのパラメータがあります。1つは何らかの値からbool (述部) への写像である関数で、もう1つはリストです。戻り値は同じ型のリストです。述部は、値がある種の基準を満たすかどうかを判断するために使用されるので、関数は述部が真かどうかに基づいてリストから要素を選択し、元のリストのサブセットを返しているように見えます。このシグネチャを持つ一般的な関数は、`List.filter`です。
 
 ```fsharp
 // function signature 7
 ('a -> 'b) -> 'a list -> 'b list
 ```
 
-This function takes two parameters: the first maps type `'a` to type `'b`, and the second is a list of `'a`. The return value is a list of a different type `'b`. A reasonable guess is that the function takes each of the `'a`s in the list, maps them to a `'b` using the function passed in as the first parameter, and returns the new list of `'b`s. And indeed, the prototypical function with this signature is `List.map`.
+この関数には2つのパラメータがあります。1つは型`'a`から型`'b`への写像で、もう1つは型`'a`のリストです。戻り値は異なる型`'b`のリストです。この関数は、最初のパラメータとして渡された関数を使用して、リスト内の各 「`a`」 を 「`b`」 へマップし、新しい 「`b`」 のリストを返すというのが妥当な推測です。そして、実際にこのシグネチャを持つ典型的な関数は`List.map`です。
 
-### Using function signatures to find a library method ###
+### 関数シグネチャを用いたライブラリメソッドの検索 ###
 
-Function signatures are an important part of searching for library functions. The F# libraries have hundreds of functions in them and they can initially be overwhelming.  Unlike an object oriented language, you cannot simply "dot into" an object to find all the appropriate methods. However, if you know the signature of the function you are looking for, you can often narrow down the list of candidates quickly.
+関数シグネチャは、ライブラリ関数を探す際に重要です。F#ライブラリには何百もの関数が含まれており、最初のうちは圧倒されます。オブジェクト指向言語とは異なり、単純にオブジェクトに 「ドットイン」 して、あらゆる適切なメソッドを見つけるということはできません。しかしながら、探している関数のシグネチャがわかっていれば、候補のリストを素早く絞り込むことができます。
 
-For example, let's say you have two lists and you are looking for a function to combine them into one. What would the signature be for this function? It would take two list parameters and return a third, all of the same type, giving the signature:
+たとえば、2つのリストがあり、それらを1つに結合する関数を探しているとします。この関数のシグネチャは何ですか?この関数は2つのリストパラメータを取り、3番目の同じ型のパラメータを返すので、次のようなシグネチャになります:
 
 ```fsharp
 'a list -> 'a list -> 'a list
 ```
 
-Now go to the [MSDN documentation for the F# List module](http://msdn.microsoft.com/en-us/library/ee353738), and scan down the list of functions, looking for something that matches.  As it happens, there is only one function with that signature:
+次に、 [MSDN documentation for the F#List module](http://msdn.microsoft.com/en-us/library/ee353738) にアクセスして、関数のリストを下にスクロールし、一致するものを探します。このシグネチャを持つ関数は1つだけです。
 
 ```fsharp
 append : 'T list -> 'T list -> 'T list
 ```
 
-which is exactly the one we want!
+これこそまさに私たちが欲しいものです！
 
-## Defining your own types for function signatures ##
+## 独自の型に関数シグネチャを定義する ##
 
-Sometimes you may want to create your own types to match a desired function signature. You can do this using the "type" keyword, and define the type in the same way that a signature is written:
+必要な関数シグネチャに一致する独自型を作成することもできます。これを行うには、「type」 キーワードを使用し、シグニチャを記述するのと同じ方法で型を定義します。
 
 ```fsharp
 type Adder = int -> int
 type AdderGenerator = int -> Adder
 ```
 
-You can then use these types to constrain function values and parameters.
+これらの型を用いて、関数の値やパラメータを制約することができます。
 
-For example, the second definition below will fail because of type constraints. If you remove the type constraint (as in the third definition) there will not be any problem.
+たとえば、次の2番目の定義は、型制約のために失敗します。(3番目の定義のように) 型制約を削除した場合は問題ありません。
 
 ```fsharp
 let a:AdderGenerator = fun x -> (fun y -> x + y)
@@ -129,9 +129,9 @@ let b:AdderGenerator = fun (x:float) -> (fun y -> x + y)
 let c                = fun (x:float) -> (fun y -> x + y)
 ```
 
-## Test your understanding of function signatures ##
+## 関数シグネチャの理解度を試す ##
 
-How well do you understand function signatures?  See if you can create simple functions that have each of these signatures. Avoid using explicit type annotations!
+関数シグネチャについてどの程度理解していますか?これらの各シグネチャを持つ簡単な関数を作成できるかどうかを確認してください。明示的な型注釈を使用しないでください！
 
 ```fsharp
 val testA = int -> int
