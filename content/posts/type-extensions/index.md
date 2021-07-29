@@ -8,50 +8,50 @@ seriesId: "Thinking functionally"
 seriesOrder: 11
 ---
 
-Although we have focused on the pure functional style so far, sometimes it is convenient to switch to an object oriented style.
-And one of the key features of the OO style is the ability to attach functions to a class and "dot into" the class to get the desired behavior.
+これまでは純粋な関数型スタイルに焦点を当ててきましたが、オブジェクト指向スタイルに切り替えると便利な場合もあります。
+このオブジェクト指向方式の重要な特徴の1つに、クラスに関数を添付し、そのクラスに 「ドット・イン」 して目的の動作を取得するという機能があります。
 
-In F#, this is done using a feature called "type extensions".  And any F# type, not just classes, can have functions attached to them.
+F#では、これは「型拡張」と呼ばれる機能を使って実現します。さらに、クラス以外のあらゆるF#型についても関数を添付することができます。
 
-Here's an example of attaching a function to a record type.
+これはレコード型に関数を添付する例です:
 
 ```fsharp
 module Person =
     type T = {First:string; Last:string} with
-        // member defined with type declaration
+        // 型宣言で定義されたメンバー
         member this.FullName =
             this.First + " " + this.Last
 
-    // constructor
+    // コンストラクタ
     let create first last =
         {First=first; Last=last}
 
-// test
+// テスト
 let person = Person.create "John" "Doe"
 let fullname = person.FullName
 ```
 
-The key things to note are:
+重要な点は次のとおりです。
 
-* The `with` keyword indicates the start of the list of members
-* The `member` keyword shows that this is a member function (i.e. a method)
-* The word `this` is a placeholder for the object that is being dotted into (called a "self-identifier"). The placeholder prefixes the function name, and then the function body then uses the same placeholder when it needs to refer to the current instance.
-There is no requirement to use a particular word, just as long as it is consistent. You could use `this` or `self` or `me` or any other word that commonly indicates a self reference.
+* `with`キーワードは、メンバーのリストの先頭を示します。
+* `member`キーワードは、これがメンバー関数(つまりメソッド) であることを示します
+* `this`という単語は、ドットで区切られるオブジェクトのプレースホルダです (「自己識別子」と呼ばれます) 。プレースホルダは関数名の前に付けられ、関数本体は現在のインスタンスを参照する必要がある場合には同様のプレースホルダを用います。
+一貫性さえあれば、どの単語を使っても構いません。`this`、`self`、`me`、あるいはその他の一般的に自己参照を示す単語を使用できます。
 
-You don't have to add a member at the same time that you declare the type, you can always add it later in the same module:
+型宣言と同時にメンバーを追加する必要はなく、同じモジュール内で後から追加することもできます。
 
 ```fsharp
 module Person =
     type T = {First:string; Last:string} with
-       // member defined with type declaration
+       // 型宣言と同時に定義されたメンバー
         member this.FullName =
             this.First + " " + this.Last
 
-    // constructor
+    // コンストラクタ
     let create first last =
         {First=first; Last=last}
 
-    // another member added later
+    // 後から追加される別のメンバー
     type T with
         member this.SortableName =
             this.Last + ", " + this.First
@@ -62,39 +62,39 @@ let sortableName = person.SortableName
 ```
 
 
-These examples demonstrate what are called "intrinsic extensions". They are compiled into the type itself and are always available whenever the type is used. They also show up when you use reflection.
+これらの例は、「組み込みの型拡張」 と呼ばれるものです。型自体にコンパイルされ、型が使用される際は常に使用可能です。リフレクションを使用した場合にも表示されます。
 
-With intrinsic extensions, it is even possible to have a type definition that divided across several files, as long as all the components use the same namespace and are all compiled into the same assembly.
-Just as with partial classes in C#, this can be useful to separate generated code from authored code.
+組み込みの型拡張では、すべてのコンポーネントが同じ名前空間を使用し、同じアセンブリ内にコンパイルされている限り、複数ファイルに分割された型定義を作成することも可能です。
+C#の部分クラスと同様に、生成コードをオーサリングされたコードから分離するのに便利です。
 
-## Optional extensions
+## 省略可能な型拡張
 
-Another alternative is that you can add an extra member from a completely different module.
-These are called "optional extensions". They are not compiled into the type itself, and require some other module to be in scope for them to work (this behavior is just like C# extension methods).
+別の方法として、全く別のモジュールから別のメンバを追加することもできます。
+これらは「省略可能な型拡張」と呼ばれます。その型自体にコンパイルされるのではなく、その型が動作できるスコープ内に別のモジュールが必要です (この動作はC#拡張メソッドと同じです) 。
 
-For example, let's say we have a `Person` type defined:
+たとえば、`Person`タイプが定義されているとします:
 
 ```fsharp
 module Person =
     type T = {First:string; Last:string} with
-       // member defined with type declaration
+       // 型宣言で定義されたメンバー
         member this.FullName =
             this.First + " " + this.Last
 
-    // constructor
+    // コンストラクタ
     let create first last =
         {First=first; Last=last}
 
-    // another member added later
+    // 後から追加される別のメンバー
     type T with
         member this.SortableName =
             this.Last + ", " + this.First
 ```
 
-The example below demonstrates how to add an `UppercaseName` extension to it in a different module:
+次の例では、`UppercaseName`という型拡張を別のモジュールから追加する方法を示します:
 
 ```fsharp
-// in a different module
+// 別のモジュールで
 module PersonExtensions =
 
     type Person.T with
@@ -102,20 +102,20 @@ module PersonExtensions =
         this.FullName.ToUpper()
 ```
 
-So now let's test this extension:
+それでは、この拡張機能をテストしてみましょう。
 
 ```fsharp
 let person = Person.create "John" "Doe"
 let uppercaseName = person.UppercaseName
 ```
 
-Uh-oh, we have an error. What's wrong is that the `PersonExtensions` is not in scope.
-Just as for C#, any extensions have to be brought into scope in order to be used.
+おっと、エラーが出ました。何が問題かというと、`PersonExtensions`がスコープに入っていないことです。
+C#と同じように、拡張機能を使用するためには、スコープに入れなければなりません。
 
-Once we do that, everything is fine:
+それができれば、すべてがうまくいきます。
 
 ```fsharp
-// bring the extension into scope first!
+// まず拡張機能をスコープに入れよう
 open PersonExtensions
 
 let person = Person.create "John" "Doe"
@@ -123,18 +123,18 @@ let uppercaseName = person.UppercaseName
 ```
 
 
-## Extending system types
+## システム型の拡張
 
-You can extend types that are in the .NET libraries as well. But be aware that when extending a type, you must use the actual type name, not a type abbreviation.
+.NETライブラリに含まれる型も拡張することができます。ただし、拡張する際には型の省略形ではなく、実際の型名を使用しなければならないことに注意してください。
 
-For example, if you try to extend `int`, you will fail, because `int` is not the true name of the type:
+例えば、`int`を拡張しようとすると、`int`は型の本当の名前ではないので、失敗します。
 
 ```fsharp
 type int with
     member this.IsEven = this % 2 = 0
 ```
 
-You must use `System.Int32` instead:
+代わりに，`System.Int32`を使う必要があります．
 
 ```fsharp
 type System.Int32 with
@@ -145,21 +145,21 @@ let i = 20
 if i.IsEven then printfn "'%i' is even" i
 ```
 
-## Static members
+## 静的なメンバ
 
-You can make the member functions static by:
+メンバ関数を静的にするには、次のようにします:
 
-* adding the keyword `static`
-* dropping the `this` placeholder
+* キーワード`static`を追加
+* `this`プレースホルダーを削除する
 
 ```fsharp
 module Person =
     type T = {First:string; Last:string} with
-        // member defined with type declaration
+        // 型宣言で定義されたメンバー
         member this.FullName =
             this.First + " " + this.Last
 
-        // static constructor
+        // 静的コンストラクタ
         static member Create first last =
             {First=first; Last=last}
 
@@ -168,7 +168,7 @@ let person = Person.T.Create "John" "Doe"
 let fullname = person.FullName
 ```
 
-And you can create static members for system types as well:
+また、システム型に対しても、静的なメンバーを作成することができます。
 
 ```fsharp
 type System.Int32 with
@@ -185,14 +185,14 @@ let pi = System.Double.Pi
 {{< linktarget "attaching-existing-functions" >}}
 
 
-## Attaching existing functions
+## 既存の関数を添付する
 
-A very common pattern is to attach pre-existing standalone functions to a type.  This has a couple of benefits:
+よくあるパターンは、既存の独立した関数を型に添付することです。これにはいくつかの利点があります。
 
-* While developing, you can create standalone functions that refer to other standalone functions. This makes programming easier because type inference works much better with functional-style code than with OO-style ("dotting into") code.
-* But for certain key functions, you can attach them to the type as well. This gives clients the choice of whether to use functional or object-oriented style.
+* 開発中に、ほかの単体関数を参照する単体関数を作成できます。型推論は、関数型コードの方が、オブジェクト型コード (「ドット・イン」) よりも遥かに優れているため、プログラミングが容易になります。
+* ただし一部の重要な機能については、型に添付することもできます。これにより、ユーザは関数スタイルとオブジェクト指向スタイルのどちらを使用するかを選択できます。
 
-One example of this in the F# libraries is the function that calculates a list's length. It is available as a standalone function in the `List` module, but also as a method on a list instance.
+F#ライブラリの例として、リストの長さを計算する関数があります。これは、`List`モジュールの独立した関数として使用できますが、Listインスタンスのメソッドとしても使用できます。
 
 ```fsharp
 let list = [1..10]
@@ -204,22 +204,22 @@ let len1 = List.length list
 let len2 = list.Length
 ```
 
-In the following example, we start with a type with no members initially, then define some functions, then finally attach the `fullName` function to the type.
+次の例では、最初にメンバーのない型を定義し、次にいくつかの関数を定義し、最後に型に`fullName`関数を添付しています。
 
 ```fsharp
 module Person =
-    // type with no members initially
+    // 最初はメンバーのいない型
     type T = {First:string; Last:string}
 
-    // constructor
+    // コンストラクタ
     let create first last =
         {First=first; Last=last}
 
-    // standalone function
+    // スタンドアロン関数
     let fullName {First=first; Last=last} =
         first + " " + last
 
-    // attach preexisting function as a member
+    // 既存の関数をメンバーとして添付する
     type T with
         member this.FullName = fullName this
 
@@ -229,28 +229,28 @@ let fullname = Person.fullName person  // functional style
 let fullname2 = person.FullName        // OO style
 ```
 
-The standalone `fullName` function has one parameter, the person. In the attached member, the parameter comes from the `this` self-reference.
+独立した`fullName`関数には、personというパラメータが1つあります。添付されたメンバーでは、このパラメータは `this`自己参照から取得されます。
 
-### Attaching existing functions with multiple parameters
+### 複数パラメータを持つ既存の関数を添付する
 
-One nice thing is that when the previously defined function has multiple parameters, you don't have to respecify them all when doing the attachment, as long as the `this` parameter is first.
+以前に定義した関数に複数のパラメータがある場合、`this`パラメータが最初であれば、添付を行う際にすべてのパラメータを再指定する必要はありません。
 
-In the example below, the `hasSameFirstAndLastName` function has three parameters. Yet when we attach it, we only need to specify one!
+次の例では、`hasSameFirstAndLastName`関数は3つのパラメータを持ちます。しかし、私たちがそれを添付する時、私たちが指定する必要があるのは一つだけです！
 
 ```fsharp
 module Person =
-    // type with no members initially
-    type T = {First:string; Last:string}
+    // 最初はメンバーを持たない型
+    type T = {First:string; Last:string}.
 
-    // constructor
+    // コンストラクタ
     let create first last =
         {First=first; Last=last}
 
-    // standalone function
+    // スタンドアロン関数
     let hasSameFirstAndLastName (person:T) otherFirst otherLast =
         person.First = otherFirst && person.Last = otherLast
 
-    // attach preexisting function as a member
+    // 既存の関数をメンバーとしてアタッチ
     type T with
         member this.HasSameFirstAndLastName = hasSameFirstAndLastName this
 
@@ -261,39 +261,39 @@ let result2 = person.HasSameFirstAndLastName "bob" "smith" // OO style
 ```
 
 
-Why does this work? Hint: think about currying and partial application!
+なぜこのようなことができるのでしょうか？ヒント: カーリングと部分適用について考えてみましょう！
 
 
 {{< linktarget "tuple-form" >}}
 
 
-## Tuple-form methods
+## タプル形式のメソッド
 
-When we start having methods with more than one parameter, we have to make a decision:
+複数のパラメータを持つメソッドを持つようになったら、次のような判断をしなければなりません。
 
-* we could use the standard (curried) form, where parameters are separated with spaces, and partial application is supported.
-* we could pass in *all* the parameters at once, comma-separated, in a single tuple.
+* 標準の (カリー化された) 形式を使用した場合、パラメータはスペースで区切られ、部分適用がサポートされます。
+* パラメータを*全て*一度にカンマ区切り、単一のタプルとして渡すことができます。
 
-The "curried" form is more functional, and the "tuple" form is more object-oriented.
+「カリー化」形式はより関数的で、「タプル」形式はよりオブジェクト指向的です。
 
-The tuple form is also how F# interacts with the standard .NET libraries, so let's examine this approach in more detail.
+タプル形式は、F#が標準の.NETライブラリと連携する方法でもあるので、このアプローチをもっと詳しく調べてみましょう。
 
-As a testbed, here is a Product type with two methods, each implemented using one of the approaches.
-The `CurriedTotal` and `TupleTotal` methods each do the same thing: work out the total price for a given quantity and discount.
+実験台として、ここに2つのメソッドを持つProduct型を用意し、それぞれのメソッドは一方のアプローチを用いて実装します。
+`CurriedTotal`メソッドと`TupleTotal`メソッドはそれぞれ同じことを行います: 与えられた数量と割引の合計価格の計算です。
 
 ```fsharp
 type Product = {SKU:string; Price: float} with
 
-    // curried style
+    // カリー化
     member this.CurriedTotal qty discount =
         (this.Price * float qty) - discount
 
-    // tuple style
+    // タプル
     member this.TupleTotal(qty,discount) =
         (this.Price * float qty) - discount
 ```
 
-And here's some test code:
+そして、テストコードです:
 
 ```fsharp
 let product = {SKU="ABC"; Price=2.0}
@@ -301,26 +301,26 @@ let total1 = product.CurriedTotal 10 1.0
 let total2 = product.TupleTotal(10,1.0)
 ```
 
-No difference so far.
+今のところ違いはありません。
 
-We know that curried version can be partially applied:
+カリー化版は部分適用できることがわかっています。
 
 ```fsharp
 let totalFor10 = product.CurriedTotal 10
-let discounts = [1.0..5.0]
+let discount = [1.0..5.0].
 let totalForDifferentDiscounts
-    = discounts |> List.map totalFor10
+    = discounts |> List.Map totalFor10
 ```
 
-But the tuple approach can do a few things that that the curried one can't, namely:
+しかし、タプルを使ったアプローチには、カリー化によるアプローチでは不可能なことがいくつかあります。
 
-* Named parameters
-* Optional parameters
-* Overloading
+* 名前付きパラメータ
+* 省略可能なパラメータ
+* オーバーロード
 
-### Named parameters with tuple-style parameters
+### タプルスタイル・パラメータの名前付きパラメータ
 
-The tuple-style approach supports named parameters:
+タプル形式のアプローチでは、名前付きパラメータが使用できます。
 
 ```fsharp
 let product = {SKU="ABC"; Price=2.0}
@@ -328,23 +328,23 @@ let total3 = product.TupleTotal(qty=10,discount=1.0)
 let total4 = product.TupleTotal(discount=1.0, qty=10)
 ```
 
-As you can see, when names are used, the parameter order can be changed.
+このように、名前を使用すると、パラメータの順序を変更できます。
 
-Note: if some parameters are named and some are not, the named ones must always be last.
+注意: 名前付きパラメータと無名パラメータが混在している場合、名前付きパラメータは常に最後に指定する必要があります。
 
-### Optional parameters with tuple-style parameters
+###タプルスタイル・パラメータの省略可能なパラメータ
 
-For tuple-style methods, you can specify an optional parameter by prefixing the parameter name with a question mark.
+タプル形式のメソッドでは、パラメータ名の前に疑問符を付けることで、省略可能なパラメータを指定できます。
 
-* If the parameter is set, it comes through as `Some value`
-* If the parameter is not set, it comes through as `None`
+* パラメータが設定されている場合は、`Some value`
+* パラメータが設定されていない場合は、`None`となります。
 
-Here's an example:
+次に例を示します:
 
 ```fsharp
 type Product = {SKU:string; Price: float} with
 
-    // optional discount
+    // 任意の割引
     member this.TupleTotal2(qty,?discount) =
         let extPrice = this.Price * float qty
         match discount with
@@ -352,153 +352,153 @@ type Product = {SKU:string; Price: float} with
         | Some discount -> extPrice - discount
 ```
 
-And here's a test:
+テストをしてみましょう:
 
 ```fsharp
 let product = {SKU="ABC"; Price=2.0}
 
-// discount not specified
+// 割引が指定されていない
 let total1 = product.TupleTotal2(10)
 
-// discount specified
+// 割引の指定
 let total2 = product.TupleTotal2(10,1.0)
 ```
 
-This explicit matching of the `None` and `Some` can be tedious, and there is a slightly more elegant solution for handling optional parameters.
+この `None`と`Some`の明示的なマッチングは面倒な作業ですが、省略可能なパラメータを処理するのに、もう少し洗練された方法があります。
 
-There is a function `defaultArg` which takes the parameter as the first argument and a default for the second argument. If the parameter is set, the value is returned.
-And if not, the default value is returned.
+関数`defaultArg`は、パラメータを第1引数とし、第2引数はデフォルト値として使用します。パラメータが設定されている場合は、その値が返されます。
+そうでない場合は、デフォルト値が返されます。
 
-Let's see the same code rewritten to use `defaultArg`
+同じコードを`defaultArg`を使用して書き直してみましょう。
 
 ```fsharp
 type Product = {SKU:string; Price: float} with
 
-    // optional discount
-    member this.TupleTotal2(qty,?discount) =
+    // 任意の割引
+    メンバー this.TupleTotal2(qty,?discount) =
         let extPrice = this.Price * float qty
         let discount = defaultArg discount 0.0
-        //return
+        //戻り値
         extPrice - discount
 ```
 
-{{< linktarget "method-overloading" >}}
+{{< linktarget "method-overloading" >}}。
 
 
-### Method overloading
+### メソッドのオーバーロード
 
-In C#, you can have multiple methods with the same name that differ only in their function signature (e.g. different parameter types and/or number of parameters)
+C#では、同じ名前を持つ複数のメソッドのうち、関数シグネチャのみが異なるもの(例えば、異なる型のパラメータやパラメータ数など) を持つことができます。
 
-In the pure functional model, that does not make sense -- a function works with a particular domain type and a particular range type.
-The same function cannot work with different domains and ranges.
+純粋な関数型では、それは意味をなしません ―― 関数は特定の定義域型と特定の値域型で動作します。
+同じ関数を異なる定義域および地域に対して使用することはできません。
 
-However, F# *does* support method overloading, but only for methods (that is functions attached to types) and of these, only those using tuple-style parameter passing.
+しかし、F#はメソッドのオーバーロードを*サポートしています*、ただしメソッド (つまり型に付随する関数) とその中でタプル型のパラメータ渡しを利用しているメソッドだけが対象です。
 
-Here's an example, with yet another variant on the `TupleTotal` method!
+以下に例を示しますが、`TupleTotal`メソッドにはさらに別のバリエーションがあります！
 
 ```fsharp
 type Product = {SKU:string; Price: float} with
 
-    // no discount
+    // 割引なし
     member this.TupleTotal3(qty) =
         printfn "using non-discount method"
         this.Price * float qty
 
-    // with discount
+    // 割引あり
     member this.TupleTotal3(qty, discount) =
         printfn "using discount method"
         (this.Price * float qty) - discount
 ```
 
-Normally, the F# compiler would complain that there are two methods with the same name, but in this case, because they are tuple based and because their signatures are different, it is acceptable.
-(To make it obvious which one is being called, I have added a small debugging message.)
+通常、F#コンパイラは同じ名前を持つ2つのメソッドがあると文句を言いますが、今回の場合、それらはタプルベースであり、シグネチャも異なるため、問題ありません。
+(どちらが呼び出されているかを明確にするために、小さなデバッグメッセージを追加しました。)
 
-And here's a test:
+これがテストです:
 
 
 ```fsharp
 let product = {SKU="ABC"; Price=2.0}
 
-// discount not specified
+// 割引が指定されていない
 let total1 = product.TupleTotal3(10)
 
-// discount specified
+// 割引の指定
 let total2 = product.TupleTotal3(10,1.0)
 ```
 
 
-{{< linktarget "downsides-of-methods" >}}
+{{< linktarget "downsides-of-methods" >}}。
 
-## Hey! Not so fast... The downsides of using methods
+## ちょっと待った！...メソッドを使うことのデメリット
 
-If you are coming from an object-oriented background, you might be tempted to use methods everywhere, because that is what you are familiar with.
-But be aware that there some major downsides to using methods as well:
+オブジェクト指向の経験がある人は、どこにでもメソッドを使いたくなるかもしれません。
+しかし、メソッドを使用することには大きな欠点もあることを知っておいてください。
 
-* Methods don't play well with type inference
-* Methods don't play well with higher order functions
+* メソッドは型推論との相性が良くない
+* メソッドは高階関数では適切に動作しない
 
-In fact, by overusing methods you would be needlessly bypassing the most powerful and useful aspects of programming in F#.
+実際、メソッドを多用すると、F#のプログラミングで最も強力で有用な側面を不必要に無視することになります。
 
-Let's see what I mean.
+どういうことか考えてみましょう。
 
-### Methods don't play well with type inference
+### メソッドは型推論がうまく動作しない
 
-Let's go back to our Person example again, the one that had the same logic implemented both as a standalone function and as a method:
+Personの例に戻りましょう。この例では、同じロジックが独立した関数とメソッドの両方で実装されています。
 
 ```fsharp
 module Person =
-    // type with no members initially
+    // 最初はメンバーのいない型
     type T = {First:string; Last:string}
 
-    // constructor
+    // コンストラクタ
     let create first last =
         {First=first; Last=last}
 
-    // standalone function
+    // スタンドアロン関数
     let fullName {First=first; Last=last} =
         first + " " + last
 
-    // function as a member
+    // 関数をメンバーとして添付
     type T with
         member this.FullName = fullName this
 ```
 
-Now let's see how well each one works with type inference.  Say that I want to print the full name of a person, so I will define a function `printFullName` that takes a person as a parameter.
+では、それぞれがどのように型推論されるかを見てみましょう。例えば、フルネームを出力したいので、personをパラメータとする`printFullName`関数を定義します。
 
-Here's the code using the module level standalone function.
+モジュールレベルの独立関数を使用するコードを次に示します。
 
 ```fsharp
-open Person
+人物を開く
 
-// using standalone function
+// スタンドアロン関数を使う
 let printFullName person =
     printfn "Name is %s" (fullName person)
 
-// type inference worked:
-//    val printFullName : Person.T -> unit
+// 型推論は動作しました:
+// val printFullName : Person.T -> unit
 ```
 
-This compiles without problems, and the type inference has correctly deduced that parameter was a person
+これは問題なくコンパイルでき、型推論はパラメータがpersonであることを正しく推定しました。
 
-Now let's try the "dotted" version:
+それでは、「ドット」 バージョンを試してみましょう。
 
 ```fsharp
 open Person
 
-// using method with "dotting into"
+//「ドット・イン」 メソッドを使用
 let printFullName2 person =
     printfn "Name is %s" (person.FullName)
 ```
 
-This does not compile at all, because the type inference does not have enough information to deduce the parameter. *Any* object might implement `.FullName` -- there is just not enough to go on.
+型推論はパラメータを推論するのに十分な情報を持たないため、これは全くコンパイルされることがありません。*任意の*オブジェクトの`.FullName` ―― これ以上先に行くには不十分です。
 
-Yes, we could annotate the function with the parameter type, but that defeats the whole purpose of type inference.
+もちろん、パラメーター型を使用して関数に注釈を付けることもできますが、これでは型推論の目的そのものが損なわれてしまいます。
 
-### Methods don't play well with higher order functions
+### メソッドは高階関数との相性が悪い
 
-A similar problem happens with higher order functions. For example, let's say that, given a list of people, we want to get all their full names.
+同様の問題は高階関数でも起こります。たとえば、とある人物リストから、全員のフルネームを取得したいとします。
 
-With a standalone function, this is trivial:
+独立関数では、これは簡単です:
 
 ```fsharp
 open Person
@@ -508,11 +508,11 @@ let list = [
     Person.create "John" "Johnson";
     Person.create "Jack" "Jackson"]
 
-//get all the full names at once
+// すべてのフルネームを一度に取得
 list |> List.map fullName
 ```
 
-With object methods, we have to create special lambdas everywhere:
+オブジェクト・メソッドでは、いたるところに特殊なラムダを作成しなければなりません。
 
 ```fsharp
 open Person
@@ -522,11 +522,12 @@ let list = [
     Person.create "John" "Johnson";
     Person.create "Jack" "Jackson"]
 
-//get all the full names at once
+// すべてのフルネームを一度に取得
 list |> List.map (fun p -> p.FullName)
 ```
 
-And this is just a simple example. Object methods don't compose well, are hard to pipe, and so on.
+これは単純な例に過ぎません、オブジェクトメソッドは適切に合成できず、パイプ処理が困難になります。
 
-So, a plea for those of you new to functionally programming. Don't use methods at all if you can, especially when you are learning.
-They are a crutch that will stop you getting the full benefit from functional programming.
+関数プログラミングを始めたばかりの人にお願いします。可能な場合は、メソッドを避けてください。特に学んでいるときは一切使わないでください。
+これは、関数型プログラミングの恩恵を完全に享受することを妨げる杖です。いでください。
+メソッドは、関数型プログラミングから最大限の利益を得ることを妨げる松葉づえのようなものです。
