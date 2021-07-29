@@ -9,47 +9,47 @@ seriesOrder: 10
 categories: [Functions, Modules]
 ---
 
-Now that you know how to define functions, how can you organize them?
+関数を定義する方法がわかったところで、それをどのように整理すればよいのでしょうか。
 
-In F#, there are three options:
+F#には3つの選択肢があります:
 
-* functions can be nested inside other functions.
-* at an application level, the top level functions are grouped into "modules".
-* alternatively, you can also use the object-oriented approach and attach functions to types as methods.
+* 関数は他の関数内へ入れ子にすることができます。
+* アプリケーション・レベルでは、最上位の関数は「モジュール」 としてグループ化されます。
+* あるいは、オブジェクト指向の手法を用いて、型に関数をメソッドとして付加する方法もあります。
 
-We'll look at the first two options in this post, and the third in the next post.
+この記事では最初の2つの選択肢を、次の記事では3番目の選択肢を取り上げます。
 
-## Nested Functions ##
+## ネストされた関数 ##
 
-In F#, you can define functions inside other functions. This is a great way to encapsulate "helper" functions that are needed for the main function but shouldn't be exposed outside.
+F#では、他の関数の内部で関数を定義できます。これは、メイン関数に必要だが外部に公開すべきでない「ヘルパー」関数をカプセル化する優れた方法です。
 
-In the example below `add` is nested inside `addThreeNumbers`:
+以下の例では、`add`は`addThreeNumbers`の中に入れ子になっています:
 
 ```fsharp
 let addThreeNumbers x y z  =
 
-    //create a nested helper function
+    //入れ子のヘルパー関数を作る
     let add n =
        fun x -> x + n
 
     // use the helper function
     x |> add y |> add z
 
-// test
+// テスト
 addThreeNumbers 2 3 4
 ```
 
-A nested function can access its parent function parameters directly, because they are in scope.
-So, in the example below, the `printError` nested function does not need to have any parameters of its own -- it can access the `n` and `max` values directly.
+入れ子になった関数は、親関数のパラメータがスコープ内にあるため、親関数のパラメータに直接アクセスすることができます。
+つまり、以下の例では、`printError`という入れ子になった関数は、それ自身のパラメータを持つ必要はなく、`n`と`max`の値に直接アクセスすることができます。
 
 ```fsharp
 let validateSize max n  =
 
-    //create a nested helper function with no params
+    //パラメータを持たない入れ子のヘルパー関数を作る
     let printError() =
         printfn "Oops: '%i' is bigger than max: '%i'" n max
 
-    // use the helper function
+    // ヘルパー関数を使う
     if n > max then printError()
 
 // test
@@ -57,8 +57,8 @@ validateSize 10 9
 validateSize 10 11
 ```
 
-A very common pattern is that the main function defines a nested recursive helper function, and then calls it with the appropriate initial values.
-The code below is an example of this:
+よくあるパターンは、メイン関数がネストされた再帰的なヘルパー関数を定義し、それを適切な初期値で呼び出すというものです。
+次のコードはその例です:
 
 ```fsharp
 let sumNumbersUpTo max =
@@ -77,13 +77,13 @@ sumNumbersUpTo 10
 ```
 
 
-When nesting functions, do try to avoid very deeply nested functions, especially if the nested functions directly access the variables in their parent scopes rather than having parameters passed to them.
-A badly nested function will be just as confusing as the worst kind of deeply nested imperative branching.
+関数を入れ子にする場合は、深い入れ子を避けるようにしてください、特に入れ子になった関数にパラメータが渡さず、親スコープの変数に直接アクセスする場合は特に注意してください。
+不適切な入れ子構造の関数は、最悪に深い入れ子の命令型分岐と同じくらい複雑になります。
 
-Here's how *not* to do it:
+以下のようで*やってはいけません*:
 
 ```fsharp
-// wtf does this function do?
+// この関数は何をするの？
 let f x =
     let f2 y =
         let f3 z =
@@ -99,14 +99,14 @@ let f x =
 ```
 
 
-## Modules ##
+## モジュール ##
 
-A module is just a set of functions that are grouped together, typically because they work on the same data type or types.
+モジュールは、グループ化された関数の集合にすぎず、通常は同じ種類のデータを処理するためのものです。
 
-A module definition looks very like a function definition. It starts with the `module` keyword, then an `=` sign, and then the contents of the module are listed.
-The contents of the module *must* be indented, just as expressions in a function definition must be indented.
+モジュール定義は関数定義によく似ています。`module`キーワードで始まり、`=`記号が続き、その後にモジュールの内容がリストされます。
+関数定義内の式はインデントされなければならないように、モジュールの内容は*必ず*インデントされなければなりません。
 
-Here's a module that contains two functions:
+以下は、2つの関数を含むモジュールです:
 
 ```fsharp
 module MathStuff =
@@ -115,9 +115,9 @@ module MathStuff =
     let subtract x y  = x - y
 ```
 
-Now if you try this in Visual Studio, and you hover over the `add` function, you will see that the full name of the `add` function is actually `MathStuff.add`, just as if `MathStuff` was a class and `add` was a method.
+Visual Studioで`add`関数にカーソルを合わせると、`add`関数のフルネームが実際には`MathStuff.add`であることがわかります。
 
-Actually, that's exactly what is going on. Behind the scenes, the F# compiler creates a static class with static methods. So the C# equivalent would be:
+実際、まさにその通りなのです。F#コンパイラは舞台裏で、静的なメソッドを持つ静的なクラスを生成します。つまり、以下のC#コードに相当します:
 
 ```csharp
 static class MathStuff
@@ -134,14 +134,14 @@ static class MathStuff
 }
 ```
 
-If you realize that modules are just static classes, and that functions are static methods, then you will already have a head-start on understanding how modules work in F#,
-as most of the rules that apply to static classes also apply to modules.
+モジュールが単なる静的クラスであり、関数が静的メソッドであることがわかれば、F#のモジュールがどのように動作するかを理解するための最初のステップは既に踏み出してせています。
+静的クラスに適用されるルールのほとんどは、モジュールにも適用されます。
 
-And, just as in C# every standalone function must be part of a class, in F# every standalone function *must* be part of a module.
+また、C#と同様に、すべての独立した関数はクラスの一部である必要があり、F#では、それぞれの独立した関数はモジュールの一部*でなければなりません*。
 
-### Accessing functions across module boundaries
+### モジュール境界を越えた関数へのアクセス
 
-If you want to access a function in another module, you can refer to it by its qualified name.
+他のモジュールの関数にアクセスしたい場合は、修飾名で参照します。
 
 ```fsharp
 module MathStuff =
@@ -151,26 +151,26 @@ module MathStuff =
 
 module OtherStuff =
 
-    // use a function from the MathStuff module
+    // MathStuffモジュールの関数を使う
     let add1 x = MathStuff.add x 1
 ```
 
-You can also import all the functions in another module with the `open` directive,
-after which you can use the short name, rather than having to specify the qualified name.
+また、`open`ディレクティブを使って、他のモジュールのすべての関数をインポートすることもできます。
+その後は，修飾名を指定するのではなく，短い名前を使うことができます．
 
 ```fsharp
 module OtherStuff =
-    open MathStuff  // make all functions accessible
+    open MathStuff // すべての関数にアクセスできるようにする
 
     let add1 x = add x 1
 ```
 
-The rules for using qualified names are exactly as you would expect. That is, you can always use a fully qualified name to access a function,
-and you can use relative names or unqualified names based on what other modules are in scope.
+修飾名を使用するための規則は、ご想像のとおりです。つまり、完全修飾名を使用していつでも関数にアクセスできます。
+スコープ内の他のモジュールに基づいて、相対名または非修飾名も使用できます。
 
-### Nested modules
+### 入れ子のモジュール
 
-Just like static classes, modules can contain child modules nested within them, as shown below:
+静的クラスと同様に、モジュールにも次に示すような子モジュールを入れ子にすることができます。
 
 ```fsharp
 module MathStuff =
@@ -178,14 +178,14 @@ module MathStuff =
     let add x y  = x + y
     let subtract x y  = x - y
 
-    // nested module
+    // 入れ子のモジュール
     module FloatLib =
 
         let add x y :float = x + y
         let subtract x y :float  = x - y
 ```
 
-And other modules can reference functions in the nested modules using either a full name or a relative name as appropriate:
+また、他のモジュールは、必要に応じて完全名または相対名を使用して、ネストされたモジュール内の関数を参照できます。
 
 ```fsharp
 module OtherStuff =
@@ -193,80 +193,80 @@ module OtherStuff =
 
     let add1 x = add x 1
 
-    // fully qualified
+    // 完全修飾
     let add1Float x = MathStuff.FloatLib.add x 1.0
 
-    //with a relative path
+    //相対パスの場合
     let sub1Float x = FloatLib.subtract x 1.0
 ```
 
-### Top level modules
+### トップレベルのモジュール
 
-So if there can be nested child modules, that implies that, going back up the chain, there must always be some *top-level* parent module.  This is indeed true.
+入れ子になった子モジュールがあるならば、その連鎖をさかのぼると、常に何らかの*トップレベル*の親モジュールが存在しなければならないことを意味します。確かにそうですね。
 
-Top level modules are defined slightly differently than the modules we have seen so far.
+最上位レベルのモジュールは、これまで見てきたモジュールとは少し異なります。
 
-* The `module MyModuleName` line *must* be the first declaration in the file
-* There is no `=` sign
-* The contents of the module are *not* indented
+* `module MyModuleName` の行は、ファイル内の最初の宣言でなければなりません。
+* `=`の記号はありません
+* モジュールの内容はインデント*されません*。
 
-In general, there must be a top level module declaration present in every `.FS` source file. There are some exceptions, but it is good practice anyway.
-The module name does not have to be the same as the name of the file, but two files cannot share the same module name.
+一般的に、すべての `.FS` ソースファイルには、トップレベルのモジュール宣言がなければなりません。いくつかの例外はありますが、いずれにしても、これは良い習慣です。
+モジュール名は、ファイル名と同じである必要はありませんが、2つのファイルが同じモジュール名を共有することはできません。
 
-For `.FSX` script files, the module declaration is not needed, in which case the module name is automatically set to the filename of the script.
+`.FSX`のスクリプトファイルでは、モジュール宣言は必要ありません。この場合、モジュール名は自動的にスクリプトのファイル名に設定されます。
 
-Here is an example of `MathStuff` declared as a top level module:
+以下は、`MathStuff`をトップレベルのモジュールとして宣言した例です．
 
 ```fsharp
-// top level module
+// トップレベルモジュール
 module MathStuff
 
 let add x y  = x + y
 let subtract x y  = x - y
 
-// nested module
+// 入れ子のモジュール
 module FloatLib =
 
     let add x y :float = x + y
     let subtract x y :float  = x - y
 ```
 
-Note the lack of indentation for the top level code (the contents of `module MathStuff`), but that the content of a nested module like `FloatLib` does still need to be indented.
+トップレベルのコード(`module MathStuff` の内容)にはインデントがありませんが、`FloatLib` のような入れ子のモジュールの内容にはインデントが必要であることに注意してください。
 
-### Other module content
+### その他のモジュールの内容
 
-A module can contain other declarations as well as functions, including type declarations, simple values and initialization code (like static constructors)
+モジュールには、関数だけでなく、型宣言、単純な値、初期化コード(静的コンストラクタなど)を含むことができます。
 
 ```fsharp
 module MathStuff =
 
-    // functions
+    // 関数
     let add x y  = x + y
     let subtract x y  = x - y
 
-    // type definitions
+    // 型の定義
     type Complex = {r:float; i:float}
     type IntegerFunction = int -> int -> int
     type DegreesOrRadians = Deg | Rad
 
-    // "constant"
+    // "定数"
     let PI = 3.141
 
-    // "variable"
+    // "変数"
     let mutable TrigType = Deg
 
-    // initialization / static constructor
+    // 初期化／静的コンストラクタ
     do printfn "module initialized"
 
 ```
 
 {{<alertinfo>}}
-By the way, if you are playing with these examples in the interactive window, you might want to right-click and do "Reset Session" every so often, so that the code is fresh and doesn't get contaminated with previous evaluations
+ところで、これらの例をインタラクティブウィンドウで遊んでいる場合は、コードが新鮮で、以前の評価で汚染されないように、時々右クリックして「セッションのリセット」をするといいでしょう。
 {{</alertinfo>}}
 
-### Shadowing
+### シャドーイング
 
-Here's our example module again. Notice that `MathStuff` has an `add` function and `FloatLib` *also* has an `add` function.
+もう一度、モジュールの例を示します。`MathStuff`には`add`関数があり、`FloatLib`*にも*`add`関数があることに注目してください。
 
 ```fsharp
 module MathStuff =
@@ -274,14 +274,14 @@ module MathStuff =
     let add x y  = x + y
     let subtract x y  = x - y
 
-    // nested module
+    // ネストしたモジュール
     module FloatLib =
 
         let add x y :float = x + y
         let subtract x y :float  = x - y
 ```
 
-Now what happens if I bring *both* of them into scope, and then use `add`?
+では、これらの*両方*をスコープに取り込んでから`add`を使うとどうなるのでしょうか?
 
 ```fsharp
 open  MathStuff
@@ -291,13 +291,13 @@ let result = add 1 2  // Compiler error: This expression was expected to
                       // have type float but here has type int
 ```
 
-What happened was that the `MathStuff.FloatLib` module has masked or overridden the original `MathStuff` module, which has been "shadowed" by `FloatLib`.
+何が起こったかというと、`MathStuff.FloatLib`モジュールが、オリジナルの`MathStuff`モジュールを覆い隠したり、オーバーライドしたりして、`FloatLib`に「影」を落としてしまったのです。
 
-As a result you now get a [FS0001 compiler error](/troubleshooting-fsharp/#FS0001) because the first parameter `1` is expected to be a float. You would have to change `1` to `1.0` to fix this.
+その結果、最初のパラメータ `1` が float であることが期待されるため、[FS0001 compiler error](/troubleshooting-fsharp/#FS0001) が発生します。この問題を解決するには、`1`を`1.0`に変更する必要があります。
 
-Unfortunately, this is invisible and easy to overlook. Sometimes you can do cool tricks with this, almost like subclassing, but more often, it can be annoying if you have functions with the same name (such as the very common `map`).
+残念ながら、これは目に見えず、見落としがちです。サブクラス化のようにクールなトリックが使えることもありますが、多くの場合、同名の関数 (非常に一般的な `map`など) があると面倒です。
 
-If you don't want this to happen, there is a way to stop it by using the `RequireQualifiedAccess` attribute. Here's the same example where both modules are decorated with it.
+これを回避するには、`RequireQualifiedAccess`属性を使用してアクセスを停止させる方法があります。これは同じ例で、両モジュールとも装飾する場合です。
 
 ```fsharp
 [<RequireQualifiedAccess>]
@@ -314,14 +314,14 @@ module MathStuff =
         let subtract x y :float  = x - y
 ```
 
-Now the `open` isn't allowed:
+これで、`open`が許されなくなりました。
 
 ```fsharp
-open  MathStuff   // error
-open  MathStuff.FloatLib // error
+オープン MathStuff // エラー
+open MathStuff.FloatLib // エラー
 ```
 
-But we can still access the functions (without any ambiguity) via their qualified name:
+しかし、関数の修飾名を使って（曖昧さを排除して）アクセスすることはできます。
 
 ```fsharp
 let result = MathStuff.add 1 2
@@ -329,22 +329,22 @@ let result = MathStuff.FloatLib.add 1.0 2.0
 ```
 
 
-### Access Control
+### アクセスコントロール
 
-F# supports the use of standard .NET access control keywords such as `public`, `private`, and `internal`.
-The [MSDN documentation](http://msdn.microsoft.com/en-us/library/dd233188) has the complete details.
+F#は、`public`, `private`, `internal`といった、.NET標準のアクセスコントロールキーワードの使用をサポートしています。
+詳細は[MSDNドキュメント](http://msdn.microsoft.com/en-us/library/dd233188)に記載されています。
 
-* These access specifiers can be put on the top-level ("let bound") functions, values, types and other declarations in a module. They can also be specified for the modules themselves (you might want a private nested module, for example).
-* Everything is public by default (with a few exceptions) so you will need to use `private` or `internal` if you want to protect them.
+* これらのアクセス指定子は、モジュール内の最上位にある ( 「let束縛された」 ) 関数、値、型、その他の宣言に置くことができます。モジュール自体に指定することもできます(たとえば、プライベートな入れ子モジュールが必要な場合など) 。
+* デフォルトでは (いくつかの例外を除いて) すべてが公開されているので、保護したい場合は`private`か`internal`を使う必要があります。
 
-These access specifiers are just one way of doing access control in F#. Another completely different way is to use module "signature" files, which are a bit like C header files. They describe the content of the module in an abstract way. Signatures are very useful for doing serious encapsulation, but that discussion will have to wait for the planned series on encapsulation and capability based security.
+これらのアクセス指定子は、F#でアクセス制御を行う1つの方法にすぎません。これとは全く別の方法として、Cのヘッダファイルに少し似た 「シグネチャ」 ファイルを使う方法があります。モジュールの内容を抽象的に記述します。シグニチャは、本格的なカプセル化を行う場合は非常に便利です、カプセル化と機能ベースの保護に関する一連の投稿が予定されています。
 
 
-## Namespaces
+##名前空間
 
-Namespaces in F# are similar to namespaces in C#.  They can be used to organize modules and types to avoid name collisions.
+F#の名前空間はC#の名前空間に似ています。名前の衝突を避けるために、モジュールや型を整理するために使用できます。
 
-A namespace is declared with a `namespace` keyword, as shown below.
+名前空間は、次に示すように、`namespace`キーワードで宣言されます。
 
 ```fsharp
 namespace Utilities
@@ -356,12 +356,12 @@ module MathStuff =
     let subtract x y  = x - y
 ```
 
-Because of this namespace, the fully qualified name of the `MathStuff` module now becomes `Utilities.MathStuff` and
-the fully qualified name of the `add` function now becomes `Utilities.MathStuff.add`.
+この名前空間のおかげで、`MathStuff` モジュールの完全修飾名は `Utilities.MathStuff` となり、`add` 関数の完全修飾名は `Utilities.MathStuff.add` となります。
+また、関数 `add` の完全修飾名は `Utilities.MathStuff.add` となります。
 
-With the namespace, the indentation rules apply, so that the module defined above must have its content indented, as if it were a nested module.
+名前空間では、インデントのルールが適用されるので、上で定義したモジュールは、ネストされたモジュールであるかのように、その内容をインデントしなければなりません。
 
-You can also declare a namespace implicitly by adding dots to the module name. That is, the code above could also be written as:
+また、モジュール名にドットを付けることで、暗黙的に名前空間を宣言することができます。つまり，上のコードは次のように書くこともできます。
 
 ```fsharp
 module Utilities.MathStuff
@@ -371,20 +371,20 @@ let add x y  = x + y
 let subtract x y  = x - y
 ```
 
-The fully qualified name of the `MathStuff` module is still `Utilities.MathStuff`, but
-in this case, the module is a top-level module and the contents do not need to be indented.
+`MathStuff`モジュールの完全修飾名は`Utilities.MathStuff`と同じですが、
+この場合、モジュールは最上位レベルのモジュールであり、内容をインデントする必要はありません。
 
-Some additional things to be aware of when using namespaces:
+名前空間を使用する際に注意すべき点がいくつかあります。
 
-* Namespaces are optional for modules. And unlike C#, there is no default namespace for an F# project, so a top level module without a namespace will be at the global level.
-If you are planning to create reusable libraries, be sure to add some sort of namespace to avoid naming collisions with code in other libraries.
-* Namespaces can directly contain type declarations, but not function declarations. As noted earlier, all function and value declarations must be part of a module.
-* Finally, be aware that namespaces don't work well in scripts.  For example, if you try to to send a namespace declaration such as `namespace Utilities` below to the interactive window, you will get an error.
+* モジュールの名前空間はオプションです。C#とは異なり、F#プロジェクトにはデフォルトの名前空間がないので、名前空間のないトップレベルのモジュールはグローバルレベルになります。
+再利用可能なライブラリを作成する場合は、必ず何らかの名前空間を追加して、他のライブラリ内のコードとの名前衝突を回避してください。
+* 名前空間には型宣言を直接含めることができますが、関数宣言は含めることができません。前述したように、すべての関数と値の宣言はモジュールの一部である必要があります。
+* 最後に、スクリプトでは名前空間がうまく機能しないことに注意してください。たとえば、下記の`namespace Utilities`などの名前空間の宣言をインタラクティブウィンドウに送信しようとすると、エラーが発生します。
 
 
-### Namespace hierarchies
+### 名前空間の階層化
 
-You can create a namespace hierarchy by simply separating the names with periods:
+名前をピリオドで区切るだけで、名前空間の階層を作ることができます。
 
 ```fsharp
 namespace Core.Utilities
@@ -393,21 +393,21 @@ module MathStuff =
     let add x y  = x + y
 ```
 
-And if you want to put *two* namespaces in the same file, you can. Note that all namespaces *must* be fully qualified -- there is no nesting.
+*2つ*の名前空間を同一ファイルに置きたいなら、それも可能です。なお、すべての名前空間は完全に修飾されていないと*いけません*――入れ子はありません。
 
 ```fsharp
-namespace Core.Utilities
+名前空間 Core.Utilities
 
-module MathStuff =
-    let add x y  = x + y
+モジュール MathStuff =
+    let add x y = x + y
 
-namespace Core.Extra
+名前空間Core.Extra
 
-module MoreMathStuff =
-    let add x y  = x + y
+モジュール MoreMathStuff =
+    xとyを足す = x + y
 ```
 
-One thing you can't do is have a naming collision between a namespace and a module.
+1つできないことがあります、名前空間とモジュール間で名前を衝突させることです。
 
 
 ```fsharp
@@ -426,36 +426,36 @@ module Utilities =
 ```
 
 
-## Mixing types and functions in modules ##
+## モジュール内での型と関数の混合 ##
 
-We've seen that a module typically consists of a set of related functions that act on a data type.
+これまで見てきたように、モジュールは通常、あるデータ型に関連する一連の関数で構成されています。
 
-In an object oriented program, the data structure and the functions that act on it would be combined in a class.
-However in functional-style F#, a data structure and the functions that act on it are combined in a module instead.
+オブジェクト指向のプログラムでは、データ構造とそれに作用する関数はクラス内で結合されます。
+しかし、関数型のF#では、データ構造とそれに作用する関数はモジュール内で結合されます。
 
-There are two common patterns for mixing types and functions together:
+型と関数を組み合わせて使用するには、一般的に2つのパターンがあります。
 
-* having the type declared separately from the functions
-* having the type declared in the same module as the functions
+* 型を関数とは別に宣言する
+* 型を関数と同じモジュール内で宣言する
 
-In the first approach, the type is declared *outside* any module (but in a namespace) and then the functions that work on the type
-are put in a module with a similar name.
+最初の方法では、型は*外部*のいずれかのモジュール (ただし同じ名前空間内) で宣言され、
+その型で動作する関数は同じ名前のモジュールに入れられます。
 
 ```fsharp
-// top-level module
+// トップレベルモジュール
 namespace Example
 
-// declare the type outside the module
+// モジュールの外で型を宣言する
 type PersonType = {First:string; Last:string}
 
-// declare a module for functions that work on the type
+// この型で動作する関数のためのモジュールを宣言する
 module Person =
 
-    // constructor
+    // コンストラクタ
     let create first last =
         {First=first; Last=last}
 
-    // method that works on the type
+    // 型に作用するメソッド
     let fullName {First=first; Last=last} =
         first + " " + last
 
@@ -464,66 +464,66 @@ let person = Person.create "john" "doe"
 Person.fullName person |> printfn "Fullname=%s"
 ```
 
-In the alternative approach, the type is declared *inside* the module and given a simple name such as "`T`" or the name of the module.
-So the functions are accessed with names like `MyModule.Func1` and `MyModule.Func2` while the type itself is
-accessed with a name like `MyModule.T`. Here's an example:
+別の方法では、型はモジュール*内*で宣言され、`T`やモジュール名のような単純な名前が与えられます。
+したがって、関数は`MyModule.Func1`および`MyModule.Func2`という名前を持ち、
+型自体は`MyModule.T`です。次に例を示します。
 
 ```fsharp
 module Customer =
 
-    // Customer.T is the primary type for this module
-    type T = {AccountId:int; Name:string}
+    //顧客.Tは、このモジュールのプライマリタイプです。
+    type T={アカウントID:int;名前:string}
 
-    // constructor
-    let create id name =
-        {T.AccountId=id; T.Name=name}
+    //コンストラクタ
+    let作成ID名=
+        {T.AccountId=ID;T.Name=名前}
 
-    // method that works on the type
-    let isValid {T.AccountId=id; } =
-        id > 0
+    //型に対して動作するメソッド
+    let isValid{T.AccountId=id;}=
+        ID>0
 
-// test
-let customer = Customer.create 42 "bob"
-Customer.isValid customer |> printfn "Is valid?=%b"
+//テスト
+let customer=Customer.create 42 「ボブ」
+Customer.isValid customer|>printfn 「有効ですか?=%b」
 ```
 
-Note that in both cases, you should have a constructor function that creates new instances of the type (a factory method, if you will),
-Doing this means that you will rarely have to explicitly name the type in your client code, and therefore, you should not care whether it lives in the module or not!
+どちらの場合も、その型の新しいインスタンスを生成するコンストラクタ関数 (必要ならばファクトリメソッド) が必要です。
+これは、クライアントのコードで型を明示的に指定する必要はめったにないことを意味します。ですから、モジュール内に存在するかどうかは気にする必要はありません。
 
-So which approach should you choose?
+では、どのアプローチを選ぶべきなのでしょうか?
 
-* The former approach is more .NET like, and much better if you want to share your libraries with other non-F# code, as the exported class names are what you would expect.
-* The latter approach is more common for those used to other functional languages. The type inside a module compiles into nested classes, which is not so nice for interop.
+* 前者のアプローチは.NETに似ており、エクスポートされたクラス名は期待通りであるため、F#以外のコードとライブラリを共有したい場合には非常に適しています。
+* 後者のアプローチは、他の関数型言語で使用される言語では一般的なものです。モジュール内の型はネストされたクラスにコンパイルされるため、相互運用性には優れていません。
 
-For yourself, you might want to experiment with both. And in a team programming situation, you should choose one style and be consistent.
+ご自身のために、どちらも試してみてください。また、チームプログラミングの状況においては、ひとつのスタイルを選んで一貫性を保つ必要があります。
 
 
-### Modules containing types only
+### 型だけのモジュール
 
-If you have a set of types that you need to declare without any associated functions, don't bother to use a module. You can declare types directly in a namespace and avoid nested classes.
+関連する関数のない型のセットを宣言する必要がある場合、わざわざモジュールを使用する必要はありません。型は名前空間に直接宣言でき、入れ子のクラスを回避することができます。
 
-For example, here is how you might think to do it:
+たとえば、次のようにします:
 
 ```fsharp
-// top-level module
+//最上位モジュール
 module Example
 
-// declare the type inside a module
+// モジュール内で型を宣言する
 type PersonType = {First:string; Last:string}
 
-// no functions in the module, just types...
+// モジュール内に関数はなく、型のみを定義します..
 ```
 
-And here is a alternative way to do it. The `module` keyword has simply been replaced with `namespace`.
+別の方法もあります。`module`キーワードを`namespace`に置き換えるだけです。
 
 ```fsharp
-// use a namespace
+//名前空間を使用する
 namespace Example
 
-// declare the type outside any module
+//任意のモジュールの外部で型を宣言します
 type PersonType = {First:string; Last:string}
 ```
 
-In both cases, `PersonType` will have the same fully qualified name.
+どちらの場合も、`PersonType`が完全修飾名になります。
 
-Note that this only works with types. Functions must always live in a module.
+これは型でのみ動作することに注意してください。関数は常にモジュール内に存在しなければなりません。
