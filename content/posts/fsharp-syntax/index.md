@@ -8,150 +8,150 @@ seriesId: "Expressions and syntax"
 seriesOrder: 5
 ---
 
-The syntax for F# is mostly straightforward. But there are a few rules that you should understand if you want to avoid common indentation errors.  If you are familiar with a language like Python that also is whitespace sensitive, be aware that that the rules for indentation in F# are subtly different.
+F#のシンタックスはほとんどわかりやすいものです。しかし、よくあるインデントのエラーを避けるために、理解しておくべきルールがいくつかあります。 もしあなたがPythonのような空白を気にする言語に慣れているのであれば、F#のインデントのルールは微妙に異なっていることに注意してください。
 
-## Indentation and the "offside" rule ##
+## インデントと"オフサイド"ルール ##
 
-In soccer, the offside rule says that in some situations, a player cannot be "ahead" of the ball when they should be behind or level with it. The "offside line" is the line the player must not cross. F# uses the same term to describe the line at which indentation must start. As with soccer, the trick to avoiding a penalty is to know where the line is and not get ahead of it.
+サッカーでは、オフサイド・ルールといって、ある状況下では、プレーヤーはボールの後ろまたは水平にいるべきなのに、ボールの"前"にいてはいけないというものです。"オフサイドライン"とは、選手が越えてはいけないラインのことです。F#では、同じ言葉を使って、インデントを開始しなければならないラインを表現しています。サッカーと同じように、ペナルティを避けるためのコツは、ラインがどこにあるのかを知り、それを越えないようにすることです。
 
-Generally, once an offside line has been set, all the expressions must align with the line.
+一般的には、オフサイドラインが設定されると、すべての式はそのラインに合わせなければなりません。
 
 ```fsharp
-//character columns
+//文字列
 //3456789
 let f =
-  let x=1     // offside line is at column 3
-  let y=1     // this line must start at column 3
-  x+y         // this line must start at column 3
+  let x=1     // オフサイドラインは3列目にある
+  let y=1     // この線は3列目から始まらなければならない
+  x+y         // この線は3列目から始まること
 
 let f =
-  let x=1     // offside line is at column 3
-   x+1        // oops! don't start at column 4
-              // error FS0010: Unexpected identifier in binding
+  let x=1     // オフサイドの線は 3 列目にある
+   x+1        // おっと！4列目から始まらない
+              // error FS0010: バインディング内の予期せぬ識別子
 
 let f =
-  let x=1    // offside line is at column 3
- x+1         // offside! You are ahead of the ball!
-             // error FS0588: Block following this
-             // 'let' is unfinished
+  let x=1    // オフサイドラインは3列目にある
+ x+1         // オフサイドです! ボールに先行されている!
+             // error FS0588: 値または関数定義が不完全です。これが式の中にある場合、
+             // 式の本体を 'let' キーワードと同じ列にインデントする必要があります。
 ```
 
-Various tokens can trigger new offside lines to be created. For example, when the F# sees the "`=`" used in a let expression, a new offside line is created at the position of the very next symbol or word encountered.
+様々なトークンがきっかけとなって、新しいオフサイドラインが作られることがあります。例えば、F#がlet式の中で使われている"`=`"を見ると、次に出会った記号や単語の位置に新しいオフサイドラインが作られます。
 
 ```fsharp
-//character columns
+//文字列
 //34567890123456789
-let f =   let x=1  // line is now at column 11 (start of "let x=")
-          x+1      // must start at column 11 from now on
+let f =   let x=1  // 線は11列目になりました（"let x="の開始）。
+          x+1      // 今後は11列目から始めなければならない
 
-//        |        // offside line at col 11
-let f =   let x=1  // line is now at column 11 (start of "let x=")
-         x+1       // offside!
+//        |        // 今後は列11から始めなければならない
+let f =   let x=1  // 線は11列目になりました("let x="の開始点)
+         x+1       // オフサイドだ!
 
 
-// |        // offside line at col 4
+// |        // 4列目のオフサイドライン
 let f =
-   let x=1  // first word after = sign defines the line
-            // offside line is now at column 4
-   x+1      // must start at column 4 from now on
+   let x=1  // =記号の後の最初の単語がラインを定義する
+            // オフサイドラインは4列目になった
+   x+1      // 今から4列目から始めなければならない
 ```
 
-Other tokens have the same behavior, including parentheses, "`then`", "`else`", "`try`", "`finally`" and "`do`", and "`->`" in match clauses.
+他のトークンも同様の動作をします。例えば、括弧、"`then`"、"`else`"、"`try`"、"`finally`"、"`do`"、マッチ節の"`->`"などがあります。
 
 ```fsharp
-//character columns
+//文字列
 //34567890123456789
 let f =
    let g = (
-    1+2)             // first char after "(" defines
-                     // a new line at col 5
+    1+2)             // "("の後の最初の文字を定義する。
+                     // 5列目で新しい行を作る
    g
 
 let f =
    if true then
-    1+2             // first char after "then" defines
-                    // a new line at col 5
+    1+2             // "then "の後の最初の文字で定義する
+                    // 5列目で改行される
 
 let f =
    match 1 with
    | 1 ->
-       1+2          // first char after match "->" defines
-                    // a new line at col 8
+       1+2          // "->"の後の最初の文字で定義する
+                    // 8行目で改行する
 ```
 
-The offside lines can be nested, and are pushed and popped as you would expect:
+オフサイドラインは入れ子にすることができ，期待通りにプッシュ，ポップされます:
 
 ```fsharp
-//character columns
+//文字列
 //34567890123456789
 let f =
-   let g = let x = 1 // first word after "let g ="
-                     // defines a new offside line at col 12
-           x + 1     // "x" must align at col 12
-                     // pop the offside line stack now
-   g + 1             // back to previous line. "g" must align
-                     // at col 4
+   let g = let x = 1 // "let g ="の後の最初の単語
+                     // 12行目に新しいオフサイドラインを定義する
+           x + 1     // "x"は12行目で揃える必要がある
+                     // オフサイドラインのスタックをポップします
+   g + 1             // 前の行に戻る。"g"は 4行目で揃える必要がある。
+                     // 4行目で揃える
 ```
 
-New offside lines can never go forward further than the previous line on the stack:
+新しいオフサイドラインは、スタック上の前のラインよりも先に進むことはできない。
 
 ```fsharp
 let f =
-   let g = (         // let defines a new line at col 4
-  1+2)               // oops! Can't define new line less than 4
+   let g = (         // 4行目 に新しいラインを定義する。
+  1+2)               // oops! 4以下の新しい線は定義できない
    g
 ```
 
-## Special cases ##
+## 特別なケース ##
 
-There are number of special cases which have been created to make code formatting more flexible.  Many of them will seem natural, such as aligning the start of each part of an `if-then-else` expression or a `try-catch` expression. There are some non-obvious ones, however.
+コードのフォーマットをより柔軟にするために、いくつかの特殊なケースが用意されています。 例えば、`if-then-else`式や`try-catch`式の各部分の開始位置を揃えるなど、自然に思えるものも多いでしょう。しかし、当然とは言えないものもあります。
 
-Infix operators such as "+", "|>" and ">>" are allowed to be outside the line by their length plus one space:
+例えば、"+"、"|>"、">>"などの中置演算子は、その長さにスペースを加えた分だけ行の外に出ることができます。
 
 ```fsharp
-//character columns
+//文字列
 //34567890123456789
-let x =  1   // defines a new line at col 10
-       + 2   // "+" allowed to be outside the line
+let x =  1   // 10行目に新しい行を定義する
+       + 2   // "+"は行の外側にあってもよい
        + 3
 
-let f g h =   g   // defines a new line at col 15
-           >> h   // ">>" allowed to be outside the line
+let f g h =   g   // 15行目に改行を定義します。
+           >> h   // ">>" は線の外側にあってもよい
 ```
 
-If an infix operator starts a line, that line does not have to be strict about the alignment:
+中置演算子で行を開始した場合、その行は整列を厳密に行う必要はありません。
 
 ```fsharp
-let x =  1   // defines a new line at col 10
-        + 2   // infix operators that start a line don't count
-             * 3  // starts with "*" so doesn't need to align
-         - 4  // starts with "-" so doesn't need to align
+let x =  1   // 10行目に新しい行を定義する
+        + 2   // 行頭にある 中置演算子はカウントしない
+             * 3  // "*"で始まるので、整列する必要はありません。
+         - 4  // "-"で始まるので、整列する必要はありません
 ```
 
-If a "`fun`" keyword starts an expression, the "fun" does *not* start a new offside line:
+"`fun`" キーワードが式の先頭にある場合、"fun" はオフサイドの新しい行を *開始しません* 。
 
 ```fsharp
-//character columns
+//文字列
 //34567890123456789
-let f = fun x ->  // "fun" should define a new line at col 9
-   let y = 1      // but doesn't. The real line starts here.
+let f = fun x ->  // "fun"は9行目で新しい行を定義するはずです。
+   let y = 1      // しかし，そうではない．本当の行はここから始まる。
    x + y
 ```
 
-### Finding out more
+### もっと知りたい
 
-There are many more details as to how indentation works, but the examples above should cover most of the common cases. If you want to know more, the complete language spec for F# is available from Microsoft as a [downloadable PDF](http://research.microsoft.com/en-us/um/cambridge/projects/fsharp/manual/spec.pdf), and is well worth reading.
+インデントがどのように機能するかについては、さらに多くの詳細がありますが、上記の例でほとんどの一般的なケースはカバーできるでしょう。もっと詳しく知りたい方は、F#の完全な言語仕様書がMicrosoftから[ダウンロード可能なPDF](http://research.microsoft.com/en-us/um/cambridge/projects/fsharp/manual/spec.pdf)で提供されていますので、ぜひ読んでみてください。
 
-## "Verbose" syntax
+## 冗語構文
 
-By default, F# uses indentation to indicate block structure -- this is called "light" syntax. There is an alternative syntax that does not use indentation; it is called "verbose" syntax.  With verbose syntax, you are not required to use indentation, and whitespace is not significant, but the downside is that you are required to use many more keywords, including things like:
+デフォルトでは、F#はブロック構造を示すためにインデントを使用します--これは"軽量"構文と呼ばれます。インデントを使用しない別の構文もあります。これは"冗語"構文と呼ばれます。冗語構文では、インデントを使用する必要はなく、空白も重要ではありません。ただし、次のような多くのキーワードを使用する必要があるという欠点があります。
 
-* "`in`" keywords after every "let" and "do" binding
-* "`begin`"/"`end`" keywords for code blocks such as if-then-else
-* "`done`" keywords at the end of loops
-* keywords at the beginning and end of type definitions
+* "`in`"キーワードを"let"と"do"の束縛の次に置きます。
+* "`begin`"/"`end`"キーワード (if-then-elseなどのコードブロック用)
+* "`done`"キーワードをループの最後に置く
+* 型定義の最初と最後にあるキーワード
 
-Here is an example of verbose syntax with wacky indentation that would not otherwise be acceptable:
+以下に、本来なら受け入れられない、奇抜な字下げを伴う冗長構文の例を示します。
 
 ```fsharp
 #indent "off"
@@ -166,17 +166,17 @@ end
 #indent "on"
 ```
 
-Verbose syntax is always available, even in "light" mode, and is occasionally useful. For example, when you want to embed "let" into a one line expression:
+冗語構文は、"軽量"モードでも常に使用できます。たとえば、1行の式に"let"を埋め込む場合は、次のようにします。
 
 ```fsharp
 let x = let y = 1 in let z = 2 in y + z
 ```
 
-Other cases when you might want to use verbose syntax are:
+その他にも、冗語構文を使いたい場合があります。
 
-* when outputting generated code
-* to be compatible with OCaml
-* if you are visually impaired or blind and use a screen reader
-* or just to gain some insight into the abstract syntax tree used by the F# parser
+* 生成されたコードを出力するとき
+* OCamlとの互換性を保つため
+* 視覚障害者や目の不自由な方がスクリーンリーダーを使用する場合
+* F#パーサーが使用する抽象的なシンタックスツリーについて理解を深めるため。
 
-Other than these cases, verbose syntax is rarely used in practice.
+これらのケース以外では、冗語構文は実際にはほとんど使われません。
