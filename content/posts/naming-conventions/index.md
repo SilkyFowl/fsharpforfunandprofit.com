@@ -8,15 +8,15 @@ seriesId: "Expressions and syntax"
 seriesOrder: 6
 ---
 
-If you are coming to F# from an imperative language such as C#, then you might find a lot of the names shorter and more cryptic than you are used to.
+C#のような命令型言語からF#に来たのであれば、あなたが慣れ親しんでいるよりも短くてわかりにくい名前がたくさん見つかるかもしれません。
 
-In C# and Java, the best practice is to have long descriptive identifiers.  In functional languages, the function names themselves can be descriptive, but the local identifiers inside a function tend to be quite short, and piping and composition is used a lot to get everything on a minimal number of lines.
+C#とJavaのベストプラクティスは、長い記述識別子を持つことです。関数型言語では、関数名自体を記述的にすることができますが、関数内のローカル識別子は非常に短くなる傾向があり、パイプと合成は、最小限の行数ですべてを取得するために頻繁に使用されます。
 
-For example, here is a crude implementation of a prime number sieve with very descriptive names for the local values.
+例えば、以下に示すのは、ローカルな値に対して非常に記述的な名前を持つ素数ふるいの大まかな実装です。
 
 ```fsharp
 let primesUpTo n =
-    // create a recursive intermediate function
+    // 再帰的な中間関数を作成する
     let rec sieve listOfNumbers  =
         match listOfNumbers with
         | [] -> []
@@ -24,10 +24,10 @@ let primesUpTo n =
             let sievedNumbersNotDivisibleByP =
                 sievedNumbersBiggerThanP
                 |> List.filter (fun i-> i % primeP > 0)
-            //recursive part
+            //再帰部分
             let newPrimes = sieve sievedNumbersNotDivisibleByP
             primeP :: newPrimes
-    // use the sieve
+    // ふるいを使う
     let listOfNumbers = [2..n]
     sieve listOfNumbers     // return
 
@@ -35,7 +35,7 @@ let primesUpTo n =
 primesUpTo 100
 ```
 
-Here is the same implementation, with terser, idiomatic names and more compact code:
+以下に、簡潔で慣用名を持ち、よりコンパクトなコードを使った同じ実装を示します:
 
 ```fsharp
 let primesUpTo n =
@@ -47,28 +47,28 @@ let primesUpTo n =
    [2..n] |> sieve
 ```
 
-The cryptic names are not always better, of course, but if the function is kept to a few lines and the operations used are standard, then this is a fairly common idiom.
+もちろん、このような暗号化的な名前が常に優れているわけではありませんが、関数が数行に抑えられ、使用される演算が標準である場合、これはかなり一般的な慣用句です。
 
-The common naming conventions are as follows:
+一般的な命名規則は次のとおりです。
 
-* "a", "b", "c" etc., are types
-* "f", "g", "h" etc., are functions
-* "x", "y", "z" etc., are arguments to the functions
-* Lists are indicated by adding an "s" suffix, so that "`xs`" is a list of `x`'s, "`fs`" is a list of functions, and so on.  It is extremely common to see "`x::xs`" meaning the head (first element) and tail (the remaining elements) of a list.
-* "_" is used whenever you don't care about the value. So "`x::_`" means that you don't care about the rest of the list, and "`let f _ = something`" means you don't care about the argument to `f`.
+* "a","b","c"などは型です。
+* "f","g","h"などは関数です。
+* "x","y","z"などは、関数の引数です。
+* リストは"s"という添字で示されるので、"xs"は"x"のリスト、"fs"は関数のリスト、などとなります。リストの先頭 (最初の要素) と末尾 (残りの要素) を意味する"`x::xs`"は非常にありふれた表現です。
+* "_"は、値を無視する場合に使用します。つまり"`x::_`"はリストの残りの部分を無視することを意味し、"`let f _ = something`"は`f`の引数を無視することを意味します。
 
-Another reason for the short names is that often, they cannot be assigned to anything meaningful.  For example, the definition of the pipe operator is:
+短い名前を使用するもう1つの理由は、多くの場合、意味のある名前に割り当てることができないことです。たとえば、パイプ演算子の定義は次のとおりです。
 
 ```fsharp
 let (|>) x f = f x
 ```
 
-We don't know what `f` and `x` are going to be, `f` could be any function and `x` could be any value. Making this explicit does not make the code any more understandable.
+`f`と`x`がどのようなものになるかはわかりませんが、`f`は任意の関数であり、`x`は任意の値です。これを明示的にしても、コードが理解しやすくなるわけではありません。
 
 ```fsharp
-let (|>) aValue aFunction = aFunction aValue // any better?
+let (|>) aValue aFunction = aFunction aValue // 良くなりましたか？
 ```
 
-### The style used on this site
+### このサイトで使用されているスタイル
 
-On this site I will use both styles.  For the introductory series, when most of the concepts are new, I will use a very descriptive style, with intermediate values and long names.  But in more advanced series, the style will become terser.
+このサイトでは両方のスタイルを使います。入門シリーズでは、新しい概念が大半を占める場合には、中間値と長い名前を持つ、非常に説明的なスタイルを使用します。しかし、上級者向けのシリーズでは、スタイルはより簡潔になります。
