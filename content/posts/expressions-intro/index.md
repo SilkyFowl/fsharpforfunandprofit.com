@@ -8,20 +8,20 @@ seriesId: "Expressions and syntax"
 seriesOrder: 1
 ---
 
-*NOTE: Before reading this series, I suggest that you read the ["thinking functionally"](/series/thinking-functionally.html) series as a prerequisite.*
+*NOTE: このシリーズを読む前に、前提条件として["thinking functionally"](/series/thinking-functionally.html)シリーズを読んでおくことをお勧めします*。
 
-In this series we'll look at how functions and values are combined into expressions, and the different kinds of expressions that are available in F#.
+このシリーズでは、関数と値がどのように組み合わされて式になるのか、また、F#で利用できるさまざまな種類の式について見ていきます。
 
-We'll also look at some other basic topics, such as `let` bindings, F# syntax, pattern matching, and outputting text with `printf`.
+このシリーズでは、関数と値を組み合わせて式を作る方法や、F#で使用できる式の種類について説明します。また、`let`バインディング、F#の構文、パターンマッチ、`printf`によるテキストの出力など、基本的なトピックについても説明します。
 
-This series is not meant to be exhaustive or definitive. Much of the syntax and usage of F# should be obvious from the examples, and the MSDN documentation
-has all the details if you need them. Rather we will just focus on explaining some of the essential areas that might be confusing.
+このシリーズは、網羅的で決定的なものを目指しているわけではありません。F#の構文や使い方の多くは、例題を見れば一目瞭然ですし、必要であればMSDNドキュメントに
+に詳細が記載されていますので、そちらをご覧ください。むしろ、わかりにくい本質的な部分を説明することに重点を置いています。
 
-So, we'll start with some general tips, talk about how `let` bindings work, and explain the indentation rules.
+そこで、一般的なヒントから始めて、`let` バインディングがどのように機能するのかを説明し、インデントのルールを説明します。
 
-After that, the next few posts will cover `match..with` expressions, the imperative control flow expressions, and exception expressions. Computation expressions and object-oriented expressions will be left to later series.
+その後、数回に分けて、`match...with`式、命令形の制御フロー式、例外式について説明します。計算式やオブジェクト指向の表現は後のシリーズに譲ります。
 
-Finally, we'll finish with some worked examples that use pattern matching as an integral part of their design.
+最後に、パターン・マッチングをデザインの重要な一部として使用しているいくつかの作業例を紹介して終わります。
 
 
 
