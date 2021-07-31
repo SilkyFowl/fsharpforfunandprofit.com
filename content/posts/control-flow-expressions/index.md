@@ -8,79 +8,79 @@ seriesId: "Expressions and syntax"
 seriesOrder: 7
 ---
 
-In this post, we'll look at the control flow expressions, namely:
+この記事では、制御フロー式を見ていきます:
 
 * if-then-else
-* for x in collection  (which is the same as foreach in C#)
+* for x in collection (これはC#のforeachと同じです)
 * for x = start to end
 * while-do
 
-These control flow expressions are no doubt very familiar to you. But they are very "imperative" rather than functional.
+これらの制御フロー式は、皆さんにとって非常になじみのあるものです。しかし、これらは関数的というよりも、むしろ"命令的"なものです。
 
-So I would strongly recommend that you do not use them if at all possible, especially when you are learning to think functionally. If you do use them as a crutch, you will find it much harder to break away from imperative thinking.
+ですから、特に関数型思考を学んでいるときは、可能な限り使わないことを強くお勧めします。これを松葉杖として使うと、命令的思考から抜け出すのが非常に難しくなります。
 
-To help you do this, I will start each section with examples of how to avoid using them by using more idiomatic constructs instead.  If you do need to use them, there are some "gotchas" that you need to be aware of.
+これを支援するために、各章では、より慣用的構文を使用して、それらを使用しない方法の例から始めます。使用する必要がある場合は、いくつかの"落とし穴"に注意する必要があります。
 
 ## If-then-else
 
-### How to avoid using if-then-else
+### if-then-else関数の使用を避ける方法
 
-The best way to avoid `if-then-else` is to use "match" instead. You can match on a boolean, which is similar to the classic then/else branches. But much, much better, is to avoid the equality test and actually match on the thing itself, as shown in the last implementation below.
+`if-then-else`を避ける最善の方法は、代わりに"match"を使うことです。ブール値を照合できます。これは、従来のthen/else分岐に似ています。しかし、はるかに優れています、以下の最後の実装に示されているように、等価性テストを避け、オブジェクト自体に一致させるからです。
 
 ```fsharp
-// bad
+//不適切
 let f x =
     if x = 1
     then "a"
     else "b"
 
-// not much better
+// あまり良くありません
 let f x =
-    match x=1 with
+    match x = 1 with
     | true -> "a"
     | false -> "b"
 
-// best
+// ベスト
 let f x =
     match x with
     | 1 -> "a"
     | _ -> "b"
 ```
 
-Part of the reason why direct matching is better is that the equality test throws away useful information that you often need to retrieve again.
+直接照合が優れている理由の1つは、等価性テストでは、しばしば有用な情報が破棄され再取得が必要になる点にあります。
 
-This is demonstrated by the next scenario, where we want to get the first element of a list in order to print it. Obviously, we must be careful not to attempt this for an empty list.
+次のシナリオでは、リストを出力するため先頭の要素を取得します。当然、空のリストの場合はこの操作を行わないように注意する必要があります。
 
-The first implementation does a test for empty and then a *second* operation to get the first element. A much better approach is to match and extract the element in one single step, as shown in the second implementation.
+最初の実装は空であるかどうかをテストし、次に*2つ目の*演算を行って最初の要素を取得します。その次の実装に示すように、1ステップで要素をマッチングして抽出する方が、はるかに優れた方法です。
 
 ```fsharp
-// bad
-let f list =
+// 不適切
+let f list=
     if List.isEmpty list
-    then printfn "is empty"
+    printfn "is empty"
     else printfn "first element is %s" (List.head list)
 
-// much better
-let f list =
+// より適切
+let f list=
     match list with
     | [] -> printfn "is empty"
-    | x::_ -> printfn "first element is %s" x
+    | X::_ -> printfn "first element is %s" x
 ```
 
-The second implementation is not only easier to understand, it is more efficient.
+2番目の実装は理解しやすいだけでなく、より効率的です。
 
-If the boolean test is complicated, it can still be done with match by using extra "`when`" clauses (called "guards"). Compare the first and second implementations below to see the difference.
+ブーリアンテストが複雑な場合でも、"`when`"句 ("guards"と呼ばれます) を追加することで、matchで行うことができます。以下の1番目と2番目の実装を比較して、違いを確認してください。
 
 ```fsharp
-// bad
+//不適切
 let f list =
     if List.isEmpty list
-        then printfn "is empty"
+        printfn "is empty"
         elif (List.head list) > 0
             then printfn "first element is > 0"
             else printfn "first element is <= 0"
 
-// much better
+// より適切
 let f list =
     match list with
     | [] -> printfn "is empty"
@@ -88,59 +88,59 @@ let f list =
     | x::_ -> printfn "first element is <= 0"
 ```
 
-Again, the second implementation is easier to understand and also more efficient.
+繰り返しますが、2番目の実装は理解しやすく、効率的です。
 
-The moral of the tale is: if you find yourself using if-then-else or matching on booleans, consider refactoring your code.
+もし、if-then-elseやブーリアンの照合を使っていたら、コードのリファクタリングを検討してみてはいかがでしょうか。
 
-### How to use if-then-else
+### if-then-else の使い方
 
-If you do need to use if-then-else, be aware that even though the syntax looks familiar, there is a catch that you must be aware of: "`if-then-else`" is an *expression*, not a *statement*, and as with every expression in F#, it must return a value of a particular type.
+if-then-elseを使用する必要がある場合は、構文が見慣れたものであっても、注意しなければならない落とし穴があることに注意してください。"`if-then-else`"は*文*ではなく*式*であり、F#の他の式と同様に、特定の型の値を返す必要があります。
 
-Here are two examples where the return type is a string.
+戻り値の型がstringである2つの例を次に示します:
 
 ```fsharp
-let v = if true then "a" else "b"    // value : string
-let f x = if x then "a" else "b"     // function : bool->string
+let v = if true then "a" else "b" // value : string
+let f x = if x then "a" else "b" // function : bool->string
 ```
 
-But as a consequence, both branches must return the same type!  If this is not true, then the expression as a whole cannot return a consistent type and the compiler will complain.
+しかし，結果として，どちらのブランチも同じ型を返さなければなりません  もしそうでなければ，式全体として一貫した型を返すことができず，コンパイラが文句を言います。
 
-Here is an example of different types in each branch:
+ここでは，各分岐で異なる型を返す例を示します。
 
 ```fsharp
 let v = if true then "a" else 2
-  // error FS0001: This expression was expected to have
-  //               type string but here has type int
+  // error FS0001: if' 式のすべてのブランチは同じ型である必要があります。
+  //               この式に必要な型は 'string' ですが、ここでは型 'int' になっています。
 ```
 
-The "else" clause is optional, but if it is absent, the "else" clause is assumed to return unit, which means that the "then" clause must also return unit. You will get a complaint from the compiler if you make this mistake.
+"else"節は必須ではありませんが、省略した場合、"else"節はunitを返すものとみなされます。つまり、"then"節もunitを返す必要があります。この間違いをすると、コンパイラが文句を言います。
 
 ```fsharp
 let v = if true then "a"
-  // error FS0001: This expression was expected to have type unit
-  //               but here has type string
+  // error FS0001: 'if' 式に 'else' ブランチがありません。'then' ブランチは型 'string' です。
+  //               'if' はステートメントではなく式であるため、同じ型の値を返す 'else' ブランチを追加してください。
 ```
 
-If the "then" clause returns unit, then the compiler will be happy.
+もし"then "節がunitを返せば，コンパイラは喜ぶでしょう。
 
 ```fsharp
-let v2 = if true then printfn "a"   // OK as printfn returns unit
+let v2 = if true then printfn "a"   // printfnがunitを返すのでOK
 ```
 
-Note that there is no way to return early in a branch. The return value is the entire expression. In other words, the if-then-else expression is more closely related to the C# ternary if operator (`<if expr>?<then expr>:<else expr>`) than to the C# if-then-else statement.
+Note: 分岐で早く戻る方法はありません。戻り値は式全体です。つまり、if-then-else式は、C#if-then-else文よりもC#三項if演算子 (`<if expr>?<then expr>:<else expr>`) に近い関係にあります。
 
-### if-then-else for one liners
+###ワンライナーのためのif-then-else
 
-One of the places where if-then-else can be genuinely useful is to create simple one-liners for passing into other functions.
+if-then-elseが本当に役に立つのは、他の関数に渡すためのシンプルなワンライナーを作る場合です。
 
 ```fsharp
 let posNeg x = if x > 0 then "+" elif x < 0 then "-" else "0"
 [-5..5] |> List.map posNeg
 ```
 
-### Returning functions
+### 関数を返す
 
-Don't forget that an if-then-else expression can return any value, including function values. For example:
+if-then-else式は、関数の値を含めてあらゆる値を返せることを忘れてはいけません。たとえば、以下のようになります:
 
 ```fsharp
 let greetings =
@@ -148,68 +148,68 @@ let greetings =
     then (fun name -> "good morning, " + name)
     else (fun name -> "good day, " + name)
 
-//test
+//テスト
 greetings "Alice"
 ```
 
-Of course, both functions must have the same type, meaning that they must have the same function signature.
+もちろん、どちらの関数も同じ型、つまり同じ関数シグネチャを持っていなければなりません。
 
-## Loops ##
+## ループ ##
 
-### How to avoid using loops ###
+### ループを使わずに済ませるには ###
 
-The best way to avoid loops is to use the built in list and sequence functions instead. Almost anything you want to do can be done without using explicit loops. And often, as a side benefit, you can avoid mutable values as well. Here are some examples to start with, and for more details please read the upcoming series devoted to list and sequence operations.
+ループを回避する最善の方法は、代わりにビルトインのリストやシーケンス関数を使用することです。明示的なループを使用しなくても、ほとんどの操作を実行できます。また、多くの場合、副次的な利点として、変更可能な値を回避することもできます。最初にいくつかの例を示します。詳細については、リスト操作とシーケンス操作に特化した今後のシリーズを参照してください。
 
-Example: Printing something 10 times:
+例:何かを10回出力する:
 
 ```fsharp
-// bad
+// 悪い
 for i = 1 to 10 do
    printf "%i" i
 
-// much better
+// ずっと良い
 [1..10] |> List.iter (printf "%i")
 ```
 
-Example: Summing a list:
+例 リストの和をとる:
 
 ```fsharp
-// bad
+// 悪い
 let sum list =
-    let mutable total = 0    // uh-oh -- mutable value
+    let mutable total = 0    // あーあ -- ミュータブルな値
     for e in list do
-        total <- total + e   // update the mutable value
-    total                    // return the total
+        total <- total + e   // ミュータブルな値を更新する
+    total                    // 合計を返す
 
-// much better
+// ずっと良い
 let sum list = List.reduce (+) list
 
-//test
+//テスト
 sum [1..10]
 ```
 
-Example: Generating and printing a sequence of random numbers:
+例:乱数の生成と出力:
 
 ```fsharp
-// bad
+// 悪い
 let printRandomNumbersUntilMatched matchValue maxValue =
-  let mutable continueLooping = true  // another mutable value
+  let mutable continueLooping = true  // もうひとつの mutable 値
   let randomNumberGenerator = new System.Random()
   while continueLooping do
-    // Generate a random number between 1 and maxValue.
+    // 1からmaxValueの間の乱数を生成します。
     let rand = randomNumberGenerator.Next(maxValue)
     printf "%d " rand
     if rand = matchValue then
        printfn "\nFound a %d!" matchValue
        continueLooping <- false
 
-// much better
+// もっと良い方法
 let printRandomNumbersUntilMatched matchValue maxValue =
   let randomNumberGenerator = new System.Random()
   let sequenceGenerator _ = randomNumberGenerator.Next(maxValue)
   let isNotMatch = (<>) matchValue
 
-  //create and process the sequence of rands
+  //乱数のシーケンスの作成と処理
   Seq.initInfinite sequenceGenerator
     |> Seq.takeWhile isNotMatch
     |> Seq.iter (printf "%d ")
@@ -217,52 +217,52 @@ let printRandomNumbersUntilMatched matchValue maxValue =
   // done
   printfn "\nFound a %d!" matchValue
 
-//test
+//テスト
 printRandomNumbersUntilMatched 10 20
 ```
 
-As with if-then-else, there is a moral; if you find yourself using loops and mutables, please consider refactoring your code to avoid them.
+if-then-elseの場合と同様です; ループやmutableを使用している場合は、それらを避けるためにコードのリファクタリングを検討してください。
 
-### The three types of loops
+### ループの3つのタイプ
 
-If you want to use loops, then there are three types of loop expressions to choose from, which are similar to those in C#.
+ループを使用する場合、C# と同様に 3 種類のループ表現があります。
 
-* `for-in-do`.  This has the form `for x in enumerable do something`. It is the same as the `foreach` loop in C#, and is the form most commonly seen in F#.
-* `for-to-do`.  This has the form `for x = start to finish do something`. It is the same as the standard `for (i=start; i<end; i++)` loops in C#.
-* `while-do`. This has the form `while test do something`. It is the same as the `while` loop in C#.  Note that there is no `do-while` equivalent in F#.
+* `for-in-do`.  これは、`for x in enumerable do something`という形をしています。これはC#の`foreach`ループと同じで、F#で最もよく見られる形式です。
+* `for-to-do`.  これは `for x = start to finish do something` という形をしています。これはC#の標準的な`for (i=start; i<end; i++)`ループと同じです。
+* `while-do`. これは、`while test do something`という形をしています。これはC#の`while`ループと同じです。 なお、F#には`do-while`に相当するものはありません。
 
-I won't go into any more detail than this, as the usage is straightforward. If you have trouble, check the [MSDN documentation](http://msdn.microsoft.com/en-us/library/dd233227.aspx).
+使い方は簡単なので、これ以上の詳細は説明しません。困ったときは[MSDNドキュメント](http://msdn.microsoft.com/en-us/library/dd233227.aspx)を確認してみてください。
 
-### How to use loops
+### ループの使い方
 
-As with if-then-else expressions, the loop expressions look familiar, but there are some catches again.
+if-then-else式と同様に、ループ式は見慣れたものに見えますが、いくつかの落とし穴があります。
 
-* All looping expressions always return unit for the whole expression, so there is no way to return a value from inside a loop.
-* As with all "do" bindings, the expression inside the loop must return unit as well.
-* There is no equivalent of "break" and "continue" (this can generally done better using sequences anyway)
+* すべてのループ式は常に式全体をunitとして返すため、ループ内から値を返す方法はありません。
+* すべての"do"束縛と同様に、ループ内の式もunitを返さなければなりません。
+* "break"と"continue"に相当するものはありません (どちらにしても通常はシーケンスを使用した方が良いでしょう) 。
 
-Here's an example of the unit constraint. The expression in the loop should be unit, not int, so the compiler will complain.
+次に、unit制約の例を示します。ループ内の式はintではなくunitでなければならないので、コンパイラは文句を言います。
 
 ```fsharp
 let f =
   for i in [1..10] do
-    i + i  // warning: This expression should have type 'unit'
+    i + i // 警告: この式の結果の型は 'int' で、暗黙的に無視されます。
 
-// version 2
+// バージョン2
 let f =
   for i in [1..10] do
-    i + i |> ignore   // fixed
+    i + i |> ignore   // 修正
 ```
 
-### Loops for one liners
+### ワンライナーのforループ
 
-One of the places where loops are used in practice is as list and sequence generators.
+ループが実際に使用される場所の1つは、リストおよびシーケンスのジェネレータです。
 
 ```fsharp
 let myList = [for x in 0..100 do if x*x < 100 then yield x ]
 ```
 
-## Summary
+## まとめ
 
-I'll repeat what I said at the top of the post: do avoid using imperative control flow when you are learning to think functionally.
-And understand the exceptions that prove the rule; the one-liners whose use is acceptable.
+この記事の冒頭で述べたことを繰り返します: 関数的な思考を学ぶ際は、命令的な制御フローを使わないようにしましょう。
+そのルールを裏付ける例外を理解できたら;ワンライナーは使用してかまいません。
