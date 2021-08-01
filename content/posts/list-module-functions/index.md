@@ -7,50 +7,50 @@ categories: []
 image: "/posts/list-module-functions/cyoa_list_module.jpg"
 ---
 
-There's more to learning a new language than the language itself. In order to be productive, you need to memorize a big chunk of the standard library
-and be aware of most of the rest of it. For example, if you know C#, you can pick up Java-the-language quite quickly, but you won't really get up to speed
-until you are comfortable with the Java Class Library as well.
+新しい言語を学ぶことには、言語自体を学ぶこと以上の意味があります。生産性を高めるためには、標準ライブラリーの大部分を記憶し、
+残りの大部分を認識できるようになる必要があります。例えば、C#を知っていれば言語としてのJavaはすぐに理解できますが、
+Javaのクラスライブラリを使いこなせるようになるまでは、本当の意味で使いこなすことは難しいでしょう。
 
-Similarly, you can't really be effective in F# until you have some familiarity with all the F# functions that work with collections.
+同様に、F#を効果的に使えるようになるには、コレクションを扱う全てのF#関数を熟知する必要があります。
 
-In C# there are only a few LINQ methods you need to know {{<sup 1>}} (`Select`, `Where`, and so on).
-But in F#, there are currently almost 100 functions in the List module (and similar counts in the Seq and Array modules). That's a lot!\
+C#では知る必要があるのはほんの少しのLINQメソッド{{<sup 1>}}(`Select`,`Where`など) だけです。
+しかしF#では現在、Listモジュールにおよそ100の関数が存在します (SeqモジュールやArrayモジュールにも同様の数があります) 。ずいぶん多いですね！
 {{<footnote "1">}}
-Yes, there are more, but you can get by with just a few. In F# it's more important to know them all.
+ええ、まだありますが、ほんの少しですみます。F#では、全てを知ることが重要です。
 {{</footnote>}}
 
-If you are coming to F# from C#, then, the large number of list functions can be overwhelming.
+もしC#からF#に来たのであれば、リスト関数の数の多さに圧倒されているかもしれません。
 
-So I have written this post to help guide you to the one you want.
-And for fun, I've done it in a "Choose Your Own Adventure" style!
+そこで、ご所望の関数をご案内するために、この記事を書きました。
+お楽しみとして"Choose Your Own Adventure"スタイルでやってみました!
 
 ![](./cyoa_list_module.jpg)
 
-## What collection do I want?
+## どんなコレクションが欲しいのか？
 
-First, a table with information about the different kinds of standard collections. There are five "native" F# ones: `list`, `seq`, `array`, `map` and `set`,
-and `ResizeArray` and `IDictionary` are also often used.
+まず、標準的なコレクションの種類についての情報を表にまとめました。F#には5つの "ネイティブ "なコレクションがあります:`list`,`seq`,`array`,`map`,`set`,です。
+また、`ResizeArray`や`IDictionary`もよく使われます。
 
 {{<rawtable>}}
-<table class="table table-condensed table-striped">
+<table class=\"table table-condensed table-striped\">
 <tr>
 <th></th>
-<th>Immutable?</th>
-<th>Notes</th>
+<th>Immutable？</th>
+<th>ノート</th>
 </tr>
 <tr>
 <th>list</th>
 <td>Yes</td>
 <td>
-    <b>Pros:</b>
+    <b>長所</b>
     <ul>
-    <li>Pattern matching available.</li>
-    <li>Complex iteration available via recursion.</li>
-    <li>Forward iteration is fast. Prepending is fast.</li>
+    <li>パターンマッチングが可能。</li>
+    <li>再帰的に複雑な反復が可能。</li>
+    <li>前方反復が速い。前置詞が速い。</li>
     </ul>
-    <b>Cons:</b>
+    <b>欠点</b>
     <ul>
-    <li>Indexed access and other access styles are slow.</li>
+    <li>インデックス付きのアクセスやその他のアクセススタイルは遅い。</li>
     </ul>
 </td>
 </tr>
@@ -58,19 +58,19 @@ and `ResizeArray` and `IDictionary` are also often used.
 <th>seq</th>
 <td>Yes</td>
 <td>
-    <p>Alias for <code>IEnumerable</code>.</p>
-    <b>Pros:</b>
+    <p> <code>IEnumerable</code>の別名。</p>
+    <b>長所は</b>
     <ul>
-    <li>Lazy evaluation</li>
-    <li>Memory efficient (only one element at a time loaded)</li>
-    <li>Can represent an infinite sequence.</li>
-    <li>Interop with .NET libraries that use IEnumerable.</li>
+    <li>遅延評価</li>
+    <li>メモリ効率が良い（一度に1つの要素しか読み込まれない</li>
+    <li>無限のシーケンスを表現できる。</li>
+    <li>IEnumerableを使用する.NETライブラリとの相互運用。</li>
     </ul>
-    <b>Cons:</b>
+    <b>短所</b>
     <ul>
-    <li>No pattern matching.</li>
-    <li>Forward only iteration.</li>
-    <li>Indexed access and other access styles are slow.</li>
+    <li>パターンマッチングができない。</li>
+    <li>フォワードのみのイテレーション。</li>
+    <li>インデックス付きアクセスなどのアクセススタイルは遅い。</li>
     </ul>
 </td>
 </tr>
@@ -78,44 +78,44 @@ and `ResizeArray` and `IDictionary` are also often used.
 <th>array</th>
 <td>No</td>
 <td>
-    <p>Same as BCL <code>Array</code>.</p>
-    <b>Pros:</b>
+    <p>BCL<code>Array</code>と同じです。</p>
+    <b>長所は</b>
     <ul>
-    <li>Fast random access</li>
-    <li>Memory efficient and cache locality, especially with structs.</li>
-    <li>Interop with .NET libraries that use Array.</li>
-    <li>Support for 2D, 3D and 4D arrays</li>
+    <li>高速なランダムアクセス</li>
+    <li>Memory efficient and cache locality, especially with struct.</li>
+    <li>Arrayを使用する.NETライブラリとのインターロップ。</li>
+    <li>2D、3D、4D配列のサポート</li>
     </ul>
-    <b>Cons:</b>
+    <b>短所</b>
     <ul>
-    <li>Limited pattern matching.</li>
-    <li>Not <a href="https://en.wikipedia.org/wiki/Persistent_data_structure">persistent</a>.</li>
+    <li>限定的なパターンマッチング。</li>
+    <li> <a href=\"https://en.wikipedia.org/wiki/Persistent_data_structure\">永続的</a>ではない。</li>
     </ul>
 </td>
 </tr>
 <tr>
 <th>map</th>
 <td>Yes</td>
-<td>Immutable dictionary. Requires keys to implement <code>IComparable</code>.</td>
+<td>不変の辞書。<code>IComparable</code>を実装したキーが必要。</td>
 </tr>
 <tr>
 <th>set</th>
 <td>Yes</td>
-<td>Immutable set. Requires elements to implement <code>IComparable</code>.</td>
+<td>不変のセット。<code>IComparable</code>を実装するために要素が必要</td>
 </tr>
 <tr>
 <th>ResizeArray</th>
 <td>No</td>
-<td>Alias for BCL <code>List</code>. Pros and cons similar to array, but resizable.</td>
+<td>BCL<code>リスト</code>の別名。長所と短所は配列と似ていますが、サイズ変更が可能です。</td>
 </tr>
 <tr>
 <th>IDictionary</th>
 <td>Yes</td>
 <td>
-    <p>For an alternate dictionary that does not requires elements to implement <code>IComparable</code>,
-    you can use the BCL <a href="https://msdn.microsoft.com/en-us/library/s4ys34ea.aspx">IDictionary</a>.
-    The constructor is <a href="https://msdn.microsoft.com/en-us/library/ee353774.aspx"><code>dict</code></a> in F#.</p>
-    <p>Note that mutation methods such as <code>Add</code> are present, but will cause a runtime error if called.</p>
+    <p>要素に<code>IComparable</code>の実装を必要としない代替ディクショナリとして,
+    BCL<a href=\"https://msdn.microsoft.com/en-us/library/s4ys34ea.aspx\">IDictionary</a> を使用することができます。
+    F#でそのコンストラクタは<a href=\"https://msdn.microsoft.com/en-us/library/ee353774.aspx\"><code>dict</code></a>です。</p>
+    <p> <code>Add</code>などの突然変異メソッドは存在しますが、呼び出されるとランタイム・エラーが発生することに注意してください。</p>
 </td>
 </tr>
 </table>
@@ -123,124 +123,124 @@ and `ResizeArray` and `IDictionary` are also often used.
 
 
 
-These are the main collection types that you will encounter in F#, and will be good enough for all common cases.
+これらはF#で主に使用されるコレクション型であり、通常の場合にはこれで十分です。
 
-If you need other kinds of collections though, there are lots of choices:
+しかし、それ以外の種類のコレクションが必要な場合も、選択肢は数多くあります。
 
-* You can use the collection classes in .NET, either the [traditional, mutable ones](https://msdn.microsoft.com/en-us/library/system.collections.generic)
-  or the newer ones such as those in the [System.Collections.Immutable namespace](https://msdn.microsoft.com/en-us/library/system.collections.immutable.aspx ).
-* Alternatively, you can use one of the F# collection libraries:
-  * [**FSharpx.Collections**](https://fsprojects.github.io/FSharpx.Collections/), part of the FSharpx series of projects.
-  * [**ExtCore**](https://github.com/jack-pappas/ExtCore/tree/master/ExtCore). Some of these are drop-in (almost) replacements for the Map and Set types in FSharp.Core which provide improved performance in specific scenarios (e.g., HashMap). Others provide unique functionality to help tackle specific coding tasks (e.g., LazyList and LruCache).
-  * [**Funq**](https://github.com/GregRos/Funq): high performance, immutable data structures for .NET.
-  * [**Persistent**](https://persistent.codeplex.com/documentation): some efficient persistent (immutable) data structures.
+* .NETのコレクション型を使用できます。 [従来の変更可能型](https://msdn.microsoft.com/en-us/library/system.collections.generic)
+  [System.Collections.Immutable名前空間](https://msdn.microsoft.com/en-us/library/system.collections.immutable.aspx) のような新しい名前空間もあります。
+* または、F#のコレクションライブラリのいずれかを使用することもできます。
+  * [**FSharpx.Collections**](https://fsprojects.github.io/FSharpx.Collections/), FSharpxシリーズの一部です。
+  * [**ExtCore**](https://github.com/jack-pappas/ExtCore/tree/master/ExtCore) 。FSharpのMap型とSet型の (ほぼ) 代替品です。特定の状況でパフォーマンスを向上させるCore (HashMapなど) 。また、特定のタスクのコーディングを支援する独自機能を備えているものもあります (LazyListやLruCacheなど) 。
+  * [**Funq**](https://github.com/GregRos/Funq): .NET用の高性能で不変のデータ構造。
+  * [**Persistent**](https://persistent.codeplex.com/documentation):効率的な永続的 (不変) データ構造。
 
-## About the documentation
+## ドキュメントについて
 
-All functions are available for `list`, `seq` and `array` in F# v4 unless noted. The `Map` and `Set` modules have some of them as well, but I won't be discussing `map` and `set` here.
+特に明記されていない限り、F#v4の`list`、`seq`、および`array`ですべての関数を使用できます。`Map`と`Set`モジュールにおいても一部使用できますが、本稿では`map`と`set`については触れません。
 
-For the function signatures I will use `list` as the standard collection type. The signatures for the `seq` and `array` versions will be similar.
+関数シグネチャには、標準のコレクション型として`list`を使用します。`seq`と`array`バージョンのシグネチャも似たようなものになります。
 
-Many of these functions are not yet documented on MSDN so I'm going to link directly to the source code on GitHub, which has the up-to-date comments.
-Click on the function name for the link.
+これらの関数の多くはまだMSDNに文書化されていないので、最新のコメントがあるGitHubのソースコードに直接リンクします。
+リンクの関数名をクリックしてください。
 
-## Note on availability
+## 可用性に関する注意事項
 
-The availability of these functions may depend on which version of F# you use.
+これらの関数を使用できるかどうかは、使用するF#のバージョンによって異なります。
 
-* In F# version 3 (Visual Studio 2013), there was some degree of inconsistency between Lists, Arrays and Sequences.
-* In F# version 4 (Visual Studio 2015), this inconsistency has been eliminated, and almost all functions are available for all three collection types.
+* F#バージョン3 (Visual Studio 2013) では, List, Arrays, Sequenceにある程度の不整合がありました。
+* F#バージョン4 (Visual Studio 2015) では,これが解消され, 3つのコレクション型すべてに対して,ほぼすべての関数が利用可能になりました。
 
-If you want to know what changed between F# v3 and F# v4, please see [this chart](http://blogs.msdn.com/cfs-filesystemfile.ashx/__key/communityserver-blogs-components-weblogfiles/00-00-01-39-71-metablogapi/3125.collectionAPI_5F00_254EA354.png)
-(from [here](http://blogs.msdn.com/b/fsharpteam/archive/2014/11/12/announcing-a-preview-of-f-4-0-and-the-visual-f-tools-in-vs-2015.aspx)).
-The chart shows the new APIs in F# v4 (green), previously-existing APIs (blue), and intentional remaining gaps (white).
+F#v3とF#v4の間で何が変更されたのか知りたい場合は、 [この表](http://blogs.msdn.com/cfs-filesystemfile.ashx/__key/communityserver-blogs-components-weblogfiles/00-00-01-39-71-metablogapi/3125.collectionAPI_5F00_254EA354.png)を参照してください。
+( [ここ](http://blogs.msdn.com/b/fsharpteam/archive/2014/11/12/announcing-a-preview-of-f-4-0-and-the-visual-f-tools-in-vs-2015.aspx)を参照。)
+グラフにはF#v4の新しいAPI (緑) 、既存のAPI (青) 、意図的に残した空白 (白) が表示されています。
 
-Some of the functions documented below are not in this chart -- these are newer still! If you are using an older version of F#,
-you can simply reimplement them yourself using the code on GitHub.
+以下で説明する関数のいくつかはこの表にはありません--これらは新しい関数です!古いバージョンのF#を使っているなら、
+GitHub上のコードを使って自分で再実装するだけです。
 
-With that disclaimer out of the way, you can start your adventure!
+免責事項をきちんと理解したら、冒険を始めることができます!
 
 
 {{< linktarget "toc" >}}
 
 ----
 
-## Table of contents
+## Table of Contents
 
-* [1. What kind of collection do you have?](#1)
-* [2. Creating a new collection](#2)
-* [3. Creating a new empty or one-element collection](#3)
-* [4. Creating a new collection of known size](#4)
-* [5. Creating a new collection of known size with each element having the same value](#5)
-* [6. Creating a new collection of known size with each element having a different value](#6)
-* [7. Creating a new infinite collection](#7)
-* [8. Creating a new collection of indefinite size](#8)
-* [9. Working with one list](#9)
-* [10. Getting an element at a known position](#10)
-* [11. Getting an element by searching](#11)
-* [12. Getting a subset of elements from a collection](#12)
-* [13. Partitioning, chunking and grouping](#13)
-* [14. Aggregating or summarizing a collection](#14)
-* [15. Changing the order of the elements](#15)
-* [16. Testing the elements of a collection](#16)
-* [17. Transforming each element to something different](#17)
-* [18. Iterating over each element](#18)
-* [19. Threading state through an iteration](#19)
-* [20. Working with the index of each element](#20)
-* [21. Transforming the whole collection to a different collection type](#21)
-* [22. Changing the behavior of the collection as a whole](#22)
-* [23. Working with two collections](#23)
-* [24. Working with three collections](#24)
-* [25. Working with more than three collections](#25)
-* [26. Combining and uncombining collections](#26)
-* [27. Other array-only functions](#27)
-* [28. Using sequences with disposables](#28)
+* [1. どんなコレクションを持っていますか？](#1)
+* [2. 新しいコレクションを作る](#2)
+* [3. 空や1要素のコレクションを作る](#3)
+* [4. サイズがわかっている新しいコレクションの作成](#4)
+* [5. 各要素が同じ値を持つ既知のサイズの新しいコレクションの作成](#5)
+* [6. 各要素が異なる値を持つ、サイズが既知の新しいコレクションの作成](#6)
+* [7. 新しい無限コレクションの作成](#7)
+* [8. 不定形の新しいコレクションを作る](#8)
+* [9. 1つのリストを扱う](#9)
+* [10. ある位置の要素を取得する](#10)
+* [11. 検索による要素の取得](#11)
+* [12. コレクションから要素のサブセットを取得する](#12)
+* [13. パーティショニング、チャンキング、グルーピング](#13)
+* [14. コレクションの集計・要約](#14)
+* [15. 要素の順序を変更する](#15)
+* [16. コレクションの要素をテストする](#16)
+* [17. 各要素を別のものに変換する](#17)
+* [18. 各要素の反復処理](#18)
+* [19. イテレーションで状態を通す](#19)
+* [20. 各要素のインデックスを扱う](#20)
+* [21. コレクション全体を別のコレクションタイプに変換する](#21)
+* [22. コレクション全体の動作を変更する](#22)
+* [23. 2つのコレクションを扱う](#23)
+* [24. 3つのコレクションでの作業](#24)
+* [25. 3つ以上のコレクションでの作業](#25)
+* [26. コレクションの結合と解除](#26)
+* [27. その他の配列のみの関数](#27)
+* [28. 使い捨ての配列を使う](#28)
 
 
 {{< linktarget "1" >}}
 
 ----
 
-## 1. What kind of collection do you have?
+## 1. どんな種類のコレクションを持っていますか？
 
-What kind of collection do you have?
+どのようなコレクションを持っていますか？
 
-* If you don't have a collection, and want to create one, go to [section 2](#2).
-* If you already have a collection that you want to work with, go to [section 9](#9).
-* If you have two collections that you want to work with, go to [section 23](#23).
-* If you have three collections that you want to work with, go to [section 24](#24).
-* If you have more than three collections that you want to work with, go to [section 25](#25).
-* If you want to combine or uncombine collections, go to [section 26](#26).
+* コレクションを持っておらず、作成したい場合は、[セクション2](#2)に進んでください。
+* もし、すでにコレクションを持っていて、それを使いたい場合は、[セクション9](#9)に進んでください。
+* 扱いたいコレクションが2つある場合は、[セクション23](#23)に進んでください。
+* 扱いたいコレクションが3つある場合は、[セクション24](#24)に進んでください。
+* 扱いたいコレクションが3つ以上ある場合は、[セクション25](#25)に進んでください。
+* コレクションを結合・解除したい場合は、[セクション26](#26)へ。
 
 {{< linktarget "2" >}}
 
 ----
 
-## 2. Creating a new collection
+## 2. 新しいコレクションの作成
 
-So you want to create a new collection. How do you want to create it?
+新しいコレクションを作成したいと思います。どのように作成するのでしょうか？
 
-* If the new collection will be empty or will have one element, go to [section 3](#3).
-* If the new collection is a known size, go to [section 4](#4).
-* If the new collection is potentially infinite, go to [section 7](#7).
-* If you don't know how big the collection will be, go to [section 8](#8).
+* 新しいコレクションが空であるか、1つの要素を持つ場合は、[セクション3](#3)に進みます。
+* 新しいコレクションが既知のサイズである場合、[セクション4](#4)に進みます。
+* 新しいコレクションが無限になる可能性がある場合は、[セクション7](#7)へ。
+* コレクションの大きさがわからない場合は、[セクション8](#8)へ。
 
 {{< linktarget "3" >}}
 
 ----
 
-## 3. Creating a new empty or one-element collection
+## 3. 新しい空または1要素のコレクションの作成
 
-If you want to create a new empty or one-element collection, use these functions:
+空または1要素のコレクションを新規に作成する場合は、以下の関数を使用します。
 
 * [`empty : 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L142).
-  Returns an empty list of the given type.
+  与えられた型の空のリストを返します。
 * [`singleton : value:'T -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L635).
-  Returns a list that contains one item only.
+  1つの要素だけを含むリストを返します。
 
-If you know the size of the collection in advance, it is generally more efficient to use a different function. See [section 4](#4) below.
+コレクションのサイズがあらかじめわかっている場合は、一般的に別の関数を使った方が効率的です。以下の[セクション4](#4)を参照してください。
 
-### Usage examples
+### 使用例
 
 ```fsharp
 let list0 = List.empty
@@ -255,30 +255,30 @@ let list1 = List.singleton "hello"
 
 ----
 
-## 4. Creating a new collection of known size
+## 4. サイズが既知の新しいコレクションの作成
 
-* If all elements of the collection will have the same value, go to [section 5](#5).
-* If elements of the collection could be different, go to [section 6](#6).
+* コレクションの全ての要素が同じ値を持つ場合は、[セクション5](#5)へ。
+* コレクションの要素が異なる可能性がある場合には、[セクション6](#6)に進みます。
 
 
 {{< linktarget "5" >}}
 
 ----
 
-## 5. Creating a new collection of known size with each element having the same value
+## 5. 各要素が同じ値を持つ、サイズが既知の新しいコレクションの作成
 
-If you want to create a new collection of known size with each element having the same value, you want to use `replicate`:
+各要素が同じ値を持つ、サイズが既知の新しいコレクションを作成したい場合は、`replicate`を使用します。
 
 * [`replicate : count:int -> initial:'T -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L602).
-  Creates a collection by replicating the given initial value.
+  与えられた初期値を複製することで、コレクションを作成します。
 * (Array only) [`create : count:int -> value:'T -> 'T[]`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/array.fsi#L125).
-  Creates an array whose elements are all initially the supplied value.
+  すべての要素が与えられた初期値である配列を作成します。
 * (Array only) [`zeroCreate : count:int -> 'T[]`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/array.fsi#L467).
-  Creates an array where the entries are initially the default value.
+  初期状態としてデフォルトの値が入力されている配列を作成します。
 
-`Array.create` is basically the same as `replicate` (although with a subtly different implementation!) but `replicate` was only implemented for `Array` in F# v4.
+`Array.create` は基本的に `replicate` と同じですが (実装は微妙に異なります!)、`replicate` は F# v4 で `Array` に対してのみ実装されました。
 
-### Usage examples
+### 使用例
 
 ```fsharp
 let repl = List.replicate 3 "hello"
@@ -294,34 +294,34 @@ let stringArr0 : string[] = Array.zeroCreate 3
 // val stringArr0 : string [] = [|null; null; null|]
 ```
 
-Note that for `zeroCreate`, the target type must be known to the compiler.
+なお，`zeroCreate`では，ターゲットの型がコンパイラに知られている必要があります。
 
 
 {{< linktarget "6" >}}
 
 ----
 
-## 6. Creating a new collection of known size with each element having a different value
+## 6. 各要素が異なる値を持つ既知のサイズの新しいコレクションの作成
 
-If you want to create a new collection of known size with each element having a potentially different value, you can choose one of three ways:
+各要素の値が異なる可能性がある既知のサイズのコレクションを新規作成する場合は、次の3つの方法のいずれかを選択できます:
 
-* [`init : length:int -> initializer:(int -> 'T) -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L347).
-  Creates a collection by calling the given generator on each index.
-* For lists and arrays, you can also use the literal syntax such as `[1; 2; 3]` (lists) and `[|1; 2; 3|]` (arrays).
-* For lists and arrays and seqs, you can use the comprehension syntax `for .. in .. do .. yield`.
+* [`init:length:int->initializer: (int->'T) ->'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L347)。
+  各インデックスが引数として与えられるジェネレータ関数を呼び出してコレクションを作成します。
+* listとarrayでは、` [1;2;3] ` (lists) や` [|1;2;3|] ` (arrays) のようなリテラルも使用できます。
+* list、array、seqには、`for..in..do..yield`を使用できます。
 
-### Usage examples
+### 使用例
 
 ```fsharp
-// using list initializer
+// リストイニシャライザの使用
 let listInit1 = List.init 5 (fun i-> i*i)
 // val listInit1 : int list = [0; 1; 4; 9; 16]
 
-// using list comprehension
+// リスト内包を使用
 let listInit2 = [for i in [1..5] do yield i*i]
 // val listInit2 : int list = [1; 4; 9; 16; 25]
 
-// literal
+// リテラル
 let listInit3 = [1; 4; 9; 16; 25]
 // val listInit3 : int list = [1; 4; 9; 16; 25]
 
@@ -329,18 +329,18 @@ let arrayInit3 = [|1; 4; 9; 16; 25|]
 // val arrayInit3 : int [] = [|1; 4; 9; 16; 25|]
 ```
 
-Literal syntax allows for an increment as well:
+リテラル構文では，インクリメントも可能です:
 
 ```fsharp
-// literal with +2 increment
+// リテラルで＋2の増分
 let listOdd= [1..2..10]
 // val listOdd : int list = [1; 3; 5; 7; 9]
 ```
 
-The comprehension syntax is even more flexible because you can `yield` more than once:
+内包構文は，複数回の`yield`が可能なので，さらに柔軟性があります．
 
 ```fsharp
-// using list comprehension
+// リスト内包を使う
 let listFunny = [
     for i in [2..3] do
         yield i
@@ -350,7 +350,7 @@ let listFunny = [
 // val listFunny : int list = [2; 4; 8; 3; 9; 27]
 ```
 
-and it can also be used as a quick and dirty inline filter:
+また，クイック＆ダーティなインラインフィルタとして使うこともできます．
 
 ```fsharp
 let primesUpTo n =
@@ -365,12 +365,12 @@ primesUpTo 20
 // [2; 3; 5; 7; 11; 13; 17; 19]
 ```
 
-Two other tricks:
+他にも2つのトリックがあります。
 
-* You can use `yield!` to return a list rather than a single value
-* You can also use recursion
+* `yield!`を使うと、単一の値ではなくリストを返すことができます。
+* 再帰を使うこともできます。
 
-Here is an example of both tricks being used to count up to 10 by twos:
+以下は，この2つのトリックを使って，10までの数字を2つずつ数える例です。
 
 ```fsharp
 let rec listCounter n = [
@@ -389,24 +389,24 @@ listCounter 4
 
 ----
 
-## 7. Creating a new infinite collection
+## 7. 新しい無限のコレクションの作成
 
-If you want an infinite list, you have to use a seq rather than a list or array.
+無限リストを作りたい場合は、リストや配列ではなくseqを使う必要があります。
 
-* [`initInfinite : initializer:(int -> 'T) -> seq<'T>`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/seq.fsi#L599).
-  Generates a new sequence which, when iterated, will return successive elements by calling the given function.
-* You can also use a seq comprehension with a recursive loop to generate an infinite sequence.
+* [`initInfinite : initializer:(int -> 'T) -> seq<'T>`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/seq.fsi#L599)
+  新しいシーケンスを生成し、イテレートされると、与えられた関数を呼び出して連続した要素を返します。
+* 再帰ループでseq内包表記を使用して、無限シーケンスを生成することもできます。
 
-### Usage examples
+### 使用例
 
 ```fsharp
-// generator version
+// ジェネレータ版
 let seqOfSquares = Seq.initInfinite (fun i -> i*i)
 let firstTenSquares = seqOfSquares |> Seq.take 10
 
 firstTenSquares |> List.ofSeq // [0; 1; 4; 9; 16; 25; 36; 49; 64; 81]
 
-// recursive version
+// 再帰バージョン
 let seqOfSquares_v2 =
     let rec loop n = seq {
         yield n * n
@@ -420,17 +420,17 @@ let firstTenSquares_v2 = seqOfSquares_v2 |> Seq.take 10
 
 ----
 
-## 8. Creating a new collection of indefinite size
+## 8. 不定形サイズの新しいコレクションの作成
 
-Sometimes you don't know how big the collection will be in advance. In this case you need a function that will keep adding elements until it gets a signal to stop.
-`unfold` is your friend here, and the "signal to stop" is whether you return a `None` (stop) or a `Some` (keep going).
+事前にコレクションのサイズが分からないこともあります。この場合、停止信号を受け取るまで要素を追加し続ける関数が必要です。
+ここでは`unfold`があなたの友達です。"停止の合図"はあなたが`None` (停止) を返すか`Some` (続行) を返すかです。
 
-* [`unfold : generator:('State -> ('T * 'State) option) -> state:'State -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L846).
-  Returns a collection that contains the elements generated by the given computation.
+* [`unfold : generator:('State -> ('T * 'State) option) -> state:'State -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L846) 。
+  与えられた演算によって生成された要素のコレクションを返します。
 
-### Usage examples
+### 使用例
 
-This example reads from the console in a loop until an empty line is entered:
+この例では、空行が入るまでループでコンソールから読み取りを行います:
 
 ```fsharp
 let getInputFromConsole lineNo =
@@ -445,8 +445,8 @@ let getInputFromConsole lineNo =
 let listUnfold = List.unfold getInputFromConsole 1
 ```
 
-`unfold` requires that a state be threaded through the generator. You can ignore it (as in the `ReadLine` example above), or you can
-use it to keep track of what you have done so far. For example, you can create a Fibonacci series generator using `unfold`:
+`unfold`では、ジェネレーターによって状態がスレッド化される必要があります。無視してもかまいません (上記の`ReadLine`の例のように) し、
+これを使用して、それまでに行ったことを記録することもできます。たとえば、`unfold`を使用してFibonacci級数のジェネレータを作成できます:
 
 ```fsharp
 let fibonacciUnfolder max (f1,f2)  =
@@ -468,69 +468,69 @@ fibonacci 100
 
 ----
 
-## 9. Working with one list
+## 9. 一つのリストを扱う場合
 
-If you are working with one list and...
+1つのリストで作業する場合
 
-* If you want to get an element at a known position, go to [section 10](#10)
-* If you want to get one element by searching, go to [section 11](#11)
-* If you want to get a subset of the collection, go to [section 12](#12)
-* If you want to partition, chunk, or group a collection into smaller collections, go to [section 13](#13)
-* If you want to aggregate or summarize the collection into a single value, go to [section 14](#14)
-* If you want to change the order of the elements, go to [section 15](#15)
-* If you want to test the elements in the collection, go to [section 16](#16)
-* If you want to transform each element to something different, go to [section 17](#17)
-* If you want to iterate over each element, go to [section 18](#18)
-* If you want to thread state through an iteration, go to [section 19](#19)
-* If you need to know the index of each element while you are iterating or mapping, go to [section 20](#20)
-* If you want to transform the whole collection to a different collection type, go to [section 21](#21)
-* If you want to change the behaviour of the collection as a whole, go to [section 22](#22)
-* If you want to mutate the collection in place, go to [section 27](#27)
-* If you want to use a lazy  collection with an IDisposable, go to [section 28](#28)
+* 既知の位置にある要素を取得したい場合は、[セクション10](#10)へ。
+* 検索して1つの要素を取得したい場合は、[セクション11](#11)へ。
+* コレクションのサブセットを取得したい場合は、[セクション12](#12)へ
+* コレクションをより小さなコレクションに分割、チャンク、またはグループ化したい場合は、[セクション13](#13)へ。
+* コレクションを単一の値に集約、または要約したい場合は、[セクション14](#14)へ。
+* 要素の順序を変更したい場合は、[セクション15](#15)へ。
+* コレクション内の要素をテストしたい場合は、[セクション16](#16)へ
+* 各要素を別のものに変換したい場合は、[セクション17](#17)へ。
+* 各要素を反復処理したい場合は、[セクション18](#18)に進んでください。
+* 反復処理の中でステートをスレッドさせたい場合は、[セクション19](#19)へ。
+* 反復処理やマッピング中に各要素のインデックスを知る必要がある場合は、[セクション20](#20)へ。
+* コレクション全体を別のコレクションタイプに変換したい場合は、[セクション21](#21)へどうぞ。
+* コレクション全体の動作を変更したい場合は、[セクション22](#22)に進んでください。
+* コレクションをその場で変異させたい場合は、[セクション27](#27)へ。
+* IDisposableで遅延コレクションを使用したい場合は、[セクション28](#28)へ。
 
 {{< linktarget "10" >}}
 
 ----
 
-## 10. Getting an element at a known position
+## 10. 既知の位置にある要素の取得
 
-The following functions get a element in the collection by position:
+以下の関数は、コレクション内の要素を位置ごとに取得します。
 
 * [`head : list:'T list -> 'T`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L333).
-  Returns the first element of the collection.
+  コレクションの最初の要素を返します。
 * [`last : list:'T list -> 'T`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L398).
-  Returns the last element of the collection.
+  コレクションの最後の要素を返します。
 * [`item : index:int -> list:'T list -> 'T`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L520).
-  Indexes into the collection. The first element has index 0.\
-  NOTE: Avoid using `nth` and `item` for lists and sequences. They are not designed for random access, and so they will be slow in general.
-* [`nth : list:'T list -> index:int -> 'T`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L520).
-  The older version of `item`. NOTE: Deprecated in v4 -- use `item` instead.
+  コレクションへのインデックスアクセス。最初の要素のインデックスは 0 です。
+  注意: リストやシーケンスに `nth` や `item` を使うことは避けてください。これらはランダムアクセス用に設計されていないので、一般的には遅くなります。
+* [`nth : list:'T list -> index:int -> 'T`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L520)。
+  `item` の古いバージョンです。NOTE: v4では非推奨です -- 代わりに `item` を使用してください。
 * (Array only) [`get : array:'T[] -> index:int -> 'T`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/array.fsi#L220).
-  Yet another version  of `item`.
+  また、`item`の別バージョンです。
 * [`exactlyOne : list:'T list -> 'T`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L165).
-  Returns the only element of the collection.
+  要素数1のコレクションから要素を返します。
 
-But what if the collection is empty? Then `head` and `last` will fail with an exception (ArgumentException).
+しかし、コレクションが空だったらどうでしょうか? その場合、`head`と`last`は例外(ArgumentException)を発生して失敗します。
 
-And if the index is not found in the collection? Then another exception again (ArgumentException for lists, IndexOutOfRangeException for arrays).
+また、コレクションの中にインデックスが見つからない場合は？また、別の例外が発生します（リストの場合は ArgumentException、配列の場合は IndexOutOfRangeException）。
 
-I would therefore recommend that you avoid these functions in general and use the `tryXXX` equivalents below:
+したがって、これらの関数は避け、以下のような `tryXXX` に相当するものを使用することをお勧めします。
 
 * [`tryHead : list:'T list -> 'T option`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L775).
-  Returns the first element of the collection, or None if the collection is empty.
+  コレクションの最初の要素、またはコレクションが空の場合は None を返します。
 * [`tryLast : list:'T list -> 'T option`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L411).
-  Returns the last element of the collection, or None if the collection is empty.
+  コレクションの最後の要素を返すか、コレクションが空の場合は None を返します。
 * [`tryItem : index:int -> list:'T list -> 'T option`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L827).
-  Indexes into the collection, or None if the index is not valid.
+  コレクションにインデックスアクセス、インデックスが有効でない場合は None を返します。
 
-### Usage examples
+### 使用例
 
 ```fsharp
 let head = [1;2;3] |> List.head
 // val head : int = 1
 
 let badHead : int = [] |> List.head
-// System.ArgumentException: The input list was empty.
+// System.ArgumentException: 入力リストは空でした。
 
 let goodHeadOpt =
     [1;2;3] |> List.tryHead
@@ -549,11 +549,11 @@ let badItemOpt =
 // val badItemOpt : int option = None
 ```
 
-As noted, the `item` function should be avoided for lists. For example, if you want to process each item in a list, and you come from an imperative background,
-you might write a loop with something like this:
+前述のように、リストでは `item`関数は使用しないでください。たとえばもしあなたが命令型の出身である場合、
+リストの各項目を処理したいなら、次のようなループを書くかもしれません:
 
 ```fsharp
-// Don't do this!
+// こんなことしないで!
 let helloBad =
     let list = ["a";"b";"c"]
     let listSize = List.length list
@@ -564,7 +564,7 @@ let helloBad =
 // val helloBad : string list = ["hello a"; "hello b"; "hello c"]
 ```
 
-Don't do that! Use something like `map` instead. It's both more concise and more efficient:
+これはやめておきましょう。代わりに `map` のようなものを使ってください。これは、より簡潔で効率的です。
 
 ```fsharp
 let helloGood =
@@ -577,47 +577,47 @@ let helloGood =
 
 ----
 
-## 11.	Getting an element by searching
+## 11.	検索による要素の取得
 
-You can search for an element or its index using `find` and `findIndex`:
+`find` や `findIndex` を使って、要素やそのインデックスを検索することができます。
 
 * [`find : predicate:('T -> bool) -> list:'T list -> 'T`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L201).
-  Returns the first element for which the given function returns true.
+  与えられた関数がtrueを返す最初の要素を返します。
 * [`findIndex : predicate:('T -> bool) -> list:'T list -> int`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L222).
-  Returns the index of the first element for which the given function returns true.
+  与えられた関数がtrueを返すような最初の要素のインデックスを返します。
 
-And you can also search backwards:
+また、逆方向に検索することもできます。
 
 * [`findBack : predicate:('T -> bool) -> list:'T list -> 'T`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L211).
-  Returns the last element for which the given function returns true.
+  与えられた関数がtrueを返す最後の要素を返します。
 * [`findIndexBack : predicate:('T -> bool) -> list:'T list -> int`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L233).
-  Returns the index of the last element for which the given function returns true.
+  与えられた関数がtrueを返す最後の要素のインデックスを返します。
 
-But what if the item cannot be found? Then these will fail with an exception (`KeyNotFoundException`).
+しかし、もしその項目が見つからなかったらどうでしょうか？その場合，これらは例外（`KeyNotFoundException`）を伴って失敗します．
 
-I would therefore recommend that, as with `head` and `item`, you avoid these functions in general and use the `tryXXX` equivalents below:
+したがって、`head`や`item`と同様に、これらの関数は一般的には避け、以下のような`tryXXX`に相当するものを使用することをお勧めします。
 
 * [`tryFind : predicate:('T -> bool) -> list:'T list -> 'T option`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L800).
-  Returns the first element for which the given function returns true, or None if no such element exists.
+  与えられた関数がtrueを返す最初の要素を返すか、そのような要素が存在しない場合は None を返します。
 * [`tryFindBack : predicate:('T -> bool) -> list:'T list -> 'T option`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L809).
-  Returns the last element for which the given function returns true, or None if no such element exists.
+  与えられた関数がtrueを返す最後の要素、またはそのような要素が存在しない場合は None を返します。
 * [`tryFindIndex : predicate:('T -> bool) -> list:'T list -> int option`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L819).
-  Returns the index of the first element for which the given function returns true, or None if no such element exists.
+  与えられた関数がtrueを返す最初の要素のインデックスを返し、そのような要素が存在しない場合は None を返します。
 * [`tryFindIndexBack : predicate:('T -> bool) -> list:'T list -> int option`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L837).
-  Returns the index of the last element for which the given function returns true, or None if no such element exists.
+  与えられた関数がtrueを返した最後の要素のインデックスを返し、そのような要素が存在しない場合は None を返します。
 
-If you are doing a `map` before a `find` you can often combine the two steps into a single one using `pick` (or better, `tryPick`). See below for a usage example.
+もしも `map` を `find` の前に行っているのであれば、しばしば `pick` (あるいは `tryPick`) を使って、2つのステップを1つにまとめることができます。以下に使用例を示します。
 
 * [`pick : chooser:('T -> 'U option) -> list:'T list -> 'U`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L561).
-  Applies the given function to successive elements, returning the first result where the chooser function returns Some.
+  与えられたchooser関数を要素に適用し、Someを返す最初の結果を返します。
 * [`tryPick : chooser:('T -> 'U option) -> list:'T list -> 'U option`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L791).
-  Applies the given function to successive elements, returning the first result where the chooser function returns Some, or None if no such element exists.
+  与えられたchooser関数を要素に適用し、Someを返す最初の結果を返し、そのような要素が存在しない場合はNoneを返します。
 
 
-### Usage examples
+### 使用例
 
 ```fsharp
-let listOfTuples = [ (1,"a"); (2,"b"); (3,"b"); (4,"a"); ]
+let listOfTuples = [ (1, "a"); (2, "b"); (3, "b"); (4, "a"); ]
 
 listOfTuples |> List.find ( fun (x,y) -> y = "b")
 // (2, "b")
@@ -635,7 +635,7 @@ listOfTuples |> List.find ( fun (x,y) -> y = "c")
 // KeyNotFoundException
 ```
 
-With `pick`, rather than returning a bool, you return an option:
+`pick`では、boolを返すのではなく、optionを返します。
 
 ```fsharp
 listOfTuples |> List.pick ( fun (x,y) -> if y = "b" then Some (x,y) else None)
@@ -647,9 +647,9 @@ listOfTuples |> List.pick ( fun (x,y) -> if y = "b" then Some (x,y) else None)
 
 ### Pick vs. Find
 
-That 'pick' function might seem unnecessary, but it is useful when dealing with functions that return options.
+この"pick"関数は不要と思われるかもしれませんが、optionを返す関数を扱うときに便利です。
 
-For example, say that there is a function `tryInt` that parses a string and returns `Some int` if the string is a valid int, otherwise `None`.
+例えば、文字列を解析して、その文字列が有効なintであれば`Some int`を、そうでなければ`None`を返す関数`tryInt`があるとします。
 
 ```fsharp
 // string -> int option
@@ -659,27 +659,27 @@ let tryInt str =
     | false, _ -> None
 ```
 
-And now say that we want to find the first valid int in a list. The crude way would be:
+さて、リストの中から最初の有効なintを見つけたいとします。ざっくりとした方法としては
 
-* map the list using `tryInt`
-* find the first one that is a `Some` using `find`
-* get the value from inside the option using `Option.get`
+* `tryInt` を使ってリストをマッピングします。
+* `find` を使って最初の `Some` を見つけます。
+* `Option.get` を使ってoption内の値を取得する。
 
-The code might look something like this:
+コードは以下のようになります．
 
 ```fsharp
 let firstValidNumber =
     ["a";"2";"three"]
-    // map the input
+    // 入力のマッピング
     |> List.map tryInt
-    // find the first Some
+    // 最初のSomeを見つける
     |> List.find (fun opt -> opt.IsSome)
-    // get the data from the option
+    // optionからデータを取得
     |> Option.get
 // val firstValidNumber : int = 2
 ```
 
-But `pick` will do all these steps at once! So the code becomes much simpler:
+しかし、`pick`はこれらのステップをすべて一度に行います。そのため、コードはもっとシンプルになります。
 
 ```fsharp
 let firstValidNumber =
@@ -687,59 +687,59 @@ let firstValidNumber =
     |> List.pick tryInt
 ```
 
-If you want to return many elements in the same way as `pick`, consider using `choose` (see [section 12](#12)).
+もし、`pick`と同じように多くの要素を返したい場合は、`choose`の使用を検討してください（[セクション12](#12)参照）。
 
 {{< linktarget "12" >}}
 
 ----
 
-## 12. Getting a subset of elements from a collection
+## 12. コレクションから要素のサブセットを取得する
 
-The previous section was about getting one element. How can you get more than one element?  Well you're in luck! There's lots of functions to choose from.
+前のセクションでは、1つの要素の取得について説明しました。複数の要素を取得するにはどうすればよいでしょうか？ それは幸運なことです。たくさんの関数の中から選ぶことができます。
 
-To extract elements from the front, use one of these:
+前方から要素を抽出するには、以下のようなものを使います。
 
 * [`take: count:int -> list:'T list -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L746).
-  Returns the first N elements of the collection.
+  コレクションの最初のN個の要素を返します。
 * [`takeWhile: predicate:('T -> bool) -> list:'T list -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L756).
-  Returns a collection that contains all elements of the original collection while the given predicate returns true, and then returns no further elements.
+  指定された述語がtrueを返すまで元のコレクションの要素をすべて含むコレクションを返します (これ以降の要素は返しません) 。
 * [`truncate: count:int -> list:'T list -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L782).
-  Returns at most N elements in a new collection.
+  新しいコレクションに最大でN個の要素を返します。
 
-To extract elements from the rear, use one of these:
+後方から要素を取り出すには、以下のいずれかを使用します。
 
 * [`skip: count:int -> list: 'T list -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L644).
-  Returns the collection after removing the first N elements.
+  最初のN個の要素を削除した後のコレクションを返します。
 * [`skipWhile: predicate:('T -> bool) -> list:'T list -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L652).
-  Bypasses elements in a collection while the given predicate returns true, and then returns the remaining elements of the collection.
+  与えられた述語がtrueを返す間、コレクションの要素をバイパスして、コレクションの残りの要素を返します。
 * [`tail: list:'T list -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L730).
-  Returns the collection after removing the first element.
+  最初の要素を削除した後のコレクションを返します。
 
-To extract other subsets of elements, use one of these:
+要素の他のサブセットを抽出するには、これらのいずれかを使用します。
 
 * [`filter: predicate:('T -> bool) -> list:'T list -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L241).
-  Returns a new collection containing only the elements of the collection for which the given function returns true.
+  与えられた関数がtrueを返したコレクションの要素だけを含む新しいコレクションを返します。
 * [`except: itemsToExclude:seq<'T> -> list:'T list -> 'T list when 'T : equality`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L155).
-  Returns a new collection with the distinct elements of the input collection which do not appear in the itemsToExclude sequence, using generic hash and equality comparisons to compare values.
+  入力コレクションの中でitemsToExcludeシーケンスの中に含まれていない要素を持つ新しいコレクションを返します。このとき、値の比較には汎用ハッシュと等価比較を使用します。
 * [`choose: chooser:('T -> 'U option) -> list:'T list -> 'U list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L55).
-  Applies the given function to each element of the collection. Returns a collection comprised of the elements where the function returns Some.
+  与えられた関数をコレクションの各要素に適用します。関数がSomeを返す要素で構成されるコレクションを返します。
 * [`where: predicate:('T -> bool) -> list:'T list -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L866).
-  Returns a new collection containing only the elements of the collection for which the given predicate returns true.
-  NOTE: "where" is a synonym for "filter".
-* (Array only) `sub : 'T [] -> int -> int -> 'T []`.
-  Creates an array that contains the supplied subrange, which is specified by starting index and length.
-* You can also use slice syntax: `myArray.[2..5]`. See below for examples.
+  与えられたpredicateがtrueを返すコレクションの要素だけを含む新しいコレクションを返します。
+  NOTE: "where "は "filter "の同義語です。
+* (配列のみ) `sub : 'T [] -> int -> int -> 'T []`.
+  Sub : 'T [] -> int -> 'T []`. 開始インデックスと長さで指定された指定のサブレンジを含む配列を作成します。
+* スライス構文を使用することもできます。`myArray.[2..5]`. 例は以下を参照してください。
 
-To reduce the list to distinct elements, use one of these:
+リストを個別の要素にするには、以下のいずれかを使用します。
 
 * [`distinct: list:'T list -> 'T list when 'T : equality`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L107).
-  Returns a collection that contains no duplicate entries according to generic hash and equality comparisons on the entries.
+  重複を除外したコレクションを返します。これは、一般的な照合と等価比較の結果に基づくものです。
 * [`distinctBy: projection:('T -> 'Key) -> list:'T list -> 'T list when 'Key : equality`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L118).
-  Returns a collection that contains no duplicate entries according to the generic hash and equality comparisons on the keys returned by the given key-generating function.
+  指定されたキー生成関数から返されたキーの一般的な照合と等価比較に従い、重複を除外したコレクションを返します。
 
-### Usage examples
+### 使用例
 
-Taking elements from the front:
+前方から要素を取り出す。
 
 ```fsharp
 [1..10] |> List.take 3
@@ -752,16 +752,16 @@ Taking elements from the front:
 // [1; 2; 3; 4]
 
 [1..2] |> List.take 3
-// System.InvalidOperationException: The input sequence has an insufficient number of elements.
+// System.InvalidOperationException: 入力シーケンスの要素数が不足しています。
 
 [1..2] |> List.takeWhile (fun i -> i < 3)
 // [1; 2]
 
 [1..2] |> List.truncate 4
-// [1; 2]   // no error!
+// [1; 2] // エラーはありません!
 ```
 
-Taking elements from the rear:
+後ろから要素を取る
 
 ```fsharp
 [1..10] |> List.skip 3
@@ -780,23 +780,23 @@ Taking elements from the rear:
 // []
 
 [1] |> List.tail |> List.tail
-// System.ArgumentException: The input list was empty.
+// System.ArgumentException: 入力リストは空でした。
 ```
 
-To extract other subsets of elements:
+要素の他のサブセットを抽出するには
 
 ```fsharp
-[1..10] |> List.filter (fun i -> i%2 = 0) // even
+[1..10] |> List.filter (fun i -> i%2 = 0) // さらに
 // [2; 4; 6; 8; 10]
 
-[1..10] |> List.where (fun i -> i%2 = 0) // even
+[1..10] |> List.where (fun i -> i%2 = 0) // 偶数
 // [2; 4; 6; 8; 10]
 
 [1..10] |> List.except [3;4;5]
 // [1; 2; 6; 7; 8; 9; 10]
 ```
 
-To extract a slice:
+スライスを抽出するには
 
 ```fsharp
 Array.sub [|1..10|] 3 5
@@ -812,9 +812,9 @@ Array.sub [|1..10|] 3 5
 // [1; 2; 3; 4; 5; 6]
 ```
 
-Note that slicing on lists can be slow, because they are not random access. Slicing on arrays is fast however.
+リストのスライスは、ランダムアクセスではないので、遅いことに注意してください。しかし，配列のスライスは高速です。
 
-To extract the distinct elements:
+別々の要素を取り出すには
 
 ```fsharp
 [1;1;1;2;3;3] |> List.distinct
@@ -829,11 +829,11 @@ To extract the distinct elements:
 
 ### Choose vs. Filter
 
-As with `pick`, the `choose` function might seem awkward, but it is useful when dealing with functions that return options.
+`pick`と同様に、`choose`関数は扱いにくいかもしれませんが、オプションを返す関数を扱うときには便利です。
 
-In fact, `choose` is to `filter` as [`pick` is to `find`](#pick-vs-find), Rather than using a boolean filter, the signal is `Some` vs. `None`.
+実際に、`choose`と`filter`の関係は、 [`pick`と`find`](#pick-vs-find) と同様です。この場合、シグナルはブール値のフィルタではなく、`Some`と`None`のどちらかです。
 
-As before, say that there is a function `tryInt` that parses a string and returns `Some int` if the string is a valid int, otherwise `None`.
+前述のように、文字列を解析し、その文字列が有効なintであれば`Some int`を返し、そうでなければ`None`を返す関数`tryInt`があるとします。
 
 ```fsharp
 // string -> int option
@@ -843,27 +843,27 @@ let tryInt str =
     | false, _ -> None
 ```
 
-And now say that we want to find all the valid ints in a list. The crude way would be:
+次に、リスト内のすべての有効なintを検索するとします。大まかな方法は次のようになります。
 
-* map the list using `tryInt`
-* filter to only include the ones that are `Some`
-* get the value from inside each option using `Option.get`
+* `tryInt`を使用してリストをマップする
+* `Some`であるもののみを含めるフィルタ
+* `Option.get`を使用して各オプション内から値を取得する
 
-The code might look something like this:
+コードは次のようになります。
 
 ```fsharp
 let allValidNumbers =
     ["a";"2";"three"; "4"]
-    // map the input
+    //入力をマップします
     |> List.map tryInt
-    // include only the "Some"
+    / /“Some”だけを含める
     |> List.filter (fun opt -> opt.IsSome)
-    // get the data from each option
-    |> List.map Option.get
+    // 各optionからデータを取得する
+    |> List.mapオプション.get
 // val allValidNumbers : int list = [2; 4]
 ```
 
-But `choose` will do all these steps at once! So the code becomes much simpler:
+でも`choose`はこれらのステップをすべて一度に行うのです！そのため、コードは非常にシンプルになります。
 
 ```fsharp
 let allValidNumbers =
@@ -871,7 +871,7 @@ let allValidNumbers =
     |> List.choose tryInt
 ```
 
-If you already have a list of options, you can filter and return the "Some" in one step by passing `id` into `choose`:
+optionsのリストが既にある場合は、`id`を`choose`に渡すことで、1ステップで"Some"をフィルタリングして返すことができます。
 
 ```fsharp
 let reduceOptions =
@@ -880,44 +880,44 @@ let reduceOptions =
 // val reduceOptions : int list = [1; 2]
 ```
 
-If you want to return the first element in the same way as `choose`, consider using `pick` (see [section 11](#11)).
+最初の要素を`choose`と同じ方法で返したい場合は、`pick`を使用することを検討してください ( [section 11] (#11) を参照) 。
 
-If you want to do a similar action as `choose` but for other wrapper types (such as a Success/Failure result), there is [a discussion here](/posts/elevated-world-5/).
+`choose`と同様の動作をしたいが、他のラッパー型 ( Success/Failure resultなど) を使用したい場合は、 [a discussion here](/posts/elevated-world-5/) を参照してください。
 
 {{< linktarget "13" >}}
 
 ----
 
-## 13.	Partitioning, chunking and grouping
+##13 パーティション、チャンク、グループ化
 
-There are lots of different ways to split a collection! Have a look at the usage examples to see the differences:
+コレクションを分ける方法はたくさんあります。相違点については、使用例を参照してください。
 
-* [`chunkBySize: chunkSize:int -> list:'T list -> 'T list list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L63).
-  Divides the input collection into chunks of size at most `chunkSize`.
-* [`groupBy : projection:('T -> 'Key) -> list:'T list -> ('Key * 'T list) list when 'Key : equality`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L325).
-  Applies a key-generating function to each element of a collection and yields a list of unique keys. Each unique key contains a list of all elements that match to this key.
-* [`pairwise: list:'T list -> ('T * 'T) list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L541).
-  Returns a collection of each element in the input collection and its predecessor, with the exception of the first element which is only returned as the predecessor of the second element.
-* (Except Seq) [`partition: predicate:('T -> bool) -> list:'T list -> ('T list * 'T list)`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L551).
-  Splits the collection into two collections, containing the elements for which the given predicate returns true and false respectively.
-* (Except Seq) [`splitAt: index:int -> list:'T list -> ('T list * 'T list)`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L688).
-  Splits a collection into two collections at the given index.
-* [`splitInto: count:int -> list:'T list -> 'T list list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L137).
-  Splits the input collection into at most count chunks.
-* [`windowed : windowSize:int -> list:'T list -> 'T list list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L875).
-  Returns a list of sliding windows containing elements drawn from the input collection. Each window is returned as a fresh collection.  Unlike `pairwise` the windows are collections,
-  not tuples.
+* [`chunkBySize:chunkSize:int->list:'T list->'T list list list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L63).
+  入力されたコレクションを最大`chunkSize`個のチャンクに分割します。
+* [`groupBy:projection:('T ->'Key) ->list:'T list-> ('Key*'T list) list when'Key:equality`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L325).
+  コレクションの各要素にキー生成関数を適用し、一意のキーのリストを生成します。各キーには、このキーに対応するすべての要素のリストが含まれます。
+* [`pairwise:list:'T list-> ('T*'T) list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L541).
+  入力コレクション内の各要素とその前の要素のコレクションを返します。ただし、1番目の要素は、2番目の要素の前の要素として返されます。
+* (Seqを除く) [`partition:predicate: ('T->bool) ->list:'T list-> ('T list*'T list) `](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L551).
+  コレクションを、与えられたpredicateの戻り値がtrueおよびfalseであるかに応じて2つのコレクションに分割します。
+* (Seqを除く) [`splitAt:index:int->list:'T list-> ('T list*'T list)`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L688).
+  指定されたインデックスの位置でコレクションを2つに分割します。
+* [`splitInto:count:int->list:'T list->'T list list list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L137).
+  入力コレクションを最大count個のチャンクに分割します。
+* [`window : windowSize:int -> list:'T list -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L875).
+  入力コレクションから取得された要素を含むスライドウィンドウのリストを返します。各ウィンドウは新しいコレクションとして返されます。"ペアごとの"ウィンドウとは異なり、ウィンドウはコレクションです。
+  タプルではありません。
 
-### Usage examples
+### 使用例
 
 ```fsharp
 [1..10] |> List.chunkBySize 3
 // [[1; 2; 3]; [4; 5; 6]; [7; 8; 9]; [10]]
-// note that the last chunk has one element
+// 最後のチャンクには1つの要素があることに注意
 
 [1..10] |> List.splitInto 3
 // [[1; 2; 3; 4]; [5; 6; 7]; [8; 9; 10]]
-// note that the first chunk has four elements
+// 最初のチャンクには4つの要素があることに注意してください。
 
 ['a'..'i'] |> List.splitAt 3
 // (['a'; 'b'; 'c'], ['d'; 'e'; 'f'; 'g'; 'h'; 'i'])
@@ -937,20 +937,20 @@ let firstLetter (str:string) = str.[0]
 // [('a', ["apple"; "alice"]); ('b', ["bob"]); ('c', ["carrot"])]
 ```
 
-All the functions other than `splitAt` and `pairwise` handle edge cases gracefully:
+`splitAt`と`pairwise`以外のすべての関数は、エッジケースも適切に処理します:
 
 ```fsharp
 [1] |> List.chunkBySize 3
 // [[1]]
 
-[1] |> List.splitInto 3
+[1] |> リスト.splitInto 3
 // [[1]]
 
 ['a'; 'b'] |> List.splitAt 3
-// InvalidOperationException: The input sequence has an insufficient number of elements.
+// InvalidOperationException: 入力シーケンスの要素数が不足しています。
 
 ['a'] |> List.pairwise
-// InvalidOperationException: The input sequence has an insufficient number of elements.
+// InvalidOperationException: 入力シーケンスの要素数が不足しています。
 
 ['a'] |> List.windowed 3
 // []
@@ -967,73 +967,73 @@ All the functions other than `splitAt` and `pairwise` handle edge cases graceful
 
 ----
 
-## 14.	Aggregating or summarizing a collection
+## 14.	コレクションの集約または要約
 
-The most generic way to aggregate the elements in a collection is to use `reduce`:
+コレクションの要素を集約する最も一般的な方法は `reduce` を使うことです。
 
 * [`reduce : reduction:('T -> 'T -> 'T) -> list:'T list -> 'T`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L584).
-  Apply a function to each element of the collection, threading an accumulator argument through the computation.
+  コレクションの各要素に関数を適用します、この計算の途中結果はアキュレータ引数が保持します。
 * [`reduceBack : reduction:('T -> 'T -> 'T) -> list:'T list -> 'T`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L595).
-  Applies a function to each element of the collection, starting from the end, threading an accumulator argument through the computation.
+  コレクションの各要素に関数を末尾から適用します、この関数は途中の計算結果をアキュレータ引数に保持します。
 
-and there are specific versions of `reduce` for frequently used aggregations:
+また、頻繁に使用される集約のための特定のバージョンの `reduce` もあります。
 
 * [`max : list:'T list -> 'T when 'T : comparison`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L482).
-  Return the greatest of all elements of the collection, compared via Operators.max.
+  Operators.maxを使用して比較し、コレクションの全要素のうち最大の要素を返します。
 * [`maxBy : projection:('T -> 'U) -> list:'T list -> 'T when 'U : comparison`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L492).
-  Returns the greatest of all elements of the collection, compared via Operators.max on the function result.
+  与えられた関数の結果に対してOperators.maxを使用して比較し、コレクションのすべての要素のうち最大のものを返します。
 * [`min : list:'T list -> 'T when 'T : comparison`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L501).
-  Returns the lowest of all elements of the collection, compared via Operators.min.
+  Operators.minを使用して比較し、コレクションのすべての要素のうち、最も小さい要素を返します。
 * [`minBy : projection:('T -> 'U) -> list:'T list -> 'T when 'U : comparison `](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L511).
-  Returns the lowest of all elements of the collection, compared via Operators.min on the function result.
+  与えられた関数の結果に対してOperators.minを使用して比較し、コレクションの全要素のうち最小の要素を返します。
 * [`sum : list:'T list -> 'T when 'T has static members (+) and Zero`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L711).
-  Returns the sum of the elements in the collection.
-* [`sumBy : projection:('T -> 'U) -> list:'T list -> 'U when 'U has static members (+) and Zero`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L720).
-  Returns the sum of the results generated by applying the function to each element of the collection.
+  コレクションに含まれる要素の和を返します。
+* [`sumBy : projection:('T -> 'U) -> list:'T list -> 'U when 'U has static members (+) and Zero`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L720)。
+  コレクションの各要素に関数を適用して得られた結果の合計を返します。
 * [`average : list:'T list -> 'T when 'T has static members (+) and Zero and DivideByInt`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L30).
-  Returns the average of the elements in the collection.
-  Note that a list of ints cannot be averaged -- they must be cast to floats or decimals.
+  コレクション内の要素の平均値を返します。
+  intsのリストは平均化できないことに注意してください -- floatまたはdecimalsにキャストする必要があります。
 * [`averageBy : projection:('T -> 'U) -> list:'T list -> 'U when 'U has static members (+) and Zero and DivideByInt`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L43).
-  Returns the average of the results generated by applying the function to each element of the collection.
+  コレクションの各要素に関数を適用して得られた結果の平均を返します。
 
-Finally there are some counting functions:
+最後に，いくつかのカウント関数を紹介します。
 
 * [`length: list:'T list -> int`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L404).
-  Returns the length of the collection.
-* [`countBy : projection:('T -> 'Key) -> list:'T list -> ('Key * int) list when 'Key : equality`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L129).
-  Applies a key-generating function to each element and returns a collection yielding unique keys and their number of occurrences in the original collection.
+  コレクションの長さを返します。
+* [`countBy : projection:('T -> 'Key) -> list:'T list -> ('Key * int) list when 'Key : equality`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L129)。
+  各要素にキー生成関数を適用し、一意なキーと元のコレクション内での出現数のタプルを返します。
 
-### Usage examples
+### 使用例
 
-`reduce` is a variant of `fold` without an initial state -- see [section 19](#19) for more on `fold`.  One way to think of it is just inserting a operator between
-each element.
+`reduce`は初期状態を持たない`fold`の派生形です--`fold`の詳細については、 [セクション19](#19) を参照してください。
+これを理解するために、各要素の間に演算子を挿入するという方法があります。
 
 ```fsharp
 ["a";"b";"c"] |> List.reduce (+)
 // "abc"
 ```
 
-is the same as
+は，以下と同じです．
 
 ```fsharp
 "a" + "b" + "c"
 ```
 
-Here's another example:
+別の例を示します。
 
 ```fsharp
 [2;3;4] |> List.reduce (*)
-// is same as
+// と同じです．
 2 * 3 * 4
-// Result is 24
+// 結果は24
 ```
 
-Some ways of combining elements depend on the order of combining, and so there are two variants of "reduce":
+要素を組み合わせる方法の中には、組み合わせる順番に依存するものがあり、そのため"reduce"には2つのバリエーションがあります。
 
-* `reduce` moves forward through the list.
-* `reduceBack`, not surprisingly, moves backwards through the list.
+* `reduce` はリストを順に進んでいきます。
+* `reduceBack` は意外と知られていませんが、リストを後方に移動します。
 
-Here's a demonstration of the difference. First `reduce`:
+この違いを見てみましょう。まずは`reduce`です:
 
 ```fsharp
 [1;2;3;4] |> List.reduce (fun state x -> (state)*10 + x)
@@ -1044,10 +1044,10 @@ Here's a demonstration of the difference. First `reduce`:
 ((1)*10 + 2)*10 + 3             // 123
 (((1)*10 + 2)*10 + 3)*10 + 4    // 1234
 
-// Final result is 1234
+// 最終結果は1234
 ```
 
-Using the *same* combining function with `reduceBack` produces a different result! It looks like this:
+*同じ*組み合わせに`reduceBack`を使用すると、異なる結果が得られます！次のようになります:
 
 ```fsharp
 [1;2;3;4] |> List.reduceBack (fun x state -> x + 10*(state))
@@ -1058,12 +1058,12 @@ Using the *same* combining function with `reduceBack` produces a different resul
 2 + 10*(3 + 10*(4))             // 432
 1 + 10*(2 + 10*(3 + 10*(4)))    // 4321
 
-// Final result is 4321
+// 最終結果は4321
 ```
 
-Again, see [section 19](#19) for a more detailed discussion of the related functions `fold` and `foldBack`.
+関連する関数 `fold` と `foldBack` についての詳しい説明は [セクション19](#19) を参照してください。
 
-The other aggregation functions are much more straightforward.
+他の集約関数はもっと簡単です。
 
 ```fsharp
 type Suit = Club | Diamond | Spade | Heart
@@ -1078,50 +1078,50 @@ cards |> List.minBy snd  // (Spade, Two)
 [1..10] |> List.sum
 // 55
 
-[ (1,"a"); (2,"b") ] |> List.sumBy fst
+[ (1, "a"); (2, "b") ] |> List.sumBy fst
 // 3
 
 [1..10] |> List.average
-// The type 'int' does not support the operator 'DivideByInt'
+// 型 'int' は演算子 'DivideByInt' をサポートしていません
 
 [1..10] |> List.averageBy float
 // 5.5
 
-[ (1,"a"); (2,"b") ] |> List.averageBy (fst >> float)
+[ (1, "a"); (2, "b") ] |> List.averageBy (fst >> float)
 // 1.5
 
 [1..10] |> List.length
 // 10
 
-[ ("a","A"); ("b","B"); ("a","C") ]  |> List.countBy fst
+[ ("a", "A"); ("b", "B"); ("a", "C") ] |> List.countBy fst
 // [("a", 2); ("b", 1)]
 
-[ ("a","A"); ("b","B"); ("a","C") ]  |> List.countBy snd
+[ ("a", "A"); ("b", "B"); ("a", "C") ] |> List.countBy snd
 // [("A", 1); ("B", 1); ("C", 1)]
 ```
 
-Most of the aggregation functions do not like empty lists!  You might consider using one of the `fold` functions to be safe -- see [section 19](#19).
+ほとんどの集約関数は空リストが嫌いです！安全のために`fold`関数のいずれかを使用することを検討してもよいでしょう-- [セクション19](#19) を参照してください。
 
 ```fsharp
 let emptyListOfInts : int list = []
 
 emptyListOfInts |> List.reduce (+)
-// ArgumentException: The input list was empty.
+// ArgumentException: 入力リストが空でした。
 
-emptyListOfInts |> List.max
-// ArgumentException: The input sequence was empty.
+emptyListOfInts|> List.max
+// ArgumentException: 入力シーケンスが空でした。
 
 emptyListOfInts |> List.min
-// ArgumentException: The input sequence was empty.
+// ArgumentException: 入力シーケンスが空でした。
 
 emptyListOfInts |> List.sum
 // 0
 
-emptyListOfInts |> List.averageBy float
-// ArgumentException: The input sequence was empty.
+emptyListOfInts|> List.averageBy float
+// ArgumentException: 入力シーケンスが空でした。
 
 let emptyListOfTuples : (int*int) list = []
-emptyListOfTuples |> List.countBy fst
+emptyListOfTuples|> List.countBy fst
 // (int * int) list = []
 ```
 
@@ -1129,35 +1129,35 @@ emptyListOfTuples |> List.countBy fst
 
 ----
 
-## 15.	Changing the order of the elements
+## 15.	要素の順序の変更
 
-You can change the order of the elements using reversing, sorting and permuting. All of the following return *new* collections:
+反転、ソート、パーミットを使って、要素の順序を変えることができます。以下のものはすべて *新しい* コレクションを返します。
 
 * [`rev: list:'T list -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L608).
-  Returns a new collection with the elements in reverse order.
+  要素を逆順に並べた新しいコレクションを返します。
 * [`sort: list:'T list -> 'T list when 'T : comparison`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L678).
-  Sorts the given collection using Operators.compare.
+  Operators.compareを使って、与えられたコレクションをソートします。
 * [`sortDescending: list:'T list -> 'T list when 'T : comparison`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L705).
-  Sorts the given collection in descending order using Operators.compare.
+  Operators.compareを使って、与えられたコレクションを降順にソートします。
 * [`sortBy: projection:('T -> 'Key) -> list:'T list -> 'T list when 'Key : comparison`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L670).
-  Sorts the given collection using keys given by the given projection. Keys are compared using Operators.compare.
+  与えられたコレクションを、与えられたプロジェクションによって得られたキーを使ってソートします。キーの比較には Operators.compare を使用します。
 * [`sortByDescending: projection:('T -> 'Key) -> list:'T list -> 'T list when 'Key : comparison`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L697).
-  Sorts the given collection in descending order using keys given by the given projection. Keys are compared using Operators.compare.
+  与えられたコレクションを、与えられたプロジェクションによって得られたキーを使って、降順にソートします。キーの比較には Operators.compare を使用します。
 * [`sortWith: comparer:('T -> 'T -> int) -> list:'T list -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L661).
-  Sorts the given collection using the given comparison function.
-* [`permute : indexMap:(int -> int) -> list:'T list -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L570).
-  Returns a collection with all elements permuted according to the specified permutation.
+  与えられた比較関数を使って、与えられたコレクションをソートします。
+* [`permute : indexMap:(int -> int) -> list:'T list -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L570)となります。
+  指定された順列にしたがってすべての要素を順列化したコレクションを返します。
 
-And there are also some array-only functions that sort in place:
+また、配列のみの関数で、その場でソートするものもあります。
 
-* (Array only) [`sortInPlace: array:'T[] -> unit when 'T : comparison`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/array.fsi#L874).
-  Sorts the elements of an array by mutating the array in-place. Elements are compared using Operators.compare.
+* (配列のみ) [`sortInPlace: array:'T[] -> unit when 'T : comparison`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/array.fsi#L874).
+  配列をその場で変更することにより、配列の要素をソートします。要素の比較には Operators.compare を使用します。
 * (Array only) [`sortInPlaceBy: projection:('T -> 'Key) -> array:'T[] -> unit when 'Key : comparison`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/array.fsi#L858).
-  Sorts the elements of an array by mutating the array in-place, using the given projection for the keys. Keys are compared using Operators.compare.
+  キーに与えられたプロジェクションを使用して、配列をその場で変異させることにより、配列の要素をソートします。キーの比較には Operators.compare を使用します。
 * (Array only) [`sortInPlaceWith: comparer:('T -> 'T -> int) -> array:'T[] -> unit`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/array.fsi#L867).
-  Sorts the elements of an array by mutating the array in-place, using the given comparison function as the order.
+  与えられた比較関数を順序として、配列をその場で変異させることにより、配列の要素をソートします。
 
-### Usage examples
+### 使用例
 
 ```fsharp
 [1..5] |> List.rev
@@ -1175,7 +1175,7 @@ And there are also some array-only functions that sort in place:
 [ ("b","2"); ("a","3"); ("c","1") ]  |> List.sortBy snd
 // [("c", "1"); ("b", "2"); ("a", "3")]
 
-// example of a comparer
+// コンパラーの例
 let tupleComparer tuple1 tuple2  =
     if tuple1 < tuple2 then
         -1
@@ -1184,7 +1184,7 @@ let tupleComparer tuple1 tuple2  =
     else
         0
 
-[ ("b","2"); ("a","3"); ("c","1") ]  |> List.sortWith tupleComparer
+[ ("b", "2"); ("a", "3"); ("c", "1") ] |> List.sortWith tupleComparer
 // [("a", "3"); ("b", "2"); ("c", "1")]
 
 [1..10] |> List.permute (fun i -> (i + 3) % 10)
@@ -1198,20 +1198,20 @@ let tupleComparer tuple1 tuple2  =
 
 ----
 
-## 16.	Testing the elements of a collection
+## 16.	コレクションの要素のテスト
 
-These set of functions all return true or false.
+これらの関数群は全てtrueかfalseを返します。
 
 * [`contains: value:'T -> source:'T list -> bool when 'T : equality`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L97).
-  Tests if the collection contains the specified element.
+  コレクションが指定された要素を含んでいるかどうかをテストします。
 * [`exists: predicate:('T -> bool) -> list:'T list -> bool`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L176).
-  Tests if any element of the collection satisfies the given predicate.
+  コレクションの任意の要素が、指定された述語を満たすかどうかをテストします。
 * [`forall: predicate:('T -> bool) -> list:'T list -> bool`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L299).
-  Tests if all elements of the collection satisfy the given predicate.
+  コレクションの全ての要素が与えられた述語を満たすかどうかをテストします。
 * [`isEmpty: list:'T list -> bool`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L353).
-  Returns true if the collection contains no elements, false otherwise.
+  コレクションに要素が含まれていない場合はtrue、そうでない場合はfalseを返します。
 
-### Usage examples
+### 使用例
 
 ```fsharp
 [1..10] |> List.contains 5
@@ -1240,72 +1240,73 @@ These set of functions all return true or false.
 
 ----
 
-## 17.	Transforming each element to something different
+## 17.	各要素を異なるものに変換する
 
-I sometimes like to think of functional programming as "transformation-oriented programming", and `map` (aka `Select` in LINQ) is one of the most fundamental ingredients for this approach.
-In fact, I have devoted a whole series to it [here](/posts/elevated-world/).
+私は関数型プログラミングを"変換指向プログラミング"と考えることもありますが、このアプローチの最も基本的な要素の1つが`map` (LINQでは"`Select`") です。
+実際、私は全シリーズを [ここ](/posts/elevated-world/) に割いています。
 
-* [`map: mapping:('T -> 'U) -> list:'T list -> 'U list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L419).
-  Builds a new collection whose elements are the results of applying the given function to each of the elements of the collection.
+* [`map:mapping: ('T->'U) ->list:'T list->'U list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L419)
+  指定された関数をコレクションの各要素に適用して、結果を要素とする新しいコレクションを作成します。
 
-Sometimes each element maps to a list, and you want to flatten out all the lists. For this case, use `collect` (aka `SelectMany` in LINQ).
+場合によっては、各要素がリストにマップされ、それらのリストを平坦化したいこともあります。その場合は、`collect` (LINQでは`SelectMany`) を使用します。
 
-* [`collect: mapping:('T -> 'U list) -> list:'T list -> 'U list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L70).
-  For each element of the list, applies the given function. Concatenates all the results and return the combined list.
+* [`collect:mapping: ('T->'U list) ->list:'T list->'U list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L70)
+  リストの各要素に対して、指定された関数を適用します。すべての結果を連結し、結合されたリストを返します。
 
-Other transformation functions include:
+その他の変換関数は次のとおりです。
 
-* `choose` in [section 12](#12) is a map and option filter combined.
-* (Seq only) [`cast: source:IEnumerable -> seq<'T>`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/seq.fsi#L599).
-  Wraps a loosely-typed `System.Collections` sequence as a typed sequence.
+* [section 12](#12) の`choose`は、mapとoptionフィルタを組み合わせたものです。
+* (シーケンスのみ) [`cast:source:IEnumerable->seq<'T>`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/seq.fsi#L599)
+  緩やかに型指定された`System.Collections`のシーケンスを型付きシーケンスとしてラッピングします。
 
-### Usage examples
+### 使用例
 
-Here are some examples of using `map` in the conventional way, as a function that accepts a list and a mapping function and returns a new transformed list:
+リストとマッピング関数を受け取り、新しい変換済リストを戻す関数として、`map`を従来の方法で使用する例を次に示します:
 
 ```fsharp
 let add1 x = x + 1
 
-// map as a list transformer
+// リストを変換する関数としてのmap
 [1..5] |> List.map add1
 // [2; 3; 4; 5; 6]
 
-// the list being mapped over can contain anything!
+// マップされるリストには何でも入ります！
 let times2 x = x * 2
 [ add1; times2] |> List.map (fun f -> f 5)
 // [6; 10]
 ```
 
-You can also think of `map` as a *function transformer*. It turns an element-to-element function into a list-to-list function.
+`map`は*関数変換*と見なすこともできます。要素から要素への関数をリストからリストへの関数に変換します。
 
 ```fsharp
 let add1ToEachElement = List.map add1
-// "add1ToEachElement" transforms lists to lists rather than ints to ints
+// "add1ToEachElement"は、intsからintsではなく、リストからリストに変換します。
 // val add1ToEachElement : (int list -> int list)
 
-// now use it
+// ここで使用
 [1..5] |> add1ToEachElement
 // [2; 3; 4; 5; 6]
 ```
 
-`collect` works to flatten lists. If you already have a list of lists, you can use `collect` with `id` to flatten them.
+`collect` はリストをフラットにする働きがあります。すでにリストがある場合は、`id`と一緒に`collect`を使ってリストを平坦化することができます。
 
 ```fsharp
 [2..5] |> List.collect (fun x -> [x; x*x; x*x*x] )
 // [2; 4; 8; 3; 9; 27; 4; 16; 64; 5; 25; 125]
 
-// using "id" with collect
+// コレクトで"id"を使用
 let list1 = [1..3]
-let list2 = [4..6]
+let list2 = [4...6]
 [list1; list2] |> List.collect id
 // [1; 2; 3; 4; 5; 6]
 ```
 
 ### Seq.cast
 
-Finally, `Seq.cast` is useful when working with older parts of the BCL that have specialized collection classes rather than generics.
+最後に、ジェネリックではなく特殊なコレクションクラスを持つBCLの古い部分を扱うときには、`Seq.cast`が便利です。
 
-For example, the Regex library has this problem, and so the code below won't compile because `MatchCollection` is not an `IEnumerable<T>`
+例えば、Regexライブラリにはこの問題があり、`MatchCollection`が`IEnumerable<T>`ではないため、以下のコードはコンパイルされません。
+Note: F#v5の場合はコンパイル可能
 
 ```fsharp
 open System.Text.RegularExpressions
@@ -1314,12 +1315,12 @@ let matches =
     let pattern = "\d\d\d"
     let matchCollection = Regex.Matches("123 456 789",pattern)
     matchCollection
-    |> Seq.map (fun m -> m.Value)     // ERROR
-    // ERROR: The type 'MatchCollection' is not compatible with the type 'seq<'a>'
+    |> Seq.map (fun m -> m.Value) // ERROR
+    // ERROR: 型'MatchCollection'は型'seq<'a>'と互換性がありません。
     |> Seq.toList
 ```
 
-The fix is to cast `MatchCollection` to a `Seq<Match>` and then the code will work nicely:
+修正方法は、`MatchCollection`を`Seq<Match>`にキャストすることで、コードがうまく動作するようになります。
 
 ```fsharp
 let matches =
@@ -1336,19 +1337,18 @@ let matches =
 
 ----
 
-## 18.	Iterating over each element
+## 18. 各要素の反復
 
-Normally, when processing a collection, we transform each element to a new value using `map`. But occasionally we need to process all the elements with a function which *doesn't*
-produce a useful value (a "unit function").
+通常、コレクションを処理する場合、`map`を使用して各要素を新しい値に変換します。しかし時として、「単位関数」有用な値を*生成しない*関数を使用してすべての要素を処理する必要があります。
 
-* [`iter: action:('T -> unit) -> list:'T list -> unit`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L367).
-  Applies the given function to each element of the collection.
-* Alternatively, you can use a for-loop. The expression inside a for-loop *must* return `unit`.
+* [`iter:action: ('T->unit) ->list:'T list->unit`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L367)
+  指定された関数をコレクションの各要素に適用します。
+* または、for-loopを使用することもできます。forループ内の式は*必ず*`unit`を返します。
 
-### Usage examples
+### 使用例
 
-The most common examples of unit functions are all about side-effects: printing to the console, updating a database, putting a message on a queue, etc.
-For the examples below, I will just use `printfn` as my unit function.
+unit関数の最も典型的な例は、コンソールへの出力、データベースの更新、キューにメッセージを書き込むといった副作用に関するものです。
+以下の例では、unit関数として`printfn`を使用します:
 
 ```fsharp
 [1..3] |> List.iter (fun i -> printfn "i is %i" i)
@@ -1370,21 +1370,21 @@ for i in [1..3] do
     printfn "i is %i" i
 ```
 
-As noted above, the expression inside an `iter` or for-loop must return unit.  In the following examples, we try to add 1 to the element, and get a compiler error:
+前述のように、`iter`やfor-loopの中の式はunitを返さなければなりません。 以下の例では，要素に1を加えようとすると，コンパイラエラーが発生します．
 
 ```fsharp
 [1..3] |> List.iter (fun i -> i + 1)
 //                               ~~~
-// ERROR error FS0001: The type 'unit' does not match the type 'int'
+// ERROR error FS0001: 型 'unit' は型 'int' と一致しません
 
-// a for-loop expression *must* return unit
+// for-loop式は*必ず*unitを返さなければならない
 for i in [1..3] do
-     i + 1  // ERROR
-     // This expression should have type 'unit',
-     // but has type 'int'. Use 'ignore' ...
+     i + 1 // ERROR
+     // この式の結果の型は 'int' で、暗黙的に無視されます。
+     // 'ignore' を使用してこの値を明示的に破棄してください...
 ```
 
-If you are sure that this is not a logic bug in your code, and you want to get rid of this error, you can pipe the results into `ignore`:
+もし、これがコードの論理的なバグではないと確信していて、このエラーを除去したい場合は、結果をパイプで`ignore`に送ることができます。
 
 ```fsharp
 [1..3] |> List.iter (fun i -> i + 1 |> ignore)
@@ -1397,40 +1397,40 @@ for i in [1..3] do
 
 ----
 
-## 19.	Threading state through an iteration
+## 19.	イテレーションによるステートのスレッド化
 
-The `fold` function is the most basic and powerful function in the collection arsenal. All other functions (other than generators like `unfold`) can be written in terms of it. See the examples below.
+`fold`関数はコレクションの中で最も基本的で強力な関数です。他のすべての関数 (`unfold`のようなジェネレータを除く) は、この関数で記述できます。次の例を参照してください:
 
 * [`fold<'T,'State> : folder:('State -> 'T -> 'State) -> state:'State -> list:'T list -> 'State`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L254).
-  Applies a function to each element of the collection, threading an accumulator argument through the computation.
+  コレクションの各要素に関数を適用し、その関数が計算によってアキュムレータ引数をスレッド化します。
 * [`foldBack<'T,'State> : folder:('T -> 'State -> 'State) -> list:'T list -> state:'State -> 'State`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L276).
-  Applies a function to each element of the collection, starting from the end, threading an accumulator argument through the computation.
-  WARNING: Watch out for using `Seq.foldBack` on infinite lists! The runtime will laugh at you ha ha ha and then go very quiet.
+  コレクションの各要素に関数を適用します。最後から始めて、計算を介してアキュムレータ引数をスレッド化します。
+  警告:無限リストでの`Seq.foldBack`の使用は注意してください!ランタイムはあなたを笑って、その後静かになります。
 
-The `fold` function is often called "fold left" and `foldBack` is often called "fold right".
+`fold`関数は"fold left"と呼ばれることが多く、`foldBack`は"fold right"と呼ばれることが多いです。
 
-The `scan` function is like `fold` but returns the intermediate results and thus can be used to trace or monitor the iteration.
+`scan`関数は`fold`に似ていますが、中間結果を返すため、反復処理のトレースや監視に使用できます。
 
 * [`scan<'T,'State>  : folder:('State -> 'T -> 'State) -> state:'State -> list:'T list -> 'State list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L619).
-  Like `fold`, but returns both the intermediary and final results.
+  `fold`と似ていますが、中間結果と最終結果の両方を返します。
 * [`scanBack<'T,'State> : folder:('T -> 'State -> 'State) -> list:'T list -> state:'State -> 'State list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L627).
-  Like `foldBack`, but returns both the intermediary and final results.
+  `foldBack`と似ていますが、中間結果と最終結果の両方を返します。
 
-Just like the fold twins, `scan` is often called "scan left" and `scanBack` is often called "scan right".
+双子のように`scan`は"scan left"、`scanBack'は"scan right"と呼ばれます。
 
-Finally, `mapFold` combines `map` and `fold` into one awesome superpower. More complicated than using `map` and `fold` separately but also more efficient.
+最後に`mapFolder`は`map`と`fold`を1つの驚異的な力へと合成されます。`map`と`fold`を別々に使用するよりも複雑ですが、より効率的です。
 
 * [`mapFold<'T,'State,'Result> : mapping:('State -> 'T -> 'Result * 'State) -> state:'State -> list:'T list -> 'Result list * 'State`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L447).
-  Combines map and fold. Builds a new collection whose elements are the results of applying the given function to each of the elements of the input collection. The function is also used to accumulate a final value.
+  mapとfoldの合成です。与えられた関数を入力コレクションの各要素に適用した結果を要素とする新しいコレクションを構築します。この関数は、計算結果を累積するためにも使用されます。
 * [`mapFoldBack<'T,'State,'Result> : mapping:('T -> 'State -> 'Result * 'State) -> list:'T list -> state:'State -> 'Result list * 'State`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L456).
-  Combines map and foldBack. Builds a new collection whose elements are the results of applying the given function to each of the elements of the input collection. The function is also used to accumulate a final value.
+  mapとfoldBackを組み合わせたものです。与えられた関数を入力コレクションの各要素に適用した結果を要素とする新しいコレクションを構築します。この関数は、計算結果を累積するためにも使用されます。
 
-### `fold` examples
+### `fold`の例
 
-One way of thinking about `fold` is that it is like `reduce` but with an extra parameter for the initial state:
+`fold`は`reduce`に似ていますが、初期状態のパラメータが追加される点が異なります:
 
 ```fsharp
-["a";"b";"c"] |> List.fold (+) "hello: "
+["a"; "b"; "c"] |> List.fold (+) "hello: "
 // "hello: abc"
 // "hello: " + "a" + "b" + "c"
 
@@ -1439,7 +1439,7 @@ One way of thinking about `fold` is that it is like `reduce` but with an extra p
 // 10 + 1 + 2 + 3
 ```
 
-As with `reduce`, `fold` and `foldBack` can give very different answers.
+`reduce`と同様に、`fold`と`foldBack`は全く異なる答えを出すことができます:
 
 ```fsharp
 [1;2;3;4] |> List.fold (fun state x -> (state)*10 + x) 0
@@ -1448,10 +1448,10 @@ As with `reduce`, `fold` and `foldBack` can give very different answers.
 (1)*10 + 2                      // 12
 ((1)*10 + 2)*10 + 3             // 123
 (((1)*10 + 2)*10 + 3)*10 + 4    // 1234
-// Final result is 1234
+// 最終結果は1234
 ```
 
-And here's the `foldBack` version:
+そして、これが`foldBack`バージョンです:
 
 ```fsharp
 List.foldBack (fun x state -> x + 10*(state)) [1;2;3;4] 0
@@ -1460,30 +1460,30 @@ List.foldBack (fun x state -> x + 10*(state)) [1;2;3;4] 0
 3 + 10*(4)                      // 43
 2 + 10*(3 + 10*(4))             // 432
 1 + 10*(2 + 10*(3 + 10*(4)))    // 4321
-// Final result is 4321
+// 最終結果は4321
 ```
 
-Note that `foldBack` has a different parameter order to `fold`: the list is second last, and the initial state is last, which means that piping is not as convenient.
+ただし、`foldBack` は `fold` とはパラメータの順番が異なります。リストは最後から2番目、初期状態は最後になりますので、パイピングの利便性は低くなります。
 
-### Recursing vs iterating
+### 再帰と反復
 
-It's easy to get confused between `fold` vs. `foldBack`. I find it helpful to think of `fold` as being about *iteration* while `foldBack` is about *recursion*.
+`fold` と `foldBack` を混同しがちです。私は、`fold` は *反復* で、`foldBack` は *再帰* だと考えると良いと思います。
 
-Let's say we want to calculate the sum of a list. The iterative way would be to use a for-loop.
-You start with a (mutable) accumulator and thread it through each iteration, updating it as you go.
+例えば、リストの和を計算したいとしましょう。反復的な方法としては、for-loopを使用します。
+ミュータブルなアキュムレータを用意して，それを反復しながら更新していきます．
 
 ```fsharp
 let iterativeSum list =
     let mutable total = 0
     for e in list do
         total <- total + e
-    total // return sum
+    total // sumを返す
 ```
 
-On the other hand, the recursive approach says that
-if the list has a head and tail, calculate the sum of the tail (a smaller list) first, and then add the head to it.
+一方、再帰的なアプローチでは次のようになります。
+リストにheadとtailがある場合、まずtail（より小さいリスト）の合計を計算し、次にheadをそれに加えます。
 
-Each time the tail gets smaller and smaller until it is empty, at which point you're done.
+毎回、tailはどんどん小さくなり、空になった時点で終了します。
 
 ```fsharp
 let rec recursiveSum list =
@@ -1494,13 +1494,13 @@ let rec recursiveSum list =
         head + (recursiveSum tail)
 ```
 
-Which approach is better?
+どちらのアプローチが良いのでしょうか?
 
-For aggregation, the iterative way is (`fold`) often easiest to understand.
-But for things like constructing new lists, the recursive way is (`foldBack`) is easier to understand.
+集計の場合、反復方法 (`fold`) が最も理解しやすいことがよくあります。
+しかし、新しいリストを作成する場合などは、再帰的な方法 (`foldBack`) の方が理解しやすいでしょう。
 
-For example, if we were going to going to create a function from scratch that turned each element into the corresponding string,
-we might write something like this:
+たとえば、各要素を対応する文字列に変換する関数を一から作成しようとした場合、
+こんな風に書くかもしれません:
 
 ```fsharp
 let rec mapToString list =
@@ -1514,12 +1514,12 @@ let rec mapToString list =
 // ["1"; "2"; "3"]
 ```
 
-Using `foldBack` we can transfer that same logic "as is":
+`foldBack`を使用すると、同じロジック”をそのまま”転送できます。
 
-* action for empty list = `[]`
-* action for non-empty list = `head.ToString() :: state`
+* 空のリストに対するアクション = `[]`
+* 空でないlistに対するアクション = `head.ToString() :: state`
 
-Here is the resulting function:
+結果の関数は次のとおりです:
 
 ```fsharp
 let foldToString list =
@@ -1531,33 +1531,33 @@ let foldToString list =
 // ["1"; "2"; "3"]
 ```
 
-On the other hand, a big advantage of `fold` is that it is easier to use "inline" because it plays better with piping.
+一方、`fold`の大きな利点は、"インライン"に使うのが簡単なことです、なぜならば、パイプとの相性が良いからです。
 
-Luckily, you can use `fold` (for list construction at least) just like `foldBack` as long as you reverse the list at the end.
+幸運なことに、最後のリストを反転させれば、`foldBack`のように`fold`を (少なくともリスト構築のために) 使うことができます。
 
 ```fsharp
-// inline version of "foldToString"
+// "foldToString"のインライン版
 [1..3]
 |> List.fold (fun state head -> head.ToString() :: state) []
 |> List.rev
 // ["1"; "2"; "3"]
 ```
 
-### Using `fold` to implement other functions
+### `fold`を使って他の関数を実装する
 
-As I mentioned above, `fold` is the core function for operating on lists and can emulate most other functions,
-although perhaps not as efficiently as a custom implementation.
+先に述べたように、`fold`はリストを操作するためのコアな関数で、他のほとんどの関数をエミュレートすることができます。
+カスタムの実装ほど効率的ではないかもしれませんが。
 
-For example, here is `map` implemented using `fold`:
+例えば、`fold`を使って実装した`map`を紹介します:
 
 ```fsharp
-/// map a function "f" over all elements
-let myMap f list =
-    // helper function
+/// 関数 "f"を全ての要素にマッピングする
+let myMap f list =.
+    // ヘルパー関数
     let folder state head =
         f head :: state
 
-    // main flow
+    // メインフロー
     list
     |> List.fold folder []
     |> List.rev
@@ -1566,19 +1566,19 @@ let myMap f list =
 // [3; 4; 5]
 ```
 
-And here is `filter` implemented using `fold`:
+また、`fold`を使って実装した`filter`は以下の通りです:
 
 ```fsharp
-/// return a new list of elements for which "pred" is true
-let myFilter pred list =
-    // helper function
+/// "pred"がtrueである要素の新しいリストを返す
+let myFilter pred list =.
+    // ヘルパー関数
     let folder state head =
         if pred head then
             head :: state
         else
             state
 
-    // main flow
+    // メインフロー
     list
     |> List.fold folder []
     |> List.rev
@@ -1588,59 +1588,59 @@ let isOdd n = (n%2=1)
 // [1; 3; 5]
 ```
 
-And of course, you can emulate the other functions in a similar way.
+もちろん、他の関数も同様の方法でエミュレートできます。
 
-### `scan` examples
+### `scan`の例
 
-Earlier, I showed an example of the intermediate steps of `fold`:
+先ほど、`fold`の中間ステップの例を紹介しました。
 
 ```fsharp
 [1;2;3;4] |> List.fold (fun state x -> (state)*10 + x) 0
-                                // state at each step
+                                // 各ステップでの状態
 1                               // 1
 (1)*10 + 2                      // 12
 ((1)*10 + 2)*10 + 3             // 123
 (((1)*10 + 2)*10 + 3)*10 + 4    // 1234
-// Final result is 1234
+// 最終結果は1234
 ```
 
-For that example, I had to manually calculate the intermediate states,
+この例では、中間状態を手動で計算する必要がありました。
 
-Well, if I had used `scan`, I would have got those intermediate states for free!
+もし、`scan`を使っていたら、その中間状態は無料で手に入っていたでしょうね。
 
 ```fsharp
 [1;2;3;4] |> List.scan (fun state x -> (state)*10 + x) 0
-// accumulates from left ===> [0; 1; 12; 123; 1234]
+// 左から積み上げていく ===> [0; 1; 12; 123; 1234]
 ```
 
-`scanBack` works the same way, but backwards of course:
+`scanBack`も同じように動作しますが、もちろん逆方向です。
 
 ```fsharp
 List.scanBack (fun x state -> (state)*10 + x) [1;2;3;4] 0
-// [4321; 432; 43; 4; 0]  <=== accumulates from right
+// [4321; 432; 43; 4; 0] <=== 右から積み上げていく
 ```
 
-Just as with `foldBack` the parameter order for "scan right" is inverted compared with "scan left".
+`foldBack`と同様に、右方向にスキャンする場合と左方向にスキャンする場合とでは、パラメータの順序が逆になります。
 
-### Truncating a string with `scan`
+### `scan`で文字列を切り詰める
 
-Here's an example where `scan` is useful. Say that you have a news site, and you need to make sure headlines fit into 50 chars.
+ここでは、`scan`が役立つ例を紹介します。例えば、ニュースサイトを運営していて、見出しが50文字に収まるようにする必要があるとします。
 
-You could just truncate the string at 50, but that would look ugly. Instead you want to have the truncation end at a word boundary.
+文字列を50で切り詰めることもできますが、それでは見た目が悪いです。その代わりに、単語の境界で切り捨てを終了させたいとします。
 
-Here's one way of doing it using `scan`:
+ここでは、`scan`を使ってそれを行う一つの方法を紹介します。
 
-* Split the headline into words.
-* Use `scan` to concat the words back together, generating a list of fragments, each with an extra word added.
-* Get the longest fragment under 50 chars.
+* 見出しを単語に分割します。
+* `scan`を使用して単語を連結し、それぞれに追加の単語を追加したフラグメントのリストを生成します。
+* 50文字以下の最長のフラグメントを取得します。
 
 ```fsharp
-// start by splitting the text into words
+// まず、テキストを単語に分割します。
 let text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor."
 let words = text.Split(' ')
 // [|"Lorem"; "ipsum"; "dolor"; "sit"; ... ]
 
-// accumulate a series of fragments
+// 一連のフラグメントを蓄積する
 let fragments = words |> Seq.scan (fun frag word -> frag + " " + word) ""
 (*
 " Lorem"
@@ -1651,26 +1651,26 @@ let fragments = words |> Seq.scan (fun frag word -> frag + " " + word) ""
 etc
 *)
 
-// get the longest fragment under 50
+// 50以下の最長のフラグメントを取得
 let longestFragUnder50 =
     fragments
     |> Seq.takeWhile (fun s -> s.Length <= 50)
     |> Seq.last
 
-// trim off the first blank
+// 最初の空白を切り捨てる
 let longestFragUnder50Trimmed =
     longestFragUnder50 |> (fun s -> s.[1..])
 
-// The result is:
-//   "Lorem ipsum dolor sit amet, consectetur"
+// 結果はこうなります。
+// "Lorem ipsum dolor sit amet, consectetur"
 ```
 
-Note that I'm using `Seq.scan` rather than `Array.scan`. This does a lazy scan and avoids having to create fragments that are not needed.
+Array.scan "ではなく、"Seq.scan "を使っていることに注意してください。これは、遅延スキャンを行い、必要のないフラグメントを作らなくて済むようにするためです。
 
-Finally, here is the complete logic as a utility function:
+最後に、完全なロジックをユーティリティー関数として示します:
 
 ```fsharp
-// the whole thing as a function
+// 関数としての全体像
 let truncText max (text:string) =
     if text.Length <= max then
         text
@@ -1688,28 +1688,28 @@ text |> truncText 50
 // "Lorem ipsum dolor sit amet, consectetur..."
 ```
 
-Yes, I know that there is a more efficient implementation than this, but I hope that this little example shows off the power of `scan`.
+もちろん、これよりも効率的な実装があることは承知していますが、この小さな例が `scan` の力を示してくれれば幸いです。
 
-### `mapFold` examples
+### `mapFold` の例
 
-The `mapFold` function can do a map and a fold in one step, which can be convenient on occasion.
+`mapFold` 関数は、マップと折り返しを一度に行うことができるので、便利な場合があります。
 
-Here's an example of combining an addition and a sum in one step using `mapFold`:
+ここでは、`mapFold`を使って、足し算と和算を一度に行う例を紹介します。
 
 ```fsharp
 let add1 x = x + 1
 
-// add1 using map
+// マップを使ったadd1
 [1..5] |> List.map (add1)
-// Result => [2; 3; 4; 5; 6]
+// 結果 => [2; 3; 4; 5; 6]
 
-// sum using fold
+// foldを使ったsum
 [1..5] |> List.fold (fun state x -> state + x) 0
-// Result => 15
+// 結果 => 15
 
-// map and sum using mapFold
+// mapFoldを使ったマップとサム
 [1..5] |> List.mapFold (fun state x -> add1 x, (state + x)) 0
-// Result => ([2; 3; 4; 5; 6], 15)
+// 結果 => ([2; 3; 4; 5; 6], 15)
 ```
 
 
@@ -1717,25 +1717,25 @@ let add1 x = x + 1
 
 ----
 
-## 20. Working with the index of each element
+## 20. 各要素のインデックスを扱う
 
-Often, you need the index of the element as you do an iteration. You could use a mutable counter, but why not sit back and let the library do the work for you?
+反復処理を行う際に、要素のインデックスが必要になることがよくあります。ミュータブルカウンタを使うこともできますが、ここはひとつ、ライブラリに任せてみませんか？
 
 * [`mapi: mapping:(int -> 'T -> 'U) -> list:'T list -> 'U list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L465).
-  Like `map`, but with the integer index passed to the function as well. See [section 17](#17) for more on `map`.
+  `map`と同じですが、整数のインデックスも関数に渡されます。`map` の詳細については [セクション 17](#17) を参照してください。
 * [`iteri: action:(int -> 'T -> unit) -> list:'T list -> unit`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L382).
-  Like `iter`, but with the integer index passed to the function as well. See [section 18](#18) for more on `iter`.
+  `iter` と同様ですが、整数のインデックスも関数に渡されます。`iter` の詳細については [セクション 18](#18) を参照してください。
 * [`indexed: list:'T list -> (int * 'T) list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L340).
-  Returns a new list whose elements are the corresponding elements of the input list paired with the index (from 0) of each element.
+  入力リストの対応する要素を要素とし、各要素の(0からの)インデックスをペアにした新しいリストを返します。
 
 
-### Usage examples
+### 使用例
 
 ```fsharp
 ['a'..'c'] |> List.mapi (fun index ch -> sprintf "the %ith element is '%c'" index ch)
 // ["the 0th element is 'a'"; "the 1th element is 'b'"; "the 2th element is 'c'"]
 
-// with partial application
+// 部分適用で
 ['a'..'c'] |> List.mapi (sprintf "the %ith element is '%c'")
 // ["the 0th element is 'a'"; "the 1th element is 'b'"; "the 2th element is 'c'"]
 
@@ -1747,13 +1747,13 @@ the 2th element is 'c'
 *)
 ```
 
-`indexed` generates a tuple with the index -- a shortcut for a specific use of `mapi`:
+`indexed` は，インデックスを持つタプルを生成します -- `mapi` の特定の使い方のショートカットです．
 
 ```fsharp
 ['a'..'c'] |> List.mapi (fun index ch -> (index, ch) )
 // [(0, 'a'); (1, 'b'); (2, 'c')]
 
-// "indexed" is a shorter version of above
+// "indexed "は上記を短くしたもの
 ['a'..'c'] |> List.indexed
 // [(0, 'a'); (1, 'b'); (2, 'c')]
 ```
@@ -1763,41 +1763,41 @@ the 2th element is 'c'
 
 ----
 
-## 21. Transforming the whole collection to a different collection type
+## 21. コレクション全体を異なるコレクションタイプに変換する
 
-You often need to convert from one kind of collection to another. These functions do this.
+ある種類のコレクションから別の種類のコレクションに変換する必要があることがよくあります。これらの関数はこれを行います。
 
-The `ofXXX` functions are used to convert from `XXX` to the module type. For example, `List.ofArray` will turn an array into a list.
+`ofXXX`関数は、`XXX`からモジュールタイプへの変換に使用されます。例えば、`List.ofArray`は配列をリストに変換します。
 
-* (Except Array) [`ofArray : array:'T[] -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L526).
-  Builds a new collection from the given array.
-* (Except Seq) [`ofSeq: source:seq<'T> -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L532).
-  Builds a new collection from the given enumerable object.
-* (Except List) [`ofList: source:'T list -> seq<'T>`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/seq.fsi#L864).
-  Builds a new collection from the given list.
+* (Arrayを除く) [`ofArray : array:'T[] -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L526).
+  与えられた配列から新しいコレクションを構築します。
+* (Seqを除く) [`ofSeq: source:seq<'T> -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L532).
+  与えられた列挙可能なオブジェクトから新しいコレクションを構築します。
+* (Listを除く) [`ofList: source:'T list -> seq<'T>`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/seq.fsi#L864).
+  与えられたリストから新しいコレクションを構築します。
 
-The `toXXX` are used to convert from the module type to the type `XXX`. For example, `List.toArray` will turn an list into an array.
+`toXXX`はモジュールタイプからタイプ`XXX`への変換に使われます。例えば、`List.toArray` はリストを配列に変換します。
 
-* (Except Array) [`toArray: list:'T list -> 'T[]`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L762).
-  Builds an array from the given collection.
-* (Except Seq) [`toSeq: list:'T list -> seq<'T>`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L768).
-  Views the given collection as a sequence.
-* (Except List) [`toList: source:seq<'T> -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/seq.fsi#L1189).
-  Builds a list from the given collection.
+* (Arrayを除く) [`toArray: list:'T list -> 'T[]`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L762).
+  与えられたコレクションから配列を構築します。
+* (Seqを除く) [`toSeq: list:'T list -> seq<'T>`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L768).
+  与えられたコレクションをシーケンスとして表示します。
+* (Listを除く) [`toList: source:seq<'T> -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/seq.fsi#L1189).
+  与えられたコレクションからリストを構築します。
 
-### Usage examples
+### 使用例
 
 ```fsharp
 [1..5] |> List.toArray      // [|1; 2; 3; 4; 5|]
 [1..5] |> Array.ofList      // [|1; 2; 3; 4; 5|]
-// etc
+// など
 ```
 
-### Using sequences with disposables
+### Disposablesでのシーケンスの使用
 
-One important use of these conversion functions is to convert a lazy enumeration (`seq`) to a fully evaluated collection such as `list`. This is particularly
-important when there is a disposable resource involved, such as file handle or database connection. If the sequence is not converted into a list
-you may encounter errors accessing the elements.  See [section 28](#28) for more.
+これらの変換関数の重要な使い方として、遅延列挙（`seq`）を `list` のような完全に評価されるコレクションに変換することがあります。これは特に
+ファイルハンドルやデータベース接続のような使い捨てのリソースがある場合に重要です．シーケンスをリストに変換しないと
+要素へのアクセスでエラーが発生する可能性があります。 詳しくは[セクション28](#28)をご覧ください。
 
 
 
@@ -1805,21 +1805,21 @@ you may encounter errors accessing the elements.  See [section 28](#28) for more
 
 ----
 
-## 22. Changing the behavior of the collection as a whole
+## 22. コレクション全体の振る舞いを変える
 
-There are some special functions (for Seq only) that change the behavior of the collection as a whole.
+コレクション全体の動作を変更する特別な関数がいくつかあります（Seqのみ）。
 
-* (Seq only) [`cache: source:seq<'T> -> seq<'T>`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/seq.fsi#L98).
-  Returns a sequence that corresponds to a cached version of the input sequence. This result sequence will have the same elements as the input sequence. The result
-  can be enumerated multiple times. The input sequence will be enumerated at most once and only as far as is necessary.
-* (Seq only) [`readonly : source:seq<'T> -> seq<'T>`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/seq.fsi#L919).
-  Builds a new sequence object that delegates to the given sequence object. This ensures the original sequence cannot be rediscovered and mutated by a type cast.
-* (Seq only) [`delay : generator:(unit -> seq<'T>) -> seq<'T>`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/seq.fsi#L221).
-  Returns a sequence that is built from the given delayed specification of a sequence.
+* (Seqのみ) [`cache: source:seq<'T> -> seq<'T>`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/seq.fsi#L98).
+  入力シーケンスをキャッシュしたものに対応するシーケンスを返します。この結果のシーケンスは、入力シーケンスと同じ要素を持ちます。この結果
+  は複数回、列挙することができます。入力シーケンスは最大で1回、必要な範囲内でのみ列挙されます。
+* (Seqのみ) [`readonly : source:seq<'T> -> seq<'T>`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/seq.fsi#L919).
+  与えられたシーケンスオブジェクトにデリゲートする新しいシーケンスオブジェクトを構築します。これにより、元のシーケンスが再発見されたり、タイプキャストによって変異したりすることがないようになります。
+* (Seqのみ) [`delay : generator:(unit -> seq<'T>) -> seq<'T>`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/seq.fsi#L221).
+  与えられたシーケンスの遅延指定から構築されたシーケンスを返します。
 
-### `cache` example
+### `cache` の例
 
-Here's an example of `cache` in use:
+以下に `cache` の使用例を示します。
 
 ```fsharp
 let uncachedSeq = seq {
@@ -1828,12 +1828,12 @@ let uncachedSeq = seq {
         yield i
     }
 
-// iterate twice
+// 2回反復する
 uncachedSeq |> Seq.iter ignore
 uncachedSeq |> Seq.iter ignore
 ```
 
-The result of iterating over the sequence twice is as you would expect:
+シーケンスを2回反復処理した結果は、期待通りの結果となりました。
 
 ```text
 Calculating 1
@@ -1844,17 +1844,17 @@ Calculating 2
 Calculating 3
 ```
 
-But if we cache the sequence...
+しかし、このシーケンスをキャッシュすると...
 
 ```fsharp
 let cachedSeq = uncachedSeq |> Seq.cache
 
-// iterate twice
+// 2回イテレートする
 cachedSeq |> Seq.iter ignore
 cachedSeq |> Seq.iter ignore
 ```
 
-... then each item is only printed once:
+...すると、各要素は1回だけ出力されます．
 
 ```text
 Calculating 1
@@ -1862,12 +1862,12 @@ Calculating 2
 Calculating 3
 ```
 
-### `readonly` example
+### `readonly` の例
 
-Here's an example of `readonly` being used to hide the underlying type of the sequence:
+以下に、シーケンスの基本的な型を隠すために `readonly` を使用した例を示します。
 
 ```fsharp
-// print the underlying type of the sequence
+// シーケンスの基礎となる型を表示する
 let printUnderlyingType (s:seq<_>) =
     let typeName = s.GetType().Name
     printfn "%s" typeName
@@ -1876,12 +1876,12 @@ let printUnderlyingType (s:seq<_>) =
 // Int32[]
 
 [|1;2;3|] |> Seq.readonly |> printUnderlyingType
-// mkSeq@589   // a temporary type
+// mkSeq@589 // 一時的な型
 ```
 
-### `delay` example
+### `delay` の例
 
-Here's an example of `delay`.
+ここでは、`delay`の例を紹介します。
 
 ```fsharp
 let makeNumbers max =
@@ -1902,7 +1902,7 @@ let delayedSeq =
     list
 ```
 
-If we run the code above, we find that just by creating `eagerList`, we print all the "Evaluating" messages. But creating `delayedSeq` does not trigger the list iteration.
+上のコードを実行してみると、`eagerList`を作成するだけで、すべての"Evaluating"メッセージが表示されることがわかります。しかし、`delayedSeq`を作成しても、リストのイテレーションは行われません。
 
 ```text
 Started creating eagerList
@@ -1917,14 +1917,14 @@ Started creating delayedSeq
 Finished creating delayedSeq
 ```
 
-Only when the sequence is iterated over does the list creation happen:
+シーケンスが反復されたときに初めてリストの作成が行われます。
 
 ```fsharp
-eagerList |> Seq.take 3  // list already created
-delayedSeq |> Seq.take 3 // list creation triggered
+eagerList |> Seq.take 3 // 既にリストが作成されている
+delayedSeq |> Seq.take 3 // リスト作成のトリガーとなる
 ```
 
-An alternative to using delay is just to embed the list in a `seq` like this:
+delayを使う代わりに、次のように`seq`の中にリストを埋め込むこともできます。
 
 ```fsharp
 let embeddedList = seq {
@@ -1934,51 +1934,51 @@ let embeddedList = seq {
     }
 ```
 
-As with `delayedSeq`, the `makeNumbers` function will not be called until the sequence is iterated over.
+`delayedSeq`と同様に、`makeNumbers`関数は、シーケンスが反復されるまで呼ばれません。
 
 {{< linktarget "23" >}}
 
 ----
 
-## 23. Working with two lists
+## 23. 2つのリストを扱う
 
-If you have two lists, there are analogues of most of the common functions like map and fold.
+2つのリストがある場合、map や fold のような一般的な関数のほとんどが類似しています。
 
 * [`map2: mapping:('T1 -> 'T2 -> 'U) -> list1:'T1 list -> list2:'T2 list -> 'U list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L428).
-  Builds a new collection whose elements are the results of applying the given function to the corresponding elements of the two collections pairwise.
-* [`mapi2: mapping:(int -> 'T1 -> 'T2 -> 'U) -> list1:'T1 list -> list2:'T2 list -> 'U list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L473).
-  Like `mapi`, but mapping corresponding elements from two lists of equal length.
+  2つのコレクションの各要素のペアに指定された関数を適用し、その結果を要素とする新しいコレクションを作成します。
+* [`mapi2: mapping:(int -> 'T1 -> 'T2 -> 'U) -> list1:'T1 list -> list2:'T2 list -> 'U list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L473)となります。
+    `mapi`に似ていますが、同じ長さの2つのリストの各要素のペアをマッピングします。
 * [`iter2: action:('T1 -> 'T2 -> unit) -> list1:'T1 list -> list2:'T2 list -> unit`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L375).
-  Applies the given function to two collections simultaneously. The collections must have identical size.
-* [`iteri2: action:(int -> 'T1 -> 'T2 -> unit) -> list1:'T1 list -> list2:'T2 list -> unit`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L391).
-  Like `iteri`, but mapping corresponding elements from two lists of equal length.
+  指定された関数を2つのコレクションに同時に適用します。コレクションのサイズは一致している必要があります。
+* [`iteri2: action:(int -> 'T1 -> 'T2 -> unit) -> list1:'T1 list -> list2:'T2 list -> unit`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L391)となります。
+  `iteri`と同様に、同じ長さの2つのリストの各要素のペアをマッピングします。
 * [`forall2: predicate:('T1 -> 'T2 -> bool) -> list1:'T1 list -> list2:'T2 list -> bool`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L314).
-  The predicate is applied to matching elements in the two collections up to the lesser of the two lengths of the collections. If any application returns false then the overall result is false, else true.
+  この述語は、2つのコレクションの長さのうち小さい方の長さまで、2つのコレクションの要素にマッチするように適用されます。適用した結果がいずれもfalseを返した場合、全体の結果はfalseとなり、そうでなければtrueとなります。
 * [`exists2: predicate:('T1 -> 'T2 -> bool) -> list1:'T1 list -> list2:'T2 list -> bool`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L191).
-  The predicate is applied to matching elements in the two collections up to the lesser of the two lengths of the collections. If any application returns true then the overall result is true, else false.
+  predicateが適用される範囲は、コレクションの2つのうち、小さい方のサイズまでとなります。いずれかの処理でfalseが返された場合、全体の結果はfalse、そうでない場合はtrueになります。
 * [`fold2<'T1,'T2,'State> : folder:('State -> 'T1 -> 'T2 -> 'State) -> state:'State -> list1:'T1 list -> list2:'T2 list -> 'State`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L266).
-  Applies a function to corresponding elements of two collections, threading an accumulator argument through the computation.
+  2つのコレクションの対応する要素に関数を適用します、アキュムレータ引数に計算の途中結果が保持されます。
 * [`foldBack2<'T1,'T2,'State> : folder:('T1 -> 'T2 -> 'State -> 'State) -> list1:'T1 list -> list2:'T2 list -> state:'State -> 'State`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L288).
-  Applies a function to corresponding elements of two collections, threading an accumulator argument through the computation.
+  2つのコレクションの対応する要素に関数を末尾から適用します、アキュムレータ引数に計算の途中結果が保持されます。
 * [`compareWith: comparer:('T -> 'T -> int) -> list1:'T list -> list2:'T list -> int`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L84).
-  Compares two collections using the given comparison function, element by element. Returns the first non-zero result from the comparison function.  If the end of a collection
-  is reached it returns a -1 if the first collection is shorter and a 1 if the second collection is shorter.
-* See also `append`, `concat`, and `zip` in [section 26: combining and uncombining collections](#26).
+  2つのコレクションについて、与えられた比較関数を使って各要素を比較します。返り値が0でない最初の結果を返します。 
+  コレクションの終わりに達した場合はリスト長を比較して、最初のコレクションが短ければ -1 を、2番目のコレクションが短ければ 1 を返します。
+* [セクション26: コレクションの結合と解除](#26)の `append`, `concat`, `zip` も参照してください。
 
-### Usage examples
+### 使用例
 
-These functions are straightforward to use:
+これらの関数は簡単に使うことができます。
 
 ```fsharp
 let intList1 = [2;3;4]
 let intList2 = [5;6;7]
 
 List.map2 (fun i1 i2 -> i1 + i2) intList1 intList2
-//  [7; 9; 11]
+// [7; 9; 11]
 
-// TIP use the ||> operator to pipe a tuple as two arguments
+// TIP ||>演算子を使用して、タプルを2つの引数としてパイプ処理します
 (intList1,intList2) ||> List.map2 (fun i1 i2 -> i1 + i2)
-//  [7; 9; 11]
+// [7; 9; 11]
 
 (intList1,intList2) ||> List.mapi2 (fun index i1 i2 -> index,i1 + i2)
  // [(0, 7); (1, 9); (2, 11)]
@@ -2014,13 +2014,13 @@ List.foldBack2 (fun i1 i2 state -> i1 + i2 + (10*state)) intList1 intList2 0
 // [(2, 5); (3, 6); (4, 7)]
 ```
 
-### Need a function that's not here?
+### ここにはない関数が必要ですか？
 
-By using `fold2` and `foldBack2` you can easily create your own functions. For example, some `filter2` functions can be defined like this:
+`fold2`や`foldBack2`を使えば、独自の関数を簡単に作ることができます。例えば、いくつかの`filter2`関数は以下のように定義できます。
 
 ```fsharp
-/// Apply a function to each element in a pair
-/// If either result passes, include that pair in the result
+/// ペアの各要素に関数を適用する
+/// どちらかの結果が通る場合、そのペアを結果に含める
 let filterOr2 filterPredicate list1 list2 =
     let pass e = filterPredicate e
     let folder e1 e2 state =
@@ -2030,8 +2030,8 @@ let filterOr2 filterPredicate list1 list2 =
             state
     List.foldBack2 folder list1 list2 ([])
 
-/// Apply a function to each element in a pair
-/// Only if both results pass, include that pair in the result
+/// ペアの各要素に関数を適用する
+/// 両方の結果が合格した場合のみ、そのペアを結果に含める
 let filterAnd2 filterPredicate list1 list2 =
     let pass e = filterPredicate e
     let folder e1 e2 state =
@@ -2041,7 +2041,7 @@ let filterAnd2 filterPredicate list1 list2 =
             state
     List.foldBack2 folder list1 list2 []
 
-// test it
+// テスト
 let startsWithA (s:string) = (s.[0] = 'A')
 let strList1 = ["A1"; "A3"]
 let strList2 = ["A2"; "B1"]
@@ -2052,31 +2052,31 @@ let strList2 = ["A2"; "B1"]
 // [("A1", "A2")]
 ```
 
-See also [section 25](#25).
+セクション25](#25)も参照してください。
 
 {{< linktarget "24" >}}
 
 ----
 
-## 24. Working with three lists
+## 24. 3つのリストを扱う
 
-If you have three lists, you only have one built-in function available. But see [section 25](#25) for an example of how you can build your own three-list functions.
+3つのリストがある場合、利用できる組み込み関数は1つだけです。しかし、[セクション25](#25)では、独自の3つのリストの関数を構築する方法の例を紹介しています。
 
 * [`map3: mapping:('T1 -> 'T2 -> 'T3 -> 'U) -> list1:'T1 list -> list2:'T2 list -> list3:'T3 list -> 'U list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L438).
-  Builds a new collection whose elements are the results of applying the given function to the corresponding elements of the three collections simultaneously.
-* See also `append`, `concat`, and `zip3` in [section 26: combining and uncombining collections](#26).
+  与えられた関数を3つのコレクションの対応する要素に同時に適用した結果を要素とする新しいコレクションを構築します。
+* [セクション 26: コレクションの結合と解除](#26)の `append`, `concat`, `zip3` も参照してください。
 
 {{< linktarget "25" >}}
 
 ----
 
-## 25. Working with more than three lists
+## 25. 3つ以上のリストを扱う場合
 
-If you are working with more than three lists, there are no built in functions for you.
+3つ以上のリストを扱う場合、組み込まれた関数はありません。
 
-If this happens infrequently, then you could just collapse the lists into a single tuple using `zip2` and/or `zip3` in succession, and then process that tuple using `map`.
+もしこのようなことが頻繁に起こらないのであれば、`zip2`や`zip3`を連続して使ってリストを1つのタプルに畳み込み、そのタプルを`map`で処理すればよいでしょう。
 
-Alternatively you can "lift" your function to the world of "zip lists" using applicatives.
+あるいは、applicativesを使って、自分の関数を"zip lists"の世界に"lift"することもできます。
 
 ```fsharp
 let (<*>) fList xList =
@@ -2087,40 +2087,40 @@ let (<!>) = List.map
 let addFourParams x y z w =
     x + y + z + w
 
-// lift "addFourParams" to List world and pass lists as parameters rather than ints
+// "addFourParams"をListの世界に持ち込んで、パラメータとしてintではなくリストを渡す
 addFourParams <!> [1;2;3] <*> [1;2;3] <*> [1;2;3] <*> [1;2;3]
-// Result = [4; 8; 12]
+// 結果 = [4; 8; 12]
 ```
 
-If that seems like magic, see [this series](/posts/elevated-world/#lift) for a explanation of what this code is doing.
+これが魔法のように思えるなら、このコードが何をしているのか、[this series](/posts/elevated-world/#lift)で説明しています。
 
 
 {{< linktarget "26" >}}
 
 ----
 
-## 26. Combining and uncombining collections
+## 26. コレクションの結合と結合解除
 
-Finally, there are a number of functions that combine and uncombine collections.
+最後に、コレクションを結合したり結合解除したりする関数がいくつかあります。
 
 * [`append: list1:'T list -> list2:'T list -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L21).
-  Returns a new collection that contains the elements of the first collection followed by elements of the second.
-* `@` is an infix version of `append` for lists.
+  最初のコレクションの要素と、2番目のコレクションの要素を含む新しいコレクションを返します。
+* `@` はリストに対する `append` の 中置演算子バージョンです。
 * [`concat: lists:seq<'T list> -> 'T list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L90).
-  Builds a new collection whose elements are the results of applying the given function to the corresponding elements of the collections simultaneously.
+  与えられた関数をコレクションの対応する要素に同時に適用した結果を要素とする新しいコレクションを構築します。
 * [`zip: list1:'T1 list -> list2:'T2 list -> ('T1 * 'T2) list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L882).
-  Combines two collections into a list of pairs. The two collections must have equal lengths.
+  2つのコレクションを組み合わせて、2つの要素を持つタプルのリストにします。2つのコレクションの長さは同じでなければなりません。
 * [`zip3: list1:'T1 list -> list2:'T2 list -> list3:'T3 list -> ('T1 * 'T2 * 'T3) list`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L890).
-  Combines three collections into a list of triples. The collections must have equal lengths.
-* (Except Seq) [`unzip: list:('T1 * 'T2) list -> ('T1 list * 'T2 list)`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L852).
-  Splits a collection of pairs into two collections.
-* (Except Seq) [`unzip3: list:('T1 * 'T2 * 'T3) list -> ('T1 list * 'T2 list * 'T3 list)`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L858).
-  Splits a collection of triples into three collections.
+  3つのコレクションを組み合わせて、3つの要素を持つタプルのリストを作ります。3つのコレクションは同じ長さでなければなりません。
+* (Seq を除く) [`unzip: list:('T1 * 'T2) list -> ('T1 list * 'T2 list)`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L852).
+  2つの要素を持つタプルのコレクションを 2 つのコレクションに分割します。
+* (Seq を除く) [`unzip3: list:('T1 * 'T2 * 'T3) list -> ('T1 list * 'T2 list * 'T3 list)`](https://github.com/fsharp/fsharp/blob/4331dca3648598223204eed6bfad2b41096eec8a/src/fsharp/FSharp.Core/list.fsi#L858).
+  3つの要素を持つタプルのコレクションを3つのコレクションに分割します。
 
 
-### Usage examples
+### 使用例
 
-These functions are straightforward to use:
+これらの関数は、簡単に使うことができます。
 
 ```fsharp
 List.append [1;2;3] [4;5;6]
@@ -2145,55 +2145,55 @@ List.unzip3 [(1, 10, 100); (2, 20, 200)]
 // ([1; 2], [10; 20], [100; 200])
 ```
 
-Note that the `zip` functions require the lengths to be the same.
+なお、`zip`関数は、長さが同じであることを要求します。
 
 ```fsharp
 List.zip [1;2] [10]
-// ArgumentException: The lists had different lengths.
+// ArgumentException: リストの長さが異なります。
 ```
 
 {{< linktarget "27" >}}
 
 ----
 
-## 27. Other array-only functions
+## 27. その他の配列専用の関数
 
-Arrays are mutable, and therefore have some functions that are not applicable to lists and sequences.
+配列は可変型なので、リストやシーケンスには適用できない関数がいくつかあります。
 
-* See the "sort in place" functions in [section 15](#15)
+* [セクション15](#15)の "sort in place" 関数を参照してください。
 * `Array.blit: source:'T[] -> sourceIndex:int -> target:'T[] -> targetIndex:int -> count:int -> unit`.
-   Reads a range of elements from the first array and write them into the second.
+   1つ目の配列から要素の範囲を読み取って、2つ目の配列に書き込みます。
 * `Array.copy: array:'T[] -> 'T[]`.
-   Builds a new array that contains the elements of the given array.
+   与えられた配列の要素を含む新しい配列を構築します。
 * `Array.fill: target:'T[] -> targetIndex:int -> count:int -> value:'T -> unit`.
-   Fills a range of elements of the array with the given value.
+   配列の要素の範囲を、与えられた値で埋めます。
 * `Array.set: array:'T[] -> index:int -> value:'T -> unit`.
-   Sets an element of an array.
-* In addition to these, all the other [BCL array functions](https://msdn.microsoft.com/en-us/library/system.array.aspx) are available as well.
+   配列の要素を設定します。
+* これらに加えて、他のすべての[BCL配列関数](https://msdn.microsoft.com/en-us/library/system.array.aspx)も利用できます。
 
-I won't give examples. See the [MSDN documentation](https://msdn.microsoft.com/en-us/library/ee370273.aspx).
+例は挙げません。[MSDNドキュメント](https://msdn.microsoft.com/en-us/library/ee370273.aspx)をご覧ください。
 
 {{< linktarget "28" >}}
 
 ----
 
-## 28. Using sequences with disposables
+## 28. 使い捨てのシーケンスの使用
 
-One important use of conversion functions like `List.ofSeq` is to convert a lazy enumeration (`seq`) to a fully evaluated collection such as `list`. This is particularly
-important when there is a disposable resource involved such as file handle or database connection. If the sequence is not converted into a list
-while the resource is available you may encounter errors accessing the elements later, after the resource has been disposed.
+`List.ofSeq`のような変換関数の重要な用途の一つは、遅延列挙（`seq`）を`list`のような完全に評価されたコレクションに変換することです。
+これは，ファイルハンドルやデータベース接続のような使い捨てのリソースがある場合に特に重要です．リソースが利用可能な状態でシーケンスをリストに変換しないと、
+リソースが破棄された後に要素にアクセスする際にエラーが発生する可能性があります。
 
-This will be an extended example, so let's start with some helper functions that emulate a database and a UI:
+ここでは、データベースとUIをエミュレートするヘルパー関数から始めましょう。
 
 ```fsharp
-// a disposable database connection
+// 使い捨てのデータベース接続
 let DbConnection() =
     printfn "Opening connection"
     { new System.IDisposable with
         member this.Dispose() =
             printfn "Disposing connection" }
 
-// read some records from the database
+// データベースからいくつかのレコードを読み込む
 let readNCustomersFromDb dbConnection n =
     let makeCustomer i =
         sprintf "Customer %i" i
@@ -2205,12 +2205,12 @@ let readNCustomersFromDb dbConnection n =
             yield customer
         }
 
-// show some records on the screen
+// いくつかのレコードを画面上に表示する
 let showCustomersinUI customers =
     customers |> Seq.iter (printfn "Showing %s in UI")
 ```
 
-A naive implementation will cause the sequence to be evaluated *after* the connection is closed:
+素朴な実装では、接続が閉じられた後にシーケンスが評価されます。
 
 ```fsharp
 let readCustomersFromDb() =
@@ -2222,31 +2222,31 @@ let customers = readCustomersFromDb()
 customers |> showCustomersinUI
 ```
 
-The output is below. You can see that the connection is closed and only then is the sequence evaluated.
+出力は以下の通りです。接続が閉じられてから、シーケンスが評価されているのがわかります。
 
 ```text
 Opening connection
 Disposing connection
-Loading Customer 1 from db  // error! connection closed!
+Loading Customer 1 from db  // エラー！接続が閉じられました
 Showing Customer 1 in UI
 Loading Customer 2 from db
 Showing Customer 2 in UI
 ```
 
-A better implementation will convert the sequence to a list while the connection is open, causing the sequence to be evaluated immediately:
+より良い実装では、接続が開いている間にシーケンスをリストに変換し、シーケンスをすぐに評価するようにします。
 
 ```fsharp
 let readCustomersFromDb() =
     use dbConnection = DbConnection()
     let results = readNCustomersFromDb dbConnection 2
     results |> List.ofSeq
-    // Convert to list while connection is open
+    // 接続が開いている間にリストに変換
 
 let customers = readCustomersFromDb()
 customers |> showCustomersinUI
 ```
 
-The result is much better. All the records are loaded before the connection is disposed:
+結果はずっと良くなりました。すべてのレコードは、接続が破棄される前に読み込まれます。
 
 ```text
 Opening connection
@@ -2257,12 +2257,12 @@ Showing Customer 1 in UI
 Showing Customer 2 in UI
 ```
 
-A third alternative is to embed the disposable in the sequence itself:
+3つ目の方法は、disposableをシーケンス自体に埋め込むことです。
 
 ```fsharp
 let readCustomersFromDb() =
     seq {
-        // put disposable inside the sequence
+        // シーケンスの中にdisposableを入れる
         use dbConnection = DbConnection()
         yield! readNCustomersFromDb dbConnection 2
         }
@@ -2271,7 +2271,7 @@ let customers = readCustomersFromDb()
 customers |> showCustomersinUI
 ```
 
-The output shows that now the UI display is also done while the connection is open:
+出力を見ると、今度は接続が開かれている間にUIの表示も行われています。
 
 ```text
 Opening connection
@@ -2282,13 +2282,13 @@ Showing Customer 2 in UI
 Disposing connection
 ```
 
-This may be a bad thing (longer time for the connection to stay open) or a good thing (minimal memory use), depending on the context.
+これは、状況によって、悪いこと（接続が開いている時間が長くなる）や良いこと（メモリ使用量が少なくなる）があります。
 
 {{< linktarget "29" >}}
 
 ----
 
-## 29. The end of the adventure
+## 29. 冒険の終わり
 
-You made it to the end -- well done! Not really much of an adventure, though, was it? No dragons or anything. Nevertheless, I hope it was helpful.
+あなたは最後までやり遂げました−−よくできました!とはいえ、大した冒険ではありませんでしたね。ドラゴンも出ませんでした。ただ、お役に立てば幸いです。
 
