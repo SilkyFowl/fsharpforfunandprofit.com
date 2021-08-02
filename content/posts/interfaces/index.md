@@ -9,67 +9,67 @@ seriesOrder: 4
 categories: [Object-oriented, Interfaces]
 ---
 
-Interfaces are available and fully supported in F#, but there are number of important ways in which their usage differs from what you might be used to in C#.
+F#ではインターフェイスが利用でき、完全にサポートされていますが、その使い方はC#で慣れ親しんだものとは異なる重要な点がいくつかあります。
 
-### Defining interfaces
+### インターフェースの定義
 
-Defining an interface is similar to defining an abstract class. So similar, in fact, that you might easily get them confused.
+インターフェースの定義は、抽象クラスの定義に似ています。インターフェイスの定義は、抽象クラスの定義と似ていますが、非常に似ているため、混同しやすいかもしれません。
 
-Here's an interface definition:
+以下にインターフェースの定義を示します。
 
 ```fsharp
-type MyInterface =
-   // abstract method
+type MyInterface = // 抽象クラス
+   // 抽象メソッド
    abstract member Add: int -> int -> int
 
-   // abstract immutable property
+   // 抽象的な不変のプロパティ
    abstract member Pi : float
 
-   // abstract read/write property
+   // 抽象的な読み書き可能なプロパティ
    abstract member Area : float with get,set
 ```
 
-And here's the definition for the equivalent abstract base class:
+また、同等の抽象ベースクラスの定義は以下の通りです。
 
 ```fsharp
 [<AbstractClass>]
 type AbstractBaseClass() =
-   // abstract method
+   // 抽象メソッド
    abstract member Add: int -> int -> int
 
-   // abstract immutable property
+   // 抽象的な不変のプロパティ
    abstract member Pi : float
 
-   // abstract read/write property
+   // 抽象的な読み書き可能なプロパティ
    abstract member Area : float with get,set
 ```
 
-So what's the difference? As usual, all abstract members are defined by signatures only. The only difference seems to be the lack of the `[<AbstractClass>]` attribute.
+では、何が違うのでしょうか？いつものように、すべての抽象メンバーはシグネチャのみで定義されています。唯一の違いは `[<AbstractClass>]` 属性がないことのようです。
 
-But in the earlier discussion on abstract methods, we stressed that the `[<AbstractClass>]` attribute was required; the compiler would complain that the methods have no implementation otherwise. So how does the interface definition get away with it?
+しかし，先ほどの抽象メソッドの説明では，`[<AbstractClass>]` 属性が必要であることを強調しました。そうしないと，コンパイラがメソッドには実装がないと文句を言うからです。では、インターフェイスの定義はどのようにして守られているのでしょうか？
 
-The answer is trivial, but subtle. *The interface has no constructor*. That is, it does not have any parentheses after the interface name:
+答えは些細なことですが、微妙です。*インターフェイスにはコンストラクタがありません*。つまり，インターフェイス名の後に括弧をつけていないのです。
 
 ```fsharp
-type MyInterface =   // <- no parens!
+type MyInterface = // <- 括弧がない!
 ```
 
-That's it.  Removing the parens will convert a class definition into an interface!
+これで終わりです。 括弧を削除すると、クラス定義がインターフェイスに変換されます!
 
-### Explicit and implicit interface implementations
+### 明示的・暗黙的なインターフェイスの実装
 
-When it comes time to implement an interface in a class, F# is quite different from C#.  In C#, you can add a list of interfaces to the class definition and implement the interfaces implicitly.
+クラスにインターフェイスを実装する場合、F#はC#とかなり異なります。 C#では、クラス定義にインターフェースのリストを追加して、暗黙的にインターフェースを実装することができます。
 
-Not so in F#. In F#, all interfaces must be *explicitly* implemented.
+F#ではそうではありません。F#では、すべてのインターフェイスは*明示的に*実装しなければなりません。
 
-In an explicit interface implementation, the interface members can only be accessed through an interface instance (e.g. by casting the class to the interface type). The interface members are not visible as part of the class itself.
+明示的なインターフェイスの実装では、インターフェイスのメンバーは、インターフェイスのインスタンスを通してのみアクセスできます（例えば、クラスをインターフェイスの型にキャストすることで）。インターフェースのメンバーは、クラス自体の一部としては見えません。
 
-C# has support for both explicit and implicit interface implementations, but almost always, the implicit approach is used, and many programmers are not even aware of [explicit interfaces in C#](http://msdn.microsoft.com/en-us/library/ms173157.aspx).
+C#では、明示的なインターフェース実装と暗黙的なインターフェース実装の両方がサポートされていますが、ほとんどの場合、暗黙的なアプローチが使用されており、多くのプログラマーは[C#における明示的なインターフェース](http://msdn.microsoft.com/en-us/library/ms173157.aspx)を意識していません。
 
 
-### Implementing interfaces in F# ###
+### F#でのインターフェイスの実装 ###
 
-So, how do you implement an interface in F#?  You cannot just "inherit" from it, as you would an abstract base class.  You have to provide an explicit implementation for each interface member using the syntax `interface XXX with`, as shown below:
+では、F#でインターフェイスを実装するにはどうすればよいのでしょうか。 抽象的な基底クラスのように、単に「継承」することはできません。 以下のように、`interface XXX with`という構文を使って、インターフェイスの各メンバーに明示的な実装を行う必要があります。
 
 ```fsharp
 type IAddingService =
@@ -86,47 +86,47 @@ type MyAddingService() =
             printfn "disposed"
 ```
 
-The above code shows how the class `MyAddingService` explicitly implements the `IAddingService` and the `IDisposable` interfaces. After the required `interface XXX with` section, the members are implemented in the normal way.
+上記のコードは，クラス `MyAddingService` がどのようにして `IAddingService` と `IDisposable` インターフェースを明示的に実装しているかを示しています。必要な `interface XXX with` セクションの後、メンバーは通常の方法で実装されています。
 
-(As an aside, note again that `MyAddingService()` has a constructor, while `IAddingService` does not.)
+(余談ですが、`MyAddingService()`にはコンストラクタがありますが、`IAddingService`にはないことに再度注意してください)。
 
-### Using interfaces
+### インターフェースの利用
 
-So now let's try to use the adding service interface:
+それでは、追加サービスのインターフェースを使ってみましょう。
 
 ```fsharp
 let mas = new MyAddingService()
-mas.Add 1 2    // error
+mas.Add 1 2 // エラー
 ```
 
-Immediately, we run into an error. It appears that the instance does not implement the `Add` method at all. Of course, what this really means is that we must cast it to the interface first using the `:>` operator:
+すぐにエラーが発生します。どうやら、このインスタンスは`Add`メソッドを全く実装していないようです。もちろん、これが意味するところは、まず `:>` 演算子を使ってインターフェイスにキャストする必要があるということです。
 
 ```fsharp
-// cast to the interface
+// インターフェースへのキャスト
 let mas = new MyAddingService()
 let adder = mas :> IAddingService
-adder.Add 1 2  // ok
+adder.Add 1 2 // OK
 ```
 
-This might seem incredibly awkward, but in practice it is not a problem as in most cases the casting is done implicitly for you.
+これは非常に厄介に思えるかもしれませんが、ほとんどの場合、暗黙のうちにキャストが行われるので、実際には問題ありません。
 
-For example, you will typically be passing an instance to a function that specifies an interface parameter. In this case, the casting is done automatically:
+例えば，インターフェイスのパラメータを指定した関数にインスタンスを渡すことがよくあります。この場合、キャスティングは自動的に行われます。
 
 ```fsharp
-// function that requires an interface
+// インターフェースを必要とする関数
 let testAddingService (adder:IAddingService) =
-    printfn "1+2=%i" <| adder.Add 1 2  // ok
+    printfn "1+2=%i" <| adder.Add 1 2 // OK
 
 let mas = new MyAddingService()
-testAddingService mas // cast automatically
+testAddingService mas // 自動的にキャスト
 ```
 
-And in the special case of `IDisposable`, the `use` keyword will also automatically cast the instance as needed:
+また、`IDisposable`の特殊なケースでは、`use`キーワードも必要に応じて自動的にインスタンスをキャストします。
 
 ```fsharp
 let testDispose =
     use mas = new MyAddingService()
     printfn "testing"
-    // Dispose() is called here
+    // ここでDispose()が呼ばれる
 ```
 
