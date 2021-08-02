@@ -8,9 +8,9 @@ seriesId: "Computation Expressions"
 seriesOrder: 4
 ---
 
-In the previous post, we were introduced to the "maybe" workflow, which allowed us to hide the messiness of chaining together option types.
+前回の記事では、"maybe"ワークフローを紹介しました。このワークフローを使うと、オプションタイプを連結する際の面倒な作業を隠すことができます。
 
-A typical use of the "maybe" workflow looked something like this:
+典型的な "maybe "ワークフローの使い方は、次のようなものです。
 
 ```fsharp
 let result =
@@ -22,17 +22,17 @@ let result =
         }
 ```
 
-As we saw before, there is some apparently strange behavior going on here:
+前に見たように、ここでは明らかにおかしな動作が行われています。
 
-* In the `let!` lines, the expression on the *right* of the equals is an `int option`, but the value on the *left* is just an `int`. The `let!` has "unwrapped" the option before binding it to the value.
+* `let!`の行では、equalsの*右*にある式は`int option`ですが、*左*にある値は単なる`int`です。`let!`では、オプションを値にバインドする前に、オプションを"アンラップ"しています。
 
-* And in the `return` line, the opposite occurs. The expression being returned is an `int`, but the value of the whole workflow (`result`) is an `int option`. That is, the `return` has "wrapped" the raw value back into an option.
+* そして、`return`の行では、逆のことが起こります。返される式は `int` ですが、ワークフロー全体の値 (`result`) は `int option` です。つまり、`return`は生の値をオプションに"包み込んで"戻しているのです。
 
-We will follow up these observations in this post, and we will see that this leads to one of the major uses of computation expressions: namely, to implicitly unwrap and rewrap values that are stored in some sort of wrapper type.
+この記事では、これらの観察結果を追って、コンピュテーション式の主要な用途の1つである、ある種のラッパー型に格納された値を暗黙のうちにアンラップ、リラップすることにつながることを説明します。
 
-## Another example
+## 別の例
 
-Let's look at another example. Say that we are accessing a database, and we want to capture the result in a Success/Error union type, like this:
+別の例を見てみましょう。例えば、データベースにアクセスして、その結果をSuccess/Errorのユニオンタイプに格納したいとします。
 
 ```fsharp
 type DbResult<'a> =
@@ -40,7 +40,7 @@ type DbResult<'a> =
     | Error of string
 ```
 
-We then use this type in our database access methods. Here are some very simple stubs to give you an idea of how the `DbResult` type might be used:
+そして、この型をデータベースアクセスメソッドで使用します。ここでは、`DbResult`型の使用方法を知るために、非常にシンプルなスタブを紹介します。
 
 ```fsharp
 let getCustomerId name =
@@ -60,9 +60,9 @@ let getLastProductForOrder orderId =
 ```
 
 
-Now let's say we want to chain these calls together. First get the customer id from the name, and then get the order for the customer id, and then get the product from the order.
+では、これらの呼び出しを連鎖させたいとしましょう。まず名前から顧客IDを取得し、次に顧客IDに対する注文を取得し、さらに注文から商品を取得します。
 
-Here's the most explicit way of doing it. As you can see, we have to have pattern matching at each step.
+これが最も明確な方法です。ご覧のように、各ステップでパターンマッチングを行う必要があります。
 
 ```fsharp
 let product =
@@ -82,9 +82,9 @@ let product =
                 r3
 ```
 
-Really ugly code. And the top-level flow has been submerged in the error handling logic.
+本当に醜いコードです。しかも、トップレベルのフローがエラー処理のロジックに埋もれてしまっています。
 
-Computation expressions to the rescue!  We can write one that handles the branching of Success/Error behind the scenes:
+そこで、コンピュテーション式の出番です。 成功/エラーの分岐を裏で処理するコンピュテーション式を書けばいいのです。
 
 ```fsharp
 type DbResultBuilder() =
@@ -102,7 +102,7 @@ type DbResultBuilder() =
 let dbresult = new DbResultBuilder()
 ```
 
-And with this workflow, we can focus on the big picture and write much cleaner code:
+このようなワークフローがあれば、全体像を把握し、よりクリーンなコードを書くことができます。
 
 ```fsharp
 let product' =
@@ -116,7 +116,7 @@ let product' =
 printfn "%A" product'
 ```
 
-And if there are errors, the workflow traps them nicely and tells us where the error was, as in this example below:
+また、エラーが発生した場合は、ワークフローがうまくトラップして、以下の例のように、どこでエラーが発生したのかを教えてくれます。
 
 ```fsharp
 let product'' =
@@ -131,64 +131,64 @@ printfn "%A" product''
 ```
 
 
-## The role of wrapper types in workflows
+## ワークフローにおけるラッパー型の役割
 
-So now we have seen two workflows (the `maybe` workflow and the `dbresult` workflow), each with their own corresponding wrapper type (`Option<T>` and `DbResult<T>` respectively).
+ここまで、2つのワークフロー（`maybe`ワークフローと`dbresult`ワークフロー）を見てきましたが、それぞれに対応するラッパータイプ（それぞれ`Option<T>`と`DbResult<T>`）があります。
 
-These are not just special cases. In fact, *every* computation expression *must* have an associated wrapper type. And the wrapper type is often designed specifically to go hand-in-hand with the workflow that we want to manage.
+これらは単なる特殊なケースではありません。実際には、すべてのコンピュテーション式には関連するラッパータイプが必要です。そして、そのラッパータイプは、管理したいワークフローと連動するように特別に設計されていることが多いのです。
 
-The example above demonstrates this clearly. The `DbResult` type we created is more than just a simple type for return values; it actually has a critical role in the workflow by "storing" the current state of the workflow, and whether it is succeeding or failing at each step. By using the various cases of the type itself, the `dbresult` workflow can manage the transitions for us, hiding them from view and enabling us to focus on the big picture.
+上の例はこのことを明確に示しています。作成した `DbResult` 型は、単なる戻り値の型ではなく、ワークフローの現在の状態や、各ステップで成功しているか失敗しているかを"保存"することで、実際にワークフローで重要な役割を果たしています。型自体の様々なケースを利用することで、`dbresult`ワークフローは遷移を管理し、それらを見えないようにして、全体像に集中できるようにしてくれます。
 
-We'll learn how to design a good wrapper type later in the series, but first let's look at how they are manipulated.
+優れたラッパー型の設計方法については後ほどご紹介しますが、まずはラッパー型がどのように操作されるのかを見てみましょう。
 
 
-## Bind and Return and wrapper types
+## Bind and Return とラッパータイプ
 
-Let's look again at the definition of the `Bind` and `Return` methods of a computation expression.
+コンピュテーション式の `Bind` と `Return` メソッドの定義をもう一度見てみましょう。
 
-We'll start off with the easy one, `Return`. The signature of `Return` [as documented on MSDN](http://msdn.microsoft.com/en-us/library/dd233182.aspx) is just this:
+まずは、簡単な方の `Return` から始めましょう。[MSDNに掲載されている](http://msdn.microsoft.com/en-us/library/dd233182.aspx)`Return`のシグネチャは以下の通りです。
 
 ```fsharp
 member Return : 'T -> M<'T>
 ```
 
-In other words, for some type `T`, the `Return` method just wraps it in the wrapper type.
+言い換えれば、ある型`T`に対して、`Return`メソッドはそれをラッパー型でラップするだけです。
 
-*Note: In signatures, the wrapper type is normally called `M`, so `M<int>` is the wrapper type applied to `int` and `M<string>` is the wrapper type applied to `string`, and so on.*
+*`M<int>` は `int` に適用されるラッパー型、`M<string>` は `string` に適用されるラッパー型、というようにです。*
 
-And we've seen two examples of this usage. The `maybe` workflow returns a `Some`, which is an option type, and the `dbresult` workflow returns `Success`, which is part of the `DbResult` type.
+そして、この使い方の2つの例を見てきました。`maybe`ワークフローは，オプション型である`Some`を返し，`dbresult`ワークフローは，`DbResult`型の一部である`Success`を返しています．
 
 ```fsharp
-// return for the maybe workflow
+// 多分ワークフローのリターン
 member this.Return(x) =
     Some x
 
-// return for the dbresult workflow
+// dbresultワークフローでのリターン
 member this.Return(x) =
     Success x
 ```
 
-Now let's look at `Bind`.  The signature of `Bind` is this:
+次に、`Bind`を見てみましょう。 Bind`のシグネチャーは以下の通りです。
 
 ```fsharp
 member Bind : M<'T> * ('T -> M<'U>) -> M<'U>
 ```
 
-It looks complicated, so let's break it down.  It takes a tuple `M<'T> * ('T -> M<'U>)` and returns a `M<'U>`, where `M<'U>` means the wrapper type applied to type `U`.
+複雑そうなので、分解してみましょう。 これはタプル`M<'T> * ('T -> M<'U>)`を受け取り、`M<'U>`を返します。`M<'U>`は型`U`に適用されるラッパー型を意味します。
 
-The tuple in turn has two parts:
+このタプルには2つの部分があります。
 
-* `M<'T>` is a wrapper around type `T`, and
-* `'T -> M<'U>` is a function that takes a *unwrapped* `T` and creates a *wrapped* `U`.
+* `M<'T>` はタイプ `T` のラッパーです。
+* `'T -> M<'U>` は *アンラップされた* `T` を受け取り、*ラップされた* `U` を作成する関数です。
 
-In other words, what `Bind` does is:
+言い換えると、`Bind`は次のことを行います。
 
-* Take a *wrapped* value.
-* Unwrap it and do any special "behind the scenes" logic.
-* Then, optionally apply the function to the *unwrapped* value to create a new *wrapped* value.
-* Even if the function is *not* applied, `Bind` must still return a *wrapped* `U`.
+* *ラッピング*された値を引数に取ります。
+* ラップを解除し、特別な"舞台裏の"ロジックを実行します。
+* 次に、オプションで関数を*アンラップ*された値に適用して、新しい*ラップされた*値を作成します。
+* 関数が*適用されていない*場合でも、`Bind`は*ラッピングされた*`U`を返す必要があります。
 
-With this understanding, here are the `Bind` methods that we have seen already:
+このことを理解した上で、すでに見た`Bind`メソッドを以下に示します:
 
 ```fsharp
 // return for the maybe workflow
@@ -206,23 +206,23 @@ member this.Bind(m, f) =
         f x
 ```
 
-Look over this code and make sure that you understand why these methods do indeed follow the pattern described above.
+このコードを見て、なぜこれらのメソッドが上述のパターンに従っているのかを理解してください。
 
-Finally, a picture is always useful. Here is a diagram of the various types and functions:
+最後に、絵があると便利です。ここでは、さまざまなタイプと機能の図を示します。
 
-![diagram of bind](./bind.png)
+![bindの図](./bind.png)
 
-* For `Bind`, we start with a wrapped value (`m` here), unwrap it to a raw value of type `T`, and then (maybe) apply the function `f` to it to get a wrapped value of type `U`.
-* For `Return`, we start with a value (`x` here), and simply wrap it.
+* `Bind` では、ラップされた値 (ここでは `m`) から始めて、それをアンラップして `T` 型の生の値にして、それから (たぶん) 関数 `f` を適用して `U` 型のラップされた値を得ます。
+* `Return` については、値 (ここでは `x`) から始めて、それを単純にラップします。
 
 
-### The type wrapper is generic
+### 型ラッパーはジェネリック
 
-Note that all the functions use generic types (`T` and `U`) other than the wrapper type itself, which must be the same throughout. For example, there is nothing stopping the `maybe` binding function from taking an `int` and returning a `Option<string>`, or taking a `string` and then returning an `Option<bool>`.  The only requirement is that it always return an `Option<something>`.
+すべての関数は、ラッパー型以外のジェネリック型（`T`と`U`）を使用していることに注意してください。例えば，`maybe`というバインディング関数が，`int`を受け取って`Option<string>`を返したり，`string`を受け取って`Option<bool>`を返したりすることを妨げるものは何もありません． 唯一の条件は，常に `Option<something>` を返すことです。
 
-To see this, we can revisit the example above, but rather than using strings everywhere, we will create special types for the customer id, order id, and product id. This means that each step in the chain will be using a different type.
+このことを理解するために，上の例をもう一度見てみましょう．しかし，どこでも文字列を使用するのではなく，顧客ID，注文ID，商品IDのために特別な型を作成します．つまり、チェーンの各ステップで異なる型を使用することになります。
 
-We'll start with the types again, this time defining `CustomerId`, etc.
+まず、型から始めて、今度は`CustomerId`などを定義します。
 
 ```fsharp
 type DbResult<'a> =
@@ -234,7 +234,7 @@ type OrderId =  OrderId of int
 type ProductId =  ProductId of string
 ```
 
-The code is almost identical, except for the use of the new types in the `Success` line.
+`Success`の行で新しい型を使っていることを除けば，コードはほとんど同じです。
 
 ```fsharp
 let getCustomerId name =
@@ -254,7 +254,7 @@ let getLastProductForOrder (OrderId orderId) =
 ```
 
 
-Here's the long-winded version again.
+ここでもう一度、長文のバージョンを紹介します。
 
 
 ```fsharp
@@ -275,12 +275,12 @@ let product =
                 r3
 ```
 
-There are a couple of changes worth discussing:
+議論する価値のある変更点がいくつかあります。
 
-* First, the `printfn` at the bottom uses the "%A" format specifier rather than "%s". This is required because the `ProductId` type is a union type now.
-* More subtly, there seems to be unnecessary code in the error lines. Why write `| Error e -> Error e`?  The reason is that the incoming error that is being matched against is of type `DbResult<CustomerId>` or `DbResult<OrderId>`, but the *return* value must be of type `DbResult<ProductId>`. So, even though the two `Error`s look the same, they are actually of different types.
+* まず、一番下の `printfn` では、"%s"ではなく"%A"というフォーマット指定子を使用しています。これは、`ProductId`型がユニオン型になったために必要になりました。
+* もっと微妙なところでは、エラー行に不要なコードがあるようです。なぜ `| Error e -> Error e` と書くのでしょうか。 その理由は、マッチされる入力エラーは `DbResult<CustomerId>` または `DbResult<OrderId>` 型ですが、*リターン* 値は `DbResult<ProductId>` 型でなければならないからです。つまり、2つの"Error"は同じように見えても、実際には異なるタイプのものなのです。
 
-Next up, the builder, which hasn't changed at all except for the `| Error e -> Error e` line.
+次にビルダーですが、`| Error e -> Error e`の行を除いては、全く変わっていません。
 
 ```fsharp
 type DbResultBuilder() =
@@ -298,7 +298,7 @@ type DbResultBuilder() =
 let dbresult = new DbResultBuilder()
 ```
 
-Finally, we can use the workflow as before.
+最後に，先ほどのワークフローを使ってみましょう。
 
 ```fsharp
 let product' =
@@ -312,15 +312,15 @@ let product' =
 printfn "%A" product'
 ```
 
-At each line, the returned value is of a *different* type (`DbResult<CustomerId>`,`DbResult<OrderId>`, etc), but because they have the same wrapper type in common, the bind works as expected.
+それぞれの行では、返される値の型が異なりますが（`DbResult<CustomerId>`、`DbResult<OrderId>`など）、ラッパーの型が共通しているため、期待通りのバインドが行われています。
 
-And finally, here's the workflow with an error case.
+最後に、エラーケースを想定したワークフローを紹介します。
 
 ```fsharp
 let product'' =
     dbresult {
         let! custId = getCustomerId "Alice"
-        let! orderId = getLastOrderForCustomer (CustomerId "") //error
+        let! orderId = getLastOrderForCustomer (CustomerId "") //エラー
         let! productId = getLastProductForOrder orderId
         printfn "Product is %A" productId
         return productId
@@ -329,19 +329,19 @@ printfn "%A" product''
 ```
 
 
-## Composition of computation expressions
+## コンピュテーション式の構成
 
-We've seen that every computation expression *must* have an associated wrapper type. This wrapper type is used in both `Bind` and `Return`, which leads to a key benefit:
+すべてのコンピュテーション式には、必ず関連するラッパー型が必要であることを説明しました。このラッパータイプは `Bind` と `Return` の両方で使用され、これが重要な利点につながります。
 
-* *the output of a `Return` can be fed to the input of a `Bind`*
+* このラッパータイプは `Bind` と `Return` の両方で使用されます。
 
-In other words, because a workflow returns a wrapper type, and because `let!` consumes a wrapper type, you can put a "child" workflow on the right hand side of a `let!` expression.
+言い換えれば、ワークフローはラッパー型を返し、`let!` はラッパー型を消費するので、`let!` 式の右辺に"子"ワークフローを置くことができます。
 
-For example, say that you have a workflow called `myworkflow`. Then you can write the following:
+例えば、`myworkflow`というワークフローがあるとします。その場合、以下のように書くことができます。
 
 ```fsharp
-let subworkflow1 = myworkflow { return 42 }
-let subworkflow2 = myworkflow { return 43 }
+let subworkflow1 = myworkflow { return 42 }.
+let subworkflow2 = myworkflow { return 43 }.
 
 let aWrappedValue =
     myworkflow {
@@ -351,7 +351,7 @@ let aWrappedValue =
         }
 ```
 
-Or you can even "inline" them, like this:
+また、次のように"インライン"にすることもできます。
 
 ```fsharp
 let aWrappedValue =
@@ -368,7 +368,7 @@ let aWrappedValue =
         }
 ```
 
-If you have used the `async` workflow, you probably have done this already, because an async workflow typically contains other asyncs embedded in it:
+非同期ワークフローには通常、他の非同期ワークフローが組み込まれているので、`async`ワークフローを使用したことがある人は、すでにこの作業を行っているでしょう。
 
 ```fsharp
 let a =
@@ -379,17 +379,17 @@ let a =
     }
 ```
 
-## Introducing "ReturnFrom"
+## "ReturnFrom" の紹介
 
-We have been using `return` as a way of easily wrapping up an unwrapped return value.
+これまで、ラップされていない戻り値を簡単にラップする方法として、`return`を使ってきました。
 
-But sometimes we have a function that already returns a wrapped value, and we want to return it directly.  `return` is no good for this, because it requires an unwrapped type as input.
+しかし、時には、すでにラップされた値を返す関数があって、それを直接返したいことがあります。 しかし、`return` はラップされていない型を入力として必要とするため、これには適していません。
 
-The solution is a variant on `return` called `return!`, which takes a *wrapped type* as input and returns it.
+解決策は、`return`の変形である`return!`で、入力として*ラップされた型*を受け取り、それを返します。
 
-The corresponding method in the "builder" class is called `ReturnFrom`. Typically the implementation just returns the wrapped type "as is" (although of course, you can always add extra logic behind the scenes).
+ビルダー"クラスの対応するメソッドは、`ReturnFrom`と呼ばれます。通常、実装では、ラップされた型を"そのまま"返すだけです（もちろん、舞台裏で常に追加のロジックを追加することはできますが）。
 
-Here is a variant on the "maybe" workflow to show how it can be used:
+ここでは、"maybe "のワークフローを変形して、どのように使用できるかを示します。
 
 ```fsharp
 type MaybeBuilder() =
@@ -404,7 +404,7 @@ type MaybeBuilder() =
 let maybe = new MaybeBuilder()
 ```
 
-And here it is in use, compared with a normal `return`.
+通常の`return`と比較してみると、以下のようになります。
 
 ```fsharp
 // return an int
@@ -414,28 +414,28 @@ maybe { return 1  }
 maybe { return! (Some 2)  }
 ```
 
-For a more realistic example, here is `return!` used in conjunction with `divideBy`:
+より現実的な例として、`return!`を`divideBy`と組み合わせて使ってみましょう。
 
 ```fsharp
-// using return
+// returnを使う
 maybe
     {
     let! x = 12 |> divideBy 3
     let! y = x |> divideBy 2
-    return y  // return an int
+    return y // 整数を返す
     }
 
-// using return!
+// return!
 maybe
     {
     let! x = 12 |> divideBy 3
-    return! x |> divideBy 2  // return an Option
+    return! x |> divideBy 2 // オプションを返す
     }
 ```
 
-## Summary
+## まとめ
 
-This post introduced wrapper types and how they related to `Bind`, `Return` and `ReturnFrom`, the core methods of any builder class.
+今回は、ビルダークラスのコアメソッドである `Bind`, `Return`, `ReturnFrom` に関連するラッパータイプを紹介しました。
 
-In the next post, we'll continue to look at wrapper types, including using lists as wrapper types.
+次の記事では、リストをラッパー型として使用することを含め、引き続きラッパー型について見ていきます。
 
