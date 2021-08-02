@@ -8,9 +8,9 @@ seriesId: "Computation Expressions"
 seriesOrder: 2
 ---
 
-In the previous post we saw how some complex code could be condensed using computation expressions.
+前回の記事では、複雑なコードをコンピュテーション式を使って凝縮する方法を紹介しました。
 
-Here's the code before using a computation expression:
+以下は、コンピュテーション式を使う前のコードです。
 
 ```fsharp
 
@@ -27,7 +27,7 @@ let loggedWorkflow =
     z
 ```
 
-And here's the same code after using a computation expression:
+また，コンピュテーション式を使った後の同じコードを示します．
 
 ```fsharp
 let loggedWorkflow =
@@ -40,13 +40,13 @@ let loggedWorkflow =
         }
 ```
 
-The use of `let!` rather than a normal `let` is important.  Can we emulate this ourselves so we can understand what is going on?  Yes, but we need to understand continuations first.
+通常の `let` ではなく `let!` を使用していることが重要です。 何が起こっているのかを理解するために、これを自分でエミュレートすることはできますか？ しかし、その前に連続性を理解する必要があります。
 
-## Continuations
+## 継続
 
-In imperative programming, we have the concept of "returning" from a function. When you call a function, you "go in", and then you "come out", just like pushing and popping a stack.
+命令型プログラミングでは、関数から「戻る」という概念があります。関数を呼び出すときには、スタックを押したり出したりするように、「入って」から「出て」きます。
 
-Here is some typical C# code which works like this. Notice the use of the `return` keyword.
+以下は，このように動作するC#の典型的なコードです。`return`キーワードの使用に注目してください。
 
 ```csharp
 public int Divide(int top, int bottom)
@@ -68,15 +68,15 @@ public bool IsEven(int aNumber)
 }
 ```
 
-You've seen this a million times, but there is a subtle point about this approach that you might not have considered: *the called function always decides what to do*.
+これは何度も見たことがあると思いますが、このアプローチには、考えもしなかった微妙なポイントがあります。それは、*呼び出された関数が常に何をすべきかを決める*ということです。
 
-For example, the implementation of `Divide` has decided that it is going to throw an exception.  But what if I don't want an exception? Maybe I want a `nullable<int>`, or maybe I am going to display it on a screen as "#DIV/0". Why throw an exception that I am immediately going to have to catch?  In other words, why not let the *caller* decide what should happen, rather the callee.
+例えば、`Divide`の実装は、例外を投げることを決定しています。 しかし、もし例外が欲しくない場合はどうでしょうか？もしかしたら`nullable<int>`が欲しいかもしれませんし、「#DIV/0」として画面に表示するつもりかもしれません。なぜ、すぐにキャッチしなければならないような例外を投げるのでしょうか？ 言い換えれば，何が起こるべきかを呼び出し側ではなく，呼び出し元に決定させればよいのです。
 
-Similarly in the `IsEven` example, what am I going to do with the boolean return value? Branch on it? Or maybe print it in a report? I don't know, but again, rather than returning a boolean that the caller has to deal with, why not let the caller tell the callee what to do next?
+同様に、`IsEven`の例では、ブール値の戻り値をどうすればいいのでしょうか？分岐するのでしょうか？それとも、レポートに出力するのでしょうか？わかりませんが、呼び出し側が処理しなければならない真偽値を返すよりも、呼び出し側が次に何をすべきかを呼び出し側に伝えればいいのではないでしょうか。
 
-So this is what continuations are.  A **continuation** is simply a function that you pass into another function to tell it what to do next.
+これが継続というものです。 **継続**とは、単純に、他の関数に次の動作を伝えるために渡す関数のことです。
 
-Here's the same C# code rewritten to allow the caller to pass in functions which the callee uses to handle each case. If it helps, you can think of this as somewhat analogous to a visitor pattern. Or maybe not.
+以下は同じC#のコードを、呼び出し側が関数を渡すことができるように書き換えたもので、呼び出し側はそれぞれのケースを処理するために着呼側が使用します。参考になればと思いますが、これはビジターパターンに似ていると考えられます。そうではないかもしれませんが。
 
 ```csharp
 public T Divide<T>(int top, int bottom, Func<T> ifZero, Func<int,T> ifSuccess)
@@ -103,11 +103,11 @@ public T IsEven<T>(int aNumber, Func<int,T> ifOdd, Func<int,T> ifEven)
 }
 ```
 
-Note that the C# functions have been changed to return a generic `T` now, and both continuations are a `Func` that returns a `T`.
+C#の関数は一般的な`T`を返すように変更されていて、どちらの継続も`T`を返す`Func`であることに注意してください。
 
-Well, passing in lots of `Func` parameters always looks pretty ugly in C#, so it is not done very often.  But passing functions is easy in F#, so let's see how this code ports over.
+さて、C#ではたくさんの`Func`パラメータを渡すことは、常にかなり見苦しいので、あまり行われません。 しかし、F#では関数を渡すのは簡単なので、このコードがどのように移植されるか見てみましょう。
 
-Here's the "before" code:
+これが「前」のコードです。
 
 ```fsharp
 let divide top bottom =
@@ -119,7 +119,7 @@ let isEven aNumber =
     aNumber % 2 = 0
 ```
 
-and here's the "after" code:
+そして、これが "後 "のコードです。
 
 ```fsharp
 let divide ifZero ifSuccess top bottom =
@@ -133,104 +133,103 @@ let isEven ifOdd ifEven aNumber =
     else aNumber |> ifOdd
 ```
 
-A few things to note. First, you can see that I have put the extra functions (`ifZero`, etc) *first* in the parameter list, rather than last, as in the C# example. Why? Because I am probably going to want to use [partial application](/posts/partial-application/).
+いくつか注意点があります。まず、パラメータリスト中に追加関数 (`ifZero`など) を、C#の例のように最後ではなく*最初*に置いたことが分かると思います。なぜ?おそらく [部分適用] (/posts/partial-application/) を使いたいからです。
 
-And also, in the `isEven` example, I wrote `aNumber |> ifEven` and `aNumber |> ifOdd`. This makes it clear that we are piping the current value into the continuation and the continuation is always the very last step to be evaluated.  *We will be using this exact same pattern later in this post, so make sure you understand what is going on here.*
+また、`isEven`の例では、`aNumber|>ifEven`および`aNumber|>ifOdd`と記述しました。これにより、現在の値を継続にパイプしていることが明確になります。つまり、継続が評価されるのは常に最後です。*この記事の後半でもまったく同じパターンを使用するので、ここで何が起こっているかを理解しておいてください。*
 
-### Continuation examples
+### 継続の例
 
-With the power of continuations at our disposal, we can use the same `divide` function in three completely different ways, depending on what the caller wants.
+継続の力を利用すれば、同じ `divide` 関数でも、呼び出し側の要求に応じて、3つの全く異なる方法で使用することができます。
 
-Here are three scenarios we can create quickly:
+ここでは、すぐに作成できる3つのシナリオを紹介します。
 
-* pipe the result into a message and print it,
-* convert the result to an option using `None` for the bad case and `Some` for the good case,
-* or throw an exception in the bad case and just return the result in the good case.
+* 結果をメッセージにパイプして、それを出力する。
+* 悪い場合は `None` を、良い場合は `Some` を使って、結果をoptionに変換する。
+* あるいは、悪いケースでは例外を発生させ、良いケースでは結果を返す。
 
 ```fsharp
-// Scenario 1: pipe the result into a message
+// シナリオ1：結果をメッセージにパイプする
 // ----------------------------------------
-// setup the functions to print a message
+// メッセージを表示するように関数を設定する
 let ifZero1 () = printfn "bad"
 let ifSuccess1 x = printfn "good %i" x
 
-// use partial application
-let divide1  = divide ifZero1 ifSuccess1
+// 部分適用をする
+let divide1 = divide ifZero1 ifSuccess1
 
-//test
+//テスト
 let good1 = divide1 6 3
 let bad1 = divide1 6 0
 
-// Scenario 2: convert the result to an option
+// シナリオ2：結果をoptionに変換する
 // ----------------------------------------
-// setup the functions to return an Option
+// optionを返すように関数を設定する
 let ifZero2() = None
 let ifSuccess2 x = Some x
-let divide2  = divide ifZero2 ifSuccess2
+let divide2 = divide ifZero2 ifSuccess2
 
-//test
+//テスト
 let good2 = divide2 6 3
 let bad2 = divide2 6 0
 
-// Scenario 3: throw an exception in the bad case
+// シナリオ3：悪いケースでは例外を投げる
 // ----------------------------------------
-// setup the functions to throw exception
+// 例外を発生させる関数の設定
 let ifZero3() = failwith "div by 0"
 let ifSuccess3 x = x
 let divide3  = divide ifZero3 ifSuccess3
 
-//test
+//テスト
 let good3 = divide3 6 3
 let bad3 = divide3 6 0
 ```
 
-Notice that with this approach, the caller *never* has to catch an exception from `divide` anywhere. The caller decides whether an exception will be thrown, not the callee. So not only has the `divide` function become much more reusable in different contexts,  but the cyclomatic complexity has just dropped a level as well.
+このアプローチでは、呼び出し元が`divide`から例外をキャッチする必要は*決して*ありません。例外をスローするかどうかは、呼出し先ではなく呼出し元が決定します。そのため、 `divide`関数がさまざまな状況で大幅に再利用可能になっただけでなく、循環的複雑さのレベルも下がっています。
 
-The same three scenarios can be applied to the `isEven` implementation:
+`isEven`の実装に同様の3つのシナリオを適用できます:
 
 ```fsharp
-// Scenario 1: pipe the result into a message
+// シナリオ 1: 結果をメッセージにパイプする
 // ----------------------------------------
-// setup the functions to print a message
+// メッセージを表示するための関数を設定する
 let ifOdd1 x = printfn "isOdd %i" x
 let ifEven1 x = printfn "isEven %i" x
 
-// use partial application
-let isEven1  = isEven ifOdd1 ifEven1
+// 部分適用をする
+let isEven1 = isEven ifOdd1 ifEven1
 
-//test
+//テスト
 let good1 = isEven1 6
 let bad1 = isEven1 5
 
-// Scenario 2: convert the result to an option
+// シナリオ2：結果をoptionに変換する
 // ----------------------------------------
-// setup the functions to return an Option
+// optionを返すように関数を設定する
 let ifOdd2 _ = None
 let ifEven2 x = Some x
-let isEven2  = isEven ifOdd2 ifEven2
+let isEven2 = isEven ifOdd2 ifEven2
 
-//test
+//テスト
 let good2 = isEven2 6
 let bad2 = isEven2 5
 
-// Scenario 3: throw an exception in the bad case
+// シナリオ3：悪いケースでは例外を投げる
 // ----------------------------------------
-// setup the functions to throw exception
+// 例外を投げるための関数を設定する
 let ifOdd3 _ = failwith "assert failed"
 let ifEven3 x = x
-let isEven3  = isEven ifOdd3 ifEven3
+let isEven3 = isEven ifOdd3 ifEven3
 
-//test
+//テスト
 let good3 = isEven3 6
 let bad3 = isEven3 5
 ```
 
-In this case, the benefits are subtler, but the same: the caller never had to handle booleans with an `if/then/else` anywhere.  There is less complexity and less chance of error.
+この場合、利点はわずかですが同様です。呼出し元が`if/then/else`でブール値を処理する必要はありません。複雑さが軽減され、エラーが発生する可能性も低くなります。
 
-It might seem like a trivial difference, but by passing functions around like this, we can use all our favorite functional techniques such as composition, partial application, and so on.
+些細な違いのように思えるかもしれませんが、このように関数を渡せば、合成、部分適用といった、お気に入りの関数技法をすべて使うことができます。
 
-We have also met continuations before, in the series on [designing with types](/posts/designing-with-types-single-case-dus/). We saw that their use enabled the caller to decide what would happen in case of possible validation errors in a constructor, rather than just throwing an exception.
-
+また、 [型による設計](/posts/designing-with-types-single-case-dus/) のシリーズの中でも継続を見てきました。これらを使用することで、呼び出し側は、単に例外をスローするのではなく、コンストラクタで検証エラーが発生した場合に何が起こるか決定できることを見てきました。
 ```fsharp
 type EmailAddress = EmailAddress of string
 
@@ -240,79 +239,79 @@ let CreateEmailAddressWithContinuations success failure (s:string) =
         else failure "Email address must contain an @ sign"
 ```
 
-The success function takes the email as a parameter and the error function takes a string. Both functions must return the same type, but the type is up to you.
+success関数はEmailをパラメータとして受け取り、error関数は文字列を受け取ります。どちらの関数も同じ型を返さなければなりませんが、型は自由に決められます。
 
-And here is a simple example of the continuations in use. Both functions do a printf, and return nothing (i.e. unit).
+そして、ここでは継続を使った簡単な例を紹介します。どちらの関数もprintfを行い、何も返しません（つまりunit）。
 
 ```fsharp
-// setup the functions
+// 関数の設定
 let success (EmailAddress s) = printfn "success creating email %s" s
-let failure  msg = printfn "error creating email: %s" msg
+let failure msg = printfn "error creating email: s" msg
 let createEmail = CreateEmailAddressWithContinuations success failure
 
-// test
+// テスト
 let goodEmail = createEmail "x@example.com"
 let badEmail = createEmail "example.com"
 ```
 
-### Continuation passing style
+### 継続渡しスタイル
 
-Using continuations like this leads to a style of programming called "[continuation passing style](http://en.wikipedia.org/wiki/Continuation-passing_style)" (or CPS), whereby *every* function is called with an extra "what to do next" function parameter.
+このように継続を使用するプログラミングスタイルは、「[継続渡しスタイル](https://ja.wikipedia.org/wiki/%E7%B6%99%E7%B6%9A%E6%B8%A1%E3%81%97%E3%82%B9%E3%82%BF%E3%82%A4%E3%83%AB)」（またはCPS）と呼ばれます。これは、*すべての*関数に「次に何をするか」という関数パラメータを追加して呼び出すものです。
 
-To see the difference, let's look at the standard, direct style of programming.
+この違いを理解するために、標準的なダイレクトスタイルのプログラミングを見てみましょう。
 
-When you use the direct style, you go "in" and "out" of functions, like this
+ダイレクトスタイルでは、次のように関数を「入れたり」「出したり」します。
 
 ```text
-call a function ->
-   <- return from the function
-call another function ->
-   <- return from the function
-call yet another function ->
-   <- return from the function
+関数を呼び出す ->
+   <- その関数から戻る
+別の関数を呼び出す ->
+   <- その関数から戻る
+さらに別の関数を呼び出す ->
+   <- その関数から戻る
 ```
 
-In continuation passing style, on the other hand, you end up with a chain of functions, like this:
+一方、継続的に渡すスタイルでは、次のような関数の連鎖ができてます。
 
 ```text
-evaluate something and pass it into ->
-   a function that evaluates something and passes it into ->
-      another function that evaluates something and passes it into ->
-         yet another function that evaluates something and passes it into ->
+何かを評価して、それを -> に渡す
+   何かを評価して、それを -> に渡す関数
+      何かを評価してそれを -> に渡す別の関数
+         何かを評価してそれを渡す別の関数 -> 何かを評価してそれを渡す別の関数
             ...etc...
 ```
 
-There is obviously a big difference between the two styles.
+2つのスタイルには明白な違いがあります。
 
-In the direct style, there is a hierarchy of functions. The top level function is a sort of "master controller" who calls one subroutine, and then another, deciding when to branch, when to loop, and generally coordinating the control flow explicitly.
+ダイレクトスタイルには、関数の階層があります。トップレベルの関数は一種の"マスターコントローラー"で、あるサブルーチンを呼び出してから別のサブルーチンを呼び出し、いつ分岐するか、どの時点でループするかを決定し、概して制御フローを明示的に調整します。
 
-In the continuation passing style, though, there is no "master controller". Instead there is a sort of "pipeline", not of data but of control flow, where the "function in charge" changes as the execution logic flows through the pipe.
+しかし,継越渡しスタイルには “マスターコントローラ”という概念はありません。その代わり、データではなく制御フローに "パイプライン"のようなものがあり、実行ロジックがパイプを流れると"担当関数"が変更されます。
 
-If you have ever attached a event handler to a button click in a GUI, or used a callback with [BeginInvoke](http://msdn.microsoft.com/en-us/library/2e08f6yc.aspx), then you have used this style without being aware of it. And in fact, this style will be key to understanding the `async` workflow, which I'll discuss later in this series.
+GUIのボタンクリックにイベントハンドラをアタッチや、 [BeginInvoke](http://msdn.microsoft.com/en-us/library/2e08f6yc.aspx)でコールバックを使用したことがある場合は、このスタイルを意識せずに使用しています。このスタイルこそが“async”ワークフローを理解するための鍵となります。このワークフローについては、このシリーズの後半で説明します。
 
-## Continuations and 'let' ##
 
-So how does all this fit in with `let`?
+## 続行と 'let' ##
 
-Let's go back and [revisit](/posts/let-use-do/) what 'let` actually does.
+では、`let`とはどういう関係なのでしょうか?
 
-Remember that a (non-top-level) "let" can never be used in isolation -- it must always be part of a larger code block.
+前に戻って、 `let`が実際に行うことを [再確認](/posts/let-use-do/) しましょう。
+(トップレベルでない) "let"は決して単独で使用することはできず、常により大きなコードブロックの一部でなければなりません。
 
-That is:
+つまり、以下のような式の場合:
 
 ```fsharp
 let x = someExpression
 ```
 
-really means:
+実際に行っているのはこうです:
 
 ```fsharp
-let x = someExpression in [an expression involving x]
+let x = someExpression in [xを含む式]
 ```
 
-And then every time you see the `x` in the second expression (the body expression), substitute it with the first expression (`someExpression`).
+そして、2番目の式 (本体式) の中に`x`があるたびに、それを最初の式 (`someExpression`) で置き換えています。
 
-So for example, the expression:
+たとえば、次のような式があるならば:
 
 ```fsharp
 let x = 42
@@ -320,41 +319,41 @@ let y = 43
 let z = x + y
 ```
 
-really means (using the verbose `in` keyword):
+実際には次のようになります (冗長な`in`キーワードを使用) :
 
 ```fsharp
 let x = 42 in
   let y = 43 in
     let z = x + y in
-       z    // the result
+       z    // 結果
 ```
 
-Now funnily enough, a lambda looks very similar to a `let`:
+面白いことに、ラムダは `let` と非常によく似ています。
 
 ```fsharp
-fun x -> [an expression involving x]
+fun x -> [xを含む式]
 ```
 
-and if we pipe in the value of `x` as well, we get the following:
+そして、`x`の値もパイプで入力すると、次のようになります。
 
 ```fsharp
-someExpression |> (fun x -> [an expression involving x] )
+someExpression |> (fun x -> [xを含む式] )
 ```
 
-Doesn't this look awfully like a `let` to you? Here is a let and a lambda side by side:
+これは `let` に似ていると思いませんか？letとlambdaを並べてみましょう。
 
 ```fsharp
 // let
-let x = someExpression in [an expression involving x]
+let x = someExpression in [xを含む式]
 
-// pipe a value into a lambda
-someExpression |> (fun x -> [an expression involving x] )
+// 値をラムダにパイプする
+someExpression |> (fun x -> [xを含む式] )
 ```
 
-They both have an `x`, and a `someExpression`, and everywhere you see `x` in the body of the lambda you replace it with  `someExpression`.
-Yes, the `x` and the `someExpression` are reversed in the lambda case, but otherwise it is basically the same thing as a `let`.
+どちらも `x` と `someExpression` を持っていて、ラムダの本体に `x` があるところはすべて `someExpression` に置き換えています。
+確かに、ラムダの場合は `x` と `someExpression` が逆になりますが、それ以外は基本的に `let` と同じです。
 
-So, using this technique, we can rewrite the original example in this style:
+このテクニックを使うと，元の例を次のようなスタイルに書き換えることができます．
 
 ```fsharp
 42 |> (fun x ->
@@ -363,28 +362,28 @@ So, using this technique, we can rewrite the original example in this style:
        z)))
 ```
 
-When it is written this way, you can see that we have transformed the `let` style into a continuation passing style!
+このように書くと、 `let`スタイルが継続渡しスタイルに変化したことがわかります!
 
-* In the first line we have a value `42` -- what do we want to do with it? Let's pass it into a continuation, just as we did with the `isEven` function earlier. And in the context of the continuation, we will relabel `42` as `x`.
-* In the second line we have a value `43` -- what do we want to do with it? Let's pass it too into a continuation, calling it `y` in that context.
-* In the third line we add the x and y together to create a new value. And what do we want to do with it? Another continuation, another label (`z`).
-* Finally in the last line we are done and the whole expression evaluates to `z`.
+* 最初の行には 「42」 という値があります--これを使って何をしますか?先ほどの 「isEven」 関数と同様、継続に渡しましょう。そして、継続の文脈においては、 `42`の名前を`x`というようにします。
+* 2行目には 「43」 という値があります--これをどうしますか?これも、継続に渡して、そのコンテキストで は`y`と呼びましょう。
+* 3行目では、xとyを加算して新しい値を作成します。それで何をしましょ?さらに別の継続へ、別のラベル (`z`) を追加します。
+* 最後の行で`z`と評価され、処理が終了しました。
 
-### Wrapping the continuation in a function
+### 関数で継続をラップする
 
-Let's get rid of the explicit pipe and write a little function to wrap this logic. We can't call it "let" because that is a reserved word, and more importantly, the parameters are backwards from 'let'.
-The "x" is on the right hand side, and the "someExpression" is on the left hand side. So we'll call it `pipeInto` for now.
+明示的なパイプを取り除き、このロジックをラップする小さな関数を作成しましょう。これは予約語であるため、「レット」と呼ぶことはできません。さらに重要なのは、パラメータが'let'から逆になっていることです。
+右に"x"、左に"someExpression"があります。そこで、これを `pipeInto`と呼ぶことにします。
 
-The definition of `pipeInto` is really obvious:
+`pipeInto`の定義はとても明白です。
 
 ```fsharp
 let pipeInto (someExpression,lambda) =
     someExpression |> lambda
 ```
 
-*Note that we are passing both parameters in at once using a tuple rather than as two distinct parameters separated by whitespace. They will always come as a pair.*
+*ここでは、空白で区切られた2つの異なるパラメータとしてではなく、タプルを使用して両方のパラメータを一度に渡していることに注意してください。必ずペアでお届けします。*
 
-So, with this `pipeInto` function we can then rewrite the example once more as:
+この`pipeInto`関数を使用して、例を再度次のように書き直すことができます:
 
 ```fsharp
 pipeInto (42, fun x ->
@@ -393,7 +392,7 @@ pipeInto (42, fun x ->
        z)))
 ```
 
-or we can eliminate the indents and write it like this:
+あるいは、インデントをなくして、次のように書くこともできます。
 
 ```fsharp
 pipeInto (42, fun x ->
@@ -402,13 +401,13 @@ pipeInto (x + y, fun z ->
 z)))
 ```
 
-You might be thinking: so what? Why bother to wrap the pipe into a function?
+あなたはこう思うかもしれません：だから何？なぜわざわざパイプを関数にまとめるの？
 
-The answer is that we can add *extra code* in the `pipeInto` function to do stuff "behind the scenes", just as in a computation expression.
+その答えは、`pipeInto`関数の中へコンピュテーション式のように「裏」で何かをするための *追加コード* を追加できるからです。
 
-### The "logging" example revisited ###
+### 「ロギング」の例の再検討 ###
 
-Let's redefine `pipeInto` to add a little bit of logging, like this:
+次のように `pipeInto` を再定義して、ちょっとしたロギング機能を追加してみましょう。
 
 ```fsharp
 let pipeInto (someExpression,lambda) =
@@ -416,7 +415,7 @@ let pipeInto (someExpression,lambda) =
    someExpression |> lambda
 ```
 
-Now... run that code again.
+さて、このコードをもう一度実行してみましょう。
 
 ```fsharp
 pipeInto (42, fun x ->
@@ -426,7 +425,7 @@ z
 )))
 ```
 
-What is the output?
+出力結果は？
 
 ```text
 expression is 42
@@ -434,15 +433,15 @@ expression is 43
 expression is 85
 ```
 
-This is exactly the same output as we had in the earlier implementations.  We have created our own little computation expression workflow!
+これは、以前の実装で得られたものとまったく同じ出力です。 これで、自作のコンピュテーション式ワークフローが完成しました。
 
-If we compare this side by side with the computation expression version, we can see that our homebrew version is very similar to the `let!`, except that we have the parameters reversed, and we have the explicit arrow for the continuation.
+これをコンピュテーション式バージョンと並べて比較してみると、パラメータを逆にしていることと、継続のための明示的な矢印があることを除いて、自作バージョンは `let!` と非常によく似ていることがわかります。
 
 ![computation expression: logging](./compexpr_logging.png)
 
-### The "safe divide" example revisited ###
+### 「安全な分割」の例の再検討 ###
 
-Let's do the same thing with the "safe divide" example. Here was the original code:
+同じことを「安全な割り算」の例でやってみましょう。オリジナルのコードは以下の通りです。
 
 ```fsharp
 let divideBy bottom top =
@@ -467,14 +466,14 @@ let divideByWorkflow x y w z =
                 Some c'
 ```
 
-You should see now that this "stepped" style is an obvious clue that we really should be using continuations.
+この "段階的"なスタイルは、本当に継続を使うべきだという明白な手がかりであることがおわかりいただけると思います。
 
-Let's see if we can add extra code to `pipeInto` to do the matching for us. The logic we want is:
+では、`pipeInto`にマッチングを行うコードを追加できるかどうか見てみましょう。必要なロジックは以下の通りです。
 
-* If the `someExpression` parameter is `None`, then don't call the continuation lambda.
-* If the `someExpression` parameter is `Some`, then do call the continuation lambda, passing in the contents of the `Some`.
+* `someExpression` パラメータが `None` であれば、継続ラムダを呼び出さない。
+* `someExpression` パラメータが `Some` であれば、`Some` の内容を渡して、継続ラムダを呼び出します。
 
-Here it is:
+これがそうです:
 
 ```fsharp
 let pipeInto (someExpression,lambda) =
@@ -485,7 +484,7 @@ let pipeInto (someExpression,lambda) =
        x |> lambda
 ```
 
-With this new version of `pipeInto` we can rewrite the original code like this:
+この新しいバージョンの`pipeInto`を使うと、元のコードを次のように書き換えることができます。
 
 ```fsharp
 let divideByWorkflow x y w z =
@@ -499,22 +498,22 @@ let divideByWorkflow x y w z =
                 )))
 ```
 
-We can clean this up quite a bit.
+これはかなりきれいにすることができます。
 
-First we can eliminate the `a`, `b` and `c`, and replace them with the `divideBy` expression directly. So that this:
+まず、`a`、`b`、`c`を削除して、`divideBy`式で直接置き換えることができます。つまり，次のようになります。
 
 ```fsharp
 let a = x |> divideBy y
 pipeInto (a, fun a' ->
 ```
 
-becomes just this:
+これをこうします:
 
 ```fsharp
 pipeInto (x |> divideBy y, fun a' ->
 ```
 
-Now we can relabel `a'` as just `a`, and so on, and we can also remove the stepped indentation, so that we get this:
+ここで、`a'`をただの`a`とラベル付けし直し、さらに段差のあるインデントを削除すると、次のようになります。
 
 ```fsharp
 let divideByResult x y w z =
@@ -525,7 +524,7 @@ let divideByResult x y w z =
     )))
 ```
 
-Finally, we'll create a little helper function called `return'` to wrap the result in an option. Putting it all together, the code looks like this:
+最後に、結果をoptionにまとめるために、`return'`という小さなヘルパー関数を作ります。すべてをまとめると、コードは次のようになります。
 
 ```fsharp
 let divideBy bottom top =
@@ -553,13 +552,13 @@ let good = divideByWorkflow 12 3 2 1
 let bad = divideByWorkflow 12 3 0 1
 ```
 
-Again, if we compare this side by side with the computation expression version, we can see that our homebrew version is identical in meaning. Only the syntax is different.
+もう一度、コンピュテーション式バージョンと並べて比較してみると、自作バージョンは意味が同じであることがわかります。シンタックスだけが違うのです。
 
 ![computation expression: logging](./compexpr_safedivide.png)
 
-### Summary
+###まとめ
 
-In this post, we talked about continuations and continuation passing style, and how we can think of `let` as a nice syntax for doing continuations behind scenes.
+この記事では、継続と継続の渡し方、そして `let` を継続を裏で行うための良い構文と考えることができることについて説明しました。
 
-So now we have everything we need to start creating our *own* version of `let`. In the next post, we'll put this knowledge into practice.
+これで、*独自*バージョンの `let` を作り始めるために必要なものがすべて揃いました。次の記事では、この知識を実際に使ってみましょう。
 
