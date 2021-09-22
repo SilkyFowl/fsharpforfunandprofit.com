@@ -9,20 +9,20 @@ seriesOrder: 8
 categories: [Types, DDD]
 ---
 
-In this series, we've looked at some of the ways we can use types as part of the design process, including:
+このシリーズでは、設計プロセスの一環として型を使用する方法として、以下のようなものを見てきました。
 
-* Breaking large structures down into small "atomic" components.
-* Using single case unions to add semantic meaning and validation to key domain types such `EmailAddress` and `ZipCode`.
-* Ensuring that the type system can only represent valid data ("making illegal states unrepresentable").
-* Using types as an analysis tool to uncover hidden requirements
-* Replacing flags and enums with simple state machines
-* Replacing primitive strings with types that guarantee various constraints
+* 大きな構造を小さな「原子」のコンポーネントに分解する。
+大規模な構造を小さな「アトミック」なコンポーネントに分解すること * シングルケースユニオンを使用して、`EmailAddress`や`ZipCode`などの主要なドメインタイプに意味的な意味と検証を追加すること
+* 型システムが有効なデータのみを表現できることを保証する（「違法な状態を表現できないようにする」）。
+* 隠された要件を発見するための分析ツールとしての型の使用
+* フラグや列挙型を単純なステートマシンに置き換えること。
+* プリミティブな文字列を、さまざまな制約を保証する型に置き換える
 
-For this final post, let's see them all applied together.
+この最後の投稿では、これらをすべて適用して見てみましょう。
 
-## The "before" code ##
+## "before" code ##
 
-Here's the original example we started off with in the [first post](/posts/designing-with-types-intro/) in the series:
+このシリーズの[最初の投稿](/posts/designing-with-types-intro/)で始めたオリジナルの例は以下の通りです。
 
 ```fsharp
 type Contact =
@@ -45,11 +45,11 @@ type Contact =
     }
 ```
 
-And how does that compare to the final result after applying all the techniques above?
+上記のテクニックをすべて適用した後の最終結果と比較してみましょう。
 
-## The "after" code ##
+## "after" code ##
 
-First, let's start with the types that are not application specific.  These types could probably be reused in many applications.
+まず、アプリケーションに依存しない型から始めましょう。 これらの型は、おそらく多くのアプリケーションで再利用できるでしょう。
 
 ```fsharp
 // ========================================
@@ -135,7 +135,7 @@ module WrappedString =
         Map.tryFind (value k) map
 
 // ========================================
-// Email address (not application specific)
+// 電子メールアドレス（アプリケーションに依存しない
 // ========================================
 
 module EmailAddress =
@@ -155,7 +155,7 @@ module EmailAddress =
     let convert s = WrappedString.apply create s
 
 // ========================================
-// ZipCode (not application specific)
+// ZipCode (アプリケーションに依存しない)
 // ========================================
 
 module ZipCode =
@@ -174,7 +174,7 @@ module ZipCode =
     let convert s = WrappedString.apply create s
 
 // ========================================
-// StateCode (not application specific)
+// StateCode （アプリケーションに依存しない
 // ========================================
 
 module StateCode =
@@ -195,7 +195,7 @@ module StateCode =
     let convert s = WrappedString.apply create s
 
 // ========================================
-// PostalAddress (not application specific)
+// PostalAddress (アプリケーションに依存しない)
 // ========================================
 
 module PostalAddress =
@@ -232,7 +232,7 @@ module PostalAddress =
         | GenericPostalAddress of GenericPostalAddress
 
 // ========================================
-// PersonalName (not application specific)
+// PersonalName (アプリケーションに依存しない)
 // ========================================
 
 module PersonalName =
@@ -245,7 +245,7 @@ module PersonalName =
         LastName: String100;
         }
 
-    /// create a new value
+    /// 新しい値の作成
     let create first middle last =
         match (string50 first),(string100 last) with
         | Some f, Some l ->
@@ -257,8 +257,8 @@ module PersonalName =
         | _ ->
             None
 
-    /// concat the names together
-    /// and return a raw string
+    /// 名前を連結して
+    /// 生の文字列を返す
     let fullNameRaw personalName =
         let f = personalName.FirstName |> value
         let l = personalName.LastName |> value
@@ -268,13 +268,13 @@ module PersonalName =
             | Some middle -> [| f; (value middle); l |]
         System.String.Join(" ", names)
 
-    /// concat the names together
-    /// and return None if too long
+    /// 名前を連結します。
+    /// 長すぎる場合はNoneを返す
     let fullNameOption personalName =
         personalName |> fullNameRaw |> string100
 
-    /// concat the names together
-    /// and truncate if too long
+    /// 名前を連結します。
+    /// 長すぎる場合は切り捨てる
     let fullNameTruncated personalName =
         // helper function
         let left n (s:string) =
@@ -289,12 +289,12 @@ module PersonalName =
         |> Option.get   // this will always be ok
 ```
 
-And now the application specific types.
+そして、アプリケーション固有の型です。
 
 ```fsharp
 
 // ========================================
-// EmailContactInfo -- state machine
+// EmailContactInfo -- ステートマシン
 // ========================================
 
 module EmailContactInfo =
@@ -344,7 +344,7 @@ module EmailContactInfo =
             printfn "sending password reset"
 
 // ========================================
-// PostalContactInfo -- state machine
+// PostalContactInfo -- ステートマシン
 // ========================================
 
 module PostalContactInfo =
@@ -389,7 +389,7 @@ module PostalContactInfo =
             printfn "recently checked. Doing nothing."
 
 // ========================================
-// ContactMethod and Contact
+// コンタクトメソッドとコンタクト
 // ========================================
 
 type ContactMethod =
@@ -405,43 +405,43 @@ type Contact =
 
 ```
 
-{{< book_page_ddd_img >}}
+{{< book_page_ddd_img >}}。
 
 
 ## Conclusion ##
 
-Phew!  The new code is much, much longer than the original code. Granted, it has a lot of supporting functions that were not needed in the original version, but even so it seems like a lot of extra work. So was it worth it?
+フーッ!  新しいコードは、オリジナルのコードよりもずっとずっと長いです。もちろん、元のバージョンでは必要なかった多くのサポート機能を持っていますが、それにしてもたくさんの余分な仕事をしているように思えます。では、それだけの価値があったのでしょうか？
 
-I think the answer is yes. Here are some of the reasons why:
+答えは「イエス」だと思います。その理由をいくつか挙げてみましょう。
 
-**The new code is more explicit**
+**新しいコードはより明確になった**
 
-If we look at the original example, there was no atomicity between fields, no validation rules, no length constraints, nothing to stop you updating flags in the wrong order, and so on.
+元の例を見てみると、フィールド間のアトミック性、検証ルール、長さの制約、間違った順序でフラグを更新するのを止めるものが何もありませんでした、などなど。
 
-The data structure was "dumb" and all the business rules were implicit in the application code.
-Chances are that the application would have lots of subtle bugs that might not even show up in unit tests.  (*Are you sure the application reset the `IsEmailVerified` flag to false in every place the email address was updated?*)
+データ構造は「ダム」で、すべてのビジネス・ルールはアプリケーション・コードの中で暗黙の了解となっていました。
+そのアプリケーションには、ユニットテストにも現れないような微妙なバグがたくさんある可能性があります。 (*メールアドレスが更新されたすべての場所で、アプリケーションが `IsEmailVerified` フラグを false にリセットしていることを確認していますか *)
 
-On the other hand, the new code is extremely explicit about every little detail. If I stripped away everything but the types themselves, you would have a very good idea of what the business rules and domain constraints were.
+その一方で、新しいコードは細部まで非常に明確になっています。型以外のすべてのものを取り除くと、ビジネスルールとドメイン制約が何であるかについて非常に良いアイデアが得られるでしょう。
 
-**The new code won't let you postpone error handling**
+**新しいコードでは、エラー処理を先延ばしにすることはできません**。
 
-Writing code that works with the new types means that you are forced to handle every possible thing that could go wrong, from dealing with a name that is too long, to failing to supply a contact method.
-And you have to do this up front at construction time. You can't postpone it till later.
+新しい型で動作するコードを書くということは、長すぎる名前を処理したり、コンタクトメソッドを提供できなかったりと、うまくいかない可能性があるあらゆることを処理しなければならないということです。
+そして、これを構築時に前もって行わなければなりません。これを後回しにすることはできません。
 
-Writing such error handling code can be annoying and tedious, but on the other hand, it pretty much writes itself. There is really only one way to write code that actually compiles with these types.
+このようなエラー処理のコードを書くのは煩わしくて面倒ですが、一方で、それはほとんど自力で書いたものです。これらのタイプで実際にコンパイルされるコードを書く方法は本当に一つしかありません。
 
-**The new code is more likely to be correct**
+**新しいコードは正しい可能性が高い**。
 
-The *huge* benefit of the new code is that it is probably bug free. Without even writing any unit tests, I can be quite confident that a first name will never be truncated when written to a `varchar(50)` in a database, and that I can never accidentally send out a verification email twice.
+新しいコードの*大きな*利点は、おそらくバグがないことです。ユニットテストを書かなくても、データベースで名前を `varchar(50)` に書き込んだときに、名前が切り捨てられることはないと確信できますし、検証用のメールを誤って2回送信することもないと確信できます。
 
-And in terms of the code itself, many of the things that you as a developer have to remember to deal with (or forget to deal with) are completely absent. No null checks, no casting, no worrying about what the default should be in a `switch` statement. And if you like to use cyclomatic complexity as a code quality metric, you might note that there are only three `if` statements in the entire 350 odd lines.
+また、コード自体についても、開発者が忘れずに対処しなければならない（あるいは対処し忘れてしまう）ことの多くが完全に排除されています。nullチェックも、キャストも、`switch`文のデフォルトがどうなっているかを心配する必要もありません。また、サイクロマティックな複雑さをコード品質の指標として使うのが好きな方は、350行の中に3つの`if`文しかないことに気づくかもしれません。
 
-**A word of warning...**
+**警告の言葉...**
 
-Finally, beware! Getting comfortable with this style of type-based design will have an insidious effect on you. You will start to develop paranoia whenever you see code that isn't typed strictly enough. (*How long should an email address be, exactly?*) and you will be unable to write the simplest python script without getting anxious. When this happens, you will have been fully inducted into the cult. Welcome!
+最後に、注意してください。このスタイルの型ベースの設計に慣れてしまうと、あなたに陰湿な影響を与えることになります。厳密に型付けされていないコードを見るたびに、被害妄想を抱くようになるでしょう。(メールアドレスはどのくらいの長さにすればいいのだろうか？そうなったら、あなたは完全に教団の一員になったと言えるでしょう。ようこそ!
 
 
-*If you liked this series, here is a slide deck that covers many of the same topics. There is [a video as well (here)](/ddd/)*
+*このシリーズがお気に召したのなら、同じトピックの多くをカバーするスライドデッキをどうぞ。ビデオもありますよ[（こちら）](/ddd/)*
 
 {{< slideshare A4ay4HQqJgu0Q "domain-driven-design-with-the-f-type-system-functional-londoners-2014" "Domain Driven Design with the F# type System -- F#unctional Londoners 2014" >}}
 

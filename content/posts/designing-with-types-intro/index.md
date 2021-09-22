@@ -9,17 +9,17 @@ seriesOrder: 1
 categories: [Types, DDD]
 ---
 
-In this series, we'll look at some of the ways we can use types as part of the design process.
-In particular, the thoughtful use of types can make a design more transparent and improve correctness at the same time.
+このシリーズでは、設計プロセスの一環として型を使用する方法のいくつかを見ていきます。
+特に、型を思慮深く使用することで、設計の透明性を高め、同時に正しさを向上させることができます。
 
-This series will be focused on the "micro level" of design. That is, working at the lowest level of individual types and functions.
-Higher level design approaches, and the associated decisions about using functional or object-oriented style, will be discussed in another series.
+このシリーズでは、設計の「ミクロレベル」に焦点を当てます。つまり、個々の型や機能の最下位レベルでの作業です。
+より高いレベルの設計アプローチや、それに伴う関数型やオブジェクト指向スタイルの使用に関する決定については、別のシリーズでご紹介します。
 
-Many of the suggestions are also feasible in C# or Java, but the lightweight nature of F# types means that it is much more likely that we will do this kind of refactoring.
+この提案の多くはC#やJavaでも実現可能ですが、F#の型は軽量なので、このようなリファクタリングを行う可能性が高くなります。
 
-## A basic example ##
+## 基本的な例 ##
 
-For demonstration of the various uses of types, I'll work with a very straightforward example, namely a `Contact` type, such as the one below.
+型の様々な使い方を説明するために、非常に簡単な例、つまり以下のような`Contact`型を使ってみます。
 
 ```fsharp
 type Contact =
@@ -43,25 +43,25 @@ type Contact =
 
 ```
 
-This seems very obvious -- I'm sure we have all seen something like this many times. So what can we do with it?  How can we refactor this to make the most of the type system?
+これはとても当たり前のことで、誰もが何度もこのようなものを見たことがあると思います。では、これで何ができるでしょうか？ 型システムを最大限に活用するためには、どのようにリファクタリングすればよいのでしょうか。
 
-## Creating "atomic" types ##
+## "atomic" typeの作成 ##
 
-The first thing to do is to look at the usage pattern of data access and updates.  For example, would be it be likely that `Zip` is updated without also updating `Address1` at the same time? On the other hand, it might be common that a transaction updates `EmailAddress` but not `FirstName`.
+まず最初にやるべきことは、データのアクセスと更新の使用パターンを見ることです。 例えば、`Zip`が更新されるときに、`Address1`も同時に更新されることはあるでしょうか？逆に、あるトランザクションが `EmailAddress` を更新しても `FirstName` を更新しないことはよくあることです。
 
-This leads to the first guideline:
+これが、最初のガイドラインです。
 
-* *Guideline: Use records or tuples to group together data that are required to be consistent (that is "atomic") but don't needlessly group together data that is not related.*
+* *ガイドライン：レコードやタプルを使って、一貫性が必要なデータ（つまり「アトミック」なデータ）をまとめるべきだが、関連性のないデータを不必要にまとめてはいけない。
 
-In this case, it is fairly obvious that the three name values are a set, the address values are a set, and the email is also a set.
+このケースでは、3つの名前の値がセットになっていること、アドレスの値がセットになっていること、Eメールもセットになっていることが明らかになっています。
 
-We have also some extra flags here, such as `IsAddressValid` and `IsEmailVerified`. Should these be part of the related set or not?  Certainly yes for now, because the flags are dependent on the related values.
+ここでは、`IsAddressValid`や`IsEmailVerified`などの追加フラグもあります。これらは関連するセットの一部とすべきでしょうか？ フラグは関連する値に依存しているので、今のところは確かにイエスです。
 
-For example, if the `EmailAddress` changes, then `IsEmailVerified` probably needs to be reset to false at the same time.
+例えば、`EmailAddress` が変更された場合、`IsEmailVerified` も同時に false にリセットする必要があるでしょう。
 
-For `PostalAddress`, it seems clear that the core "address" part is a useful common type, without the `IsAddressValid` flag. On the other hand, the `IsAddressValid` is associated with the address, and will be updated when it changes.
+`PostalAddress`については、コアとなる「住所」の部分は、`IsAddressValid`フラグがなくても有用な共通の型であることは明らかなようです。一方で、`IsAddressValid`は住所に関連付けられていて、住所が変更されると更新されます。
 
-So it seems that we should create *two* types. One is a generic `PostalAddress` and the other is an address in the context of a contact, which we can call `PostalContactInfo`, say.
+そこで、*2つの*タイプを作るべきだと思われます。1つは汎用の`PostalAddress`で、もう1つは連絡先の文脈における住所で、これは例えば`PostalContactInfo`と呼ぶことができます。
 
 ```fsharp
 type PostalAddress =
@@ -81,7 +81,7 @@ type PostalContactInfo =
 ```
 
 
-Finally, we can use the option type to signal that certain values, such as `MiddleInitial`, are indeed optional.
+最後に、option型を使って、`MiddleInitial`などの特定の値が本当にオプションであることを知らせることができます。
 
 ```fsharp
 type PersonalName =
@@ -93,9 +93,9 @@ type PersonalName =
     }
 ```
 
-## Summary
+## まとめ
 
-With all these changes, we now have the following code:
+以上の変更により、以下のようなコードになりました。
 
 ```fsharp
 type PersonalName =
@@ -136,7 +136,7 @@ type Contact =
 
 ```
 
-We haven't written a single function yet, but already the code represents the domain better. However, this is just the beginning of what we can do.
+まだひとつも関数を書いていませんが、すでにコードはドメインをよりよく表現しています。しかし、これはできることのほんの始まりに過ぎません。
 
-Next up, using single case unions to add semantic meaning to primitive types.
+次は、シングルケースユニオンを使って、プリミティブ型に意味を持たせることです。
 

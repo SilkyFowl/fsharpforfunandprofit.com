@@ -8,28 +8,28 @@ seriesId: "Annotated walkthroughs"
 seriesOrder: 4
 ---
 
-In this series of posts, I've been developing a simple pocket calculator app.
+この一連の投稿では、シンプルなポケット電卓アプリを開発してきました。
 
-In the [first post](/posts/calculator-design/), we completed a first draft of the design, using type-first development.
-and in the [second post](/posts/calculator-implementation/), we created an initial implementation.
+[最初の投稿](/posts/calculator-design/)では、タイプファースト開発を用いてデザインのファーストドラフトを完成させました。
+そして、[2つ目の投稿](/posts/calculator-implementation/)では、初期の実装を作成しました。
 
-In the [previous post](/posts/calculator-complete-v1/), we created the rest of the code, including the user interface, and attempted to use it.
+[前の投稿](/posts/calculator-complete-v1/)では、ユーザーインターフェイスを含む残りのコードを作成し、それを使おうとしました。
 
-But the final result was unusable!  The problem wasn't that the code was buggy, it was that I didn't
-spend enough time thinking about the requirements before I started coding!
+しかし、最終的には使い物になりませんでした。 問題はコードがバグっていたことではなく、事前に要件を十分に考えていなかったことでした。
+問題はコードがバグっていたことではなく、コーディングを始める前に要件を十分に考えていなかったことです。
 
-Oh well. As Fred Brooks famously said: "plan to throw one away; you will, anyhow" (although that is a [bit simplistic](http://www.davewsmith.com/blog/2010/brook-revisits-plan-to-throw-one-away)).
+そうですか。フレッド・ブルックスの有名な言葉がある。「捨てるつもりでやれ、どうせ捨てるんだから」[(ちょっと単純化してますが)](http://www.davewsmith.com/blog/2010/brook-revisits-plan-to-throw-one-away)。
 
-The good news is that I have learned from the previous bad implementation, and have a plan to make the design better.
+良いニュースは、以前の悪い実装から学び、デザインをより良くするための計画があることです。
 
-## Reviewing the bad design
+## 悪いデザインを見直す
 
-Looking at the design and implementation (see [this gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1_patched-fsx)), a few things stand out:
+設計と実装（[this gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1_patched-fsx)を参照）を見ると、いくつかの点が目立ちます。
 
-First, the event handling types such as `UpdateDisplayFromDigit` did not take into account the *context*, the current state of the calculator.
-The `allowAppend` flag we added as a patch was one way to take the context into account, but it smells awful bad.
+まず、`UpdateDisplayFromDigit`などのイベント処理タイプは、*context*、つまり電卓の現在の状態を考慮していませんでした。
+パッチとして追加した `allowAppend` フラグは、コンテキストを考慮するための一つの方法でしたが、ひどく嫌な感じがします。
 
-Second there was a bit of special case code for certain inputs (`Zero` and `DecimalSeparator`), as you can see from this code snippet:
+次に、特定の入力（`Zero`と`DecimalSeparator`）に対するちょっとした特殊なケースのコードがありましたが、これは次のコードスニペットからわかります。
 
 ```fsharp
 let appendCh=
@@ -50,59 +50,59 @@ let appendCh=
             config.decimalSeparator
 ```
 
-This makes me think that these inputs should be treated as different *in the design itself* and not hidden in the implementation
--- after all we want the design to also act as documentation as much as possible.
+これを見ると、これらの入力は、実装では隠さずに、*デザイン自体で*異なるものとして扱われるべきだと思います。
+-- 結局のところ、私たちは設計をできるだけドキュメントとしても機能させたいのです。
 
-## Using a finite state machine as a design tool
+## 設計ツールとしての有限状態機械の使用
 
-So if the ad-hoc, make-it-up-as-you-go-along approach failed, what should I do instead?
+その場しのぎのアプローチが失敗した場合、代わりに何をすべきでしょうか？
 
-Well, I am a big proponent of using [finite state machines](https://en.wikipedia.org/wiki/Finite-state_machine)
-("FSMs" -- not be confused with the [True FSM](https://en.wikipedia.org/wiki/Flying_Spaghetti_Monster)) where appropriate.
-It is amazing how often a program can be modelled as a state machine.
+私は [finite state machines](https://en.wikipedia.org/wiki/Finite-state_machine)を使うことを支持しています。
+(「FSM」 -- [True FSM](https://en.wikipedia.org/wiki/Flying_Spaghetti_Monster) と混同してはいけません)
+プログラムがステートマシンとしてモデル化されていることには驚かされます。
 
-What are the benefits of using state machines?  I'm going to repeat what I said in [another post](/posts/designing-with-types-representing-states/).
+ステートマシンを使うメリットは何でしょうか？ [別の投稿](/posts/designing-with-types-representing-states/)で述べたことを繰り返します。
 
-**Each state can have different allowable behavior.**
-In other words, a state machine forces you to think about context, and what options are available in that context.
+**それぞれの状態には、異なる動作が許容されます。**
+言い換えれば、ステートマシンは、文脈と、その文脈でどのような選択肢があるかを考えることを強いるものです。
 
-In this case, I forgot that the context changed after an `Add` was processed, and thus the rules for accumulating digits changed too.
+今回のケースでは、`Add`が処理された後にコンテキストが変わったことを忘れていたため、桁の累積に関するルールも変わってしまいました。
 
-**All the states are explicitly documented.**
-It is all too easy to have important states that are implicit but never documented.
+**すべての状態が明示的に文書化されています**。
+暗黙の了解となっている重要な状態があっても、それが文書化されていないことはよくあることです。
 
-For example, I have created special code to deal with zero and decimal separators. Currently it is buried away in the implementation, but it should be part of the design.
+例えば、私はゼロと10進数のセパレータを処理する特別なコードを作成しました。現在は実装の中に埋もれていますが、本来は設計の一部であるべきなのです。
 
-**It is a design tool that forces you to think about every possibility that could occur.**
-A common cause of errors is that certain edge cases are not handled, but a state machine forces *all* cases to be thought about.
+**これは、起こりうるすべての可能性を考えることを強いる設計ツールです。**
+一般的なエラーの原因は、特定のエッジケースが処理されていないことですが、ステートマシンでは、すべてのケースを考えなければなりません。
 
-In this case, in addition to the most obvious bug, there are still some edge cases that are not dealt with properly,
-such as immediately following a math operation with *another* math operation. What should happen then?
+今回のケースでは、最も明白なバグに加えて、適切に処理されていないエッジケースがまだあります。
+例えば、ある演算処理の直後に、別の演算処理を行う場合です。ではどうすればいいのでしょうか？
 
 
-## How to implement simple finite state machines in F# ##
+## How to implement simple finite state machine in F# ##
 
-You are probably familiar with complex FSMs, such as those used in language parsers and regular expressions.
-Those kinds of state machines are generated from rule sets or grammars, and are quite complicated.
+皆さんは、言語パーサーや正規表現で使われるような複雑なFSMをご存知でしょう。
+この種のステートマシンは、ルールセットや文法から生成され、非常に複雑です。
 
-The kinds of state machines that I'm talking about are much, much simpler.
-Just a few cases at the most, with a small number of transitions, so we don't need to use complex generators.
+しかし、ここでお話しするステートマシンは、もっともっと単純なものです。
+せいぜいいくつかのケースがあり、遷移の数も少ないので、複雑なジェネレータを使う必要はありません。
 
-Here's an example of what I am talking about:
-![State machine](./state_machine_1.png)
+ここではその例を紹介します。
+![ステートマシン](./state_machine_1.png)
 
-So what is the best way to implement these simple state machines in F#?
+では、このような単純なステートマシンをF#で実装するには、どのような方法があるのでしょうか。
 
-Now, designing and implementing FSMs is a complex topic in in own right, with
-its own terminology ([NFAs and DFAs](https://en.wikipedia.org/wiki/Powerset_construction), [Moore vs. Mealy](https://stackoverflow.com/questions/11067994/difference-between-mealy-and-moore), etc),
-and [whole businesses](http://www.stateworks.com/) built around it.
+FSMの設計と実装は、それ自体が複雑なテーマで、以下のような用語があります。
+独自の用語（[NFAs and DFAs](https://en.wikipedia.org/wiki/Powerset_construction)、[Moore vs. Mealy](https://stackoverflow.com/questions/11067994/difference-between-mealy-and-moore)など）があります。
+そして、その周りには[全ビジネス](http://www.stateworks.com/)が構築されています。
 
-In F#, there are a number of possible approaches, such as table driven, or mutually recursive functions, or agents, or OO-style subclasses, etc.
+F#では、テーブルドリブン、相互に再帰的な関数、エージェント、OOスタイルのサブクラスなど、様々なアプローチが考えられます。
 
-But my preferred approach (for an ad-hoc manual implementation) makes extensive use of union types and pattern matching.
+しかし、私の好みのアプローチは（アドホックな手動実装のために）ユニオン型とパターンマッチを多用することです。
 
-First, create a union type that represents all the states.
-For example, if there are three states called "A", "B" and "C", the type would look like this:
+まず、すべての状態を表すユニオン型を作ります。
+例えば、"A"、"B"、"C "という3つの状態があるとすると、型は次のようになります。
 
 ```fsharp
 type State =
@@ -111,8 +111,8 @@ type State =
     | CState
 ```
 
-In many cases, each state will need to store some data that is relevant to that state.
-So we will need to create types to hold that data as well.
+多くの場合、各ステートには、そのステートに関連するデータを格納する必要があります。
+そのため、そのデータを保持するための型も作成する必要があります。
 
 ```fsharp
 type State =
@@ -125,7 +125,7 @@ and BStateData =
     {somethingElse:int}
 ```
 
-Next, all possible events that can happen are defined in another union type. If events have data associated with them, add that as well.
+次に、起こりうるすべてのイベントを別のユニオン型で定義します。イベントにデータが付随している場合は、それも追加します。
 
 ```fsharp
 type InputEvent =
@@ -136,37 +136,37 @@ and YEventData =
     {eventData:string}
 ```
 
-Finally, we can create a "transition" function that, given a current state and input event, returns a new state.
+最後に、現在の状態と入力イベントが与えられたときに、新しい状態を返す「トランジション」関数を作ります。
 
 ```fsharp
 let transition (currentState,inputEvent) =
     match currentState,inputEvent with
-    | AState, XEvent -> // new state
-    | AState, YEvent -> // new state
-    | AState, ZEvent -> // new state
-    | BState, XEvent -> // new state
-    | BState, YEvent -> // new state
-    | CState, XEvent -> // new state
-    | CState, ZEvent -> // new state
+    | AState, XEvent -> // 新しい状態
+    | AState,YEvent -> // 新しい状態
+    | AState, ZEvent -> // 新しい状態
+    | BState, XEvent -> // 新しい状態
+    | BState, YEvent -> // 新しい状態
+    | CState, XEvent -> // 新しい状態
+    | CState, ZEvent -> // 新しい状態
 ```
 
-What I like about this approach in a language with pattern matching, like F#,
-is that **if we forget to handle a particular combination of state and event, we get a compiler warning**. How awesome is that?
+F#のようなパターンマッチングを持つ言語でのこのアプローチで気に入っているのは
+F#のようなパターン・マッチングを備えた言語でこのアプローチが好きなのは、**状態とイベントの特定の組み合わせを処理し忘れると、コンパイラの警告が出る**ことです。これは素晴らしいことですね。
 
-It's true that, for systems with many states and input events, it may be unreasonable to expect every possible combination to be explicitly handled.
-But in my experience, many nasty bugs are caused by processing an event when you shouldn't, exactly as we saw with the original design accumulating digits when it shouldn't have.
+確かに、多くの状態と入力イベントを持つシステムでは、すべての可能な組み合わせを明示的に処理することを期待するのは無理があるかもしれません。
+しかし、私の経験では、多くの厄介なバグは、処理すべきではないイベントを処理した場合に発生します。まさに、オリジナルのデザインが、すべきではないのに桁を蓄積したようにです。
 
-Forcing yourself to consider every possible combination is thus a helpful design practice.
+あらゆる可能性のある組み合わせを考慮しなければならないというのは、設計上有益なことなのです。
 
-Now, even with a small number of states and events, the number of possible combinations gets large very quickly.
-To make it more manageable in practice, I typically create a series of helper functions, one for each state, like this:
+さて、状態やイベントの数が少ない場合でも、可能な組み合わせの数はすぐに大きくなってしまいます。
+実際に管理しやすくするために、私は通常、次のような一連のヘルパー関数を作成しています。
 
 ```fsharp
 let aStateHandler stateData inputEvent =
     match inputEvent with
-    | XEvent -> // new state
-    | YEvent _ -> // new state
-    | ZEvent -> // new state
+    | XEvent -> // 新しい状態
+    | YEvent _ -> // 新しい状態
+    | ZEvent -> // 新しい状態
 
 let bStateHandler stateData inputEvent =
     match inputEvent with
@@ -193,7 +193,7 @@ let transition (currentState,inputEvent) =
         cStateHandler inputEvent
 ```
 
-So let's try this approach and attempt to implement the state diagram above:
+では、この方法で、上の状態図の実装を試みてみましょう。
 
 ```fsharp
 let aStateHandler stateData inputEvent =
@@ -236,17 +236,17 @@ let transition (currentState,inputEvent) =
         cStateHandler inputEvent
 ```
 
-If we try to compile this, we immediately get some warnings:
+これをコンパイルしようとすると、すぐにいくつかの警告が表示されます。
 
-* (near bStateHandler) `Incomplete pattern matches on this expression. For example, the value 'ZEvent' may indicate a case not covered by the pattern(s).`
-* (near cStateHandler) `Incomplete pattern matches on this expression. For example, the value 'YEvent (_)' may indicate a case not covered by the pattern(s).`
+* (near bStateHandler) `Incomplete pattern matches on this expression. 例えば、値 'ZEvent' はパターンでカバーされていないケースを示している可能性があります。`
+* (near cStateHandler) `Incomplete pattern matches on this expression. たとえば、値 'YEvent (_)' は、パターンでカバーされないケースを示している可能性があります。`
 
-This is really helpful. It means we have missed some edge cases and we should change our code to handle these events.
+これは本当に役に立ちます。つまり、いくつかのエッジケースを見逃していたということで、これらのイベントを処理するためにコードを変更する必要があります。
 
-By the way, please do *not* fix the code with a wildcard match (underscore)! That defeats the purpose.
-If you want to ignore an event, do it explicitly.
+ところで、ワイルドカードマッチ（アンダースコア）を使ってコードを修正することは、絶対にやめてください。これでは目的が果たせません。
+イベントを無視したいのであれば、明示的に行ってください。
 
-Here's the fixed up code, which compiles without warnings:
+修正したコードは以下の通りで、警告なしにコンパイルできます。
 
 ```fsharp
 let bStateHandler stateData inputEvent =
@@ -270,69 +270,69 @@ let cStateHandler inputEvent =
         BState {somethingElse=42}
 ```
 
-*You can see the code for this example in [this gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-statemachine-fsx).*
+*この例のコードは[this gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-statemachine-fsx)で見ることができます。*.
 
-## Designing the state machine for the calculator
+## 電卓のステートマシンを設計する
 
-Let's sketch out a state machine for the calculator now. Here's a first attempt:
+それでは、電卓のステートマシンをスケッチしてみましょう。最初の試みは以下の通りです。
 
-![Calculator state machine v1](./calculator_states_1.png)
+![電卓のステートマシン v1](./calculator_states_1.png)
 
-Each state is a box, and the events that trigger transitions (such as a digit or math operation or `Equals`) are in red.
+各状態はボックスになっていて、遷移のきっかけとなるイベント (数字や数学の演算、`Equals`など) は赤で表示されています。
 
-If we follow through a sequence of events for something like `1` `Add` `2` `Equals`, you can see that we'll end up at the "Show result" state at the bottom.
+`1` `Add` `2` `Equals` のような一連のイベントをたどっていくと、最終的には一番下の「結果を表示」という状態になることがわかります。
 
-But remember that we wanted to raise the handling of zero and decimal separators up to the design level?
+しかし、ゼロと小数のセパレータの処理をデザインレベルにまで高めたいと思ったことを覚えていますか？
 
-So let's create special events for those inputs, and a new state "accumulate with decimal" that ignores subsequent decimal separators.
+そこで、これらの入力に対して特別なイベントを作成し、その後の小数点以下の区切り文字を無視する新しい状態「accumulate with decimal」を作成しましょう。
 
-Here's version 2:
+これがバージョン2です。
 
-![Calculator state machine v1](./calculator_states_2.png)
+![Calculator State Machine v1](./calculator_states_2.png)
 
-## Finalizing the state machine
+## ステートマシンの最終調整
 
-> "Good artists copy. Great artists steal."
+> "良い芸術家はコピーする。偉大な芸術家は盗む。"
 > -- Pablo Picasso ([but not really](http://quoteinvestigator.com/2013/03/06/artists-steal/))
 
-At this point, I'm thinking that surely I can't be only person to have thought of using a state machine to model a calculator?
-Perhaps I can do some research and ~~steal~~ borrow someone else's design?
+この時点で、電卓のモデルにステートマシンを使うことを考えたのは、きっと私だけではないだろうと思いました。
+もしかしたら、ちょっと調べて、他の人のデザインを～～盗むことができるかもしれない？
 
-Sure enough, googling for "calculator state machine" brings up all sorts of results, including [this one](http://cnx.org/contents/9bac155d-509e-46a6-b48b-30731ed08ce6@2/Finite_State_Machines_and_the_)
-which has a detailed spec and state transition diagram.
+案の定、"calculator state machine "でググると、[this one](http://cnx.org/contents/9bac155d-509e-46a6-b48b-30731ed08ce6@2/Finite_State_Machines_and_the_)を含むいろいろな種類の結果が出てきました。
+これには詳細な仕様と状態遷移図が載っています。
 
-Looking at that diagram, and doing some more thinking, leads to the following insights:
+この図を見て、もう少し考えてみると、次のようなことがわかりました。
 
-* The "clear" state and zero state are the same. Sometimes there is a pending op, sometimes not.
-* A math operation and `Equals` are very similar in that they update the display with any pending calculation.
-  The only difference is whether a pending op is added to the state or not.
-* The error message case definitely needs to be a distinct state. It ignores all input other than `Clear`.
+* クリア」状態と「ゼロ」状態は同じである。保留中の演算がある場合とない場合がある。
+* 演算と`Equals`は、保留中の計算でディスプレイを更新するという点でよく似ています。
+  唯一の違いは、保留中の演算が状態に追加されるかどうかです。
+* エラーメッセージのケースは、絶対に別のステートである必要があります。これは`Clear`以外のすべての入力を無視します。
 
-With these insights in mind then, here's version 3 of our state transition diagram:
+以上のことを踏まえて、バージョン 3 の状態遷移図を見てみましょう。
 
-![Calculator state machine v1](./calculator_states_3.png)
+![Calculator State Machine v1](./calculator_states_3.png)
 
-I'm only showing the key transitions -- it would be too overwhelming to show all of them.
-But it does give us enough information to get started on the detailed requirements.
+重要な遷移だけを表示しています。すべての遷移を表示すると、あまりにも膨大な量になってしまいます。
+しかし、これで詳細な要件の検討を開始するのに十分な情報が得られます。
 
-As we can see, there are five states:
+ご覧のように、5つの状態があります。
 
-* ZeroState
-* AccumulatorState
-* AccumulatorDecimalState
-* ComputedState
-* ErrorState
+* ゼロステート
+* アキュムレータステート
+* アキュムレータデシマルステート
+* 計算済み状態
+* エラー状態
 
-And there are six possible inputs:
+そして、6つの可能な入力があります。
 
-* Zero
-* NonZeroDigit
-* DecimalSeparator
+* ゼロ
+* ゼロ以外の桁
+* デシマルセパレーター
 * MathOp
-* Equals
+* イコール
 * Clear
 
-Let's document each state, and what data it needs to store, if any.
+それぞれの状態と、保存する必要のあるデータがあれば、それを記録してみましょう。
 
 {{<rawtable>}}
 <table class="table table-condensed table-striped">
@@ -377,12 +377,12 @@ Let's document each state, and what data it needs to store, if any.
 {{</rawtable>}}
 
 
-## Documenting each state and event combination
+## 各状態とイベントの組み合わせを記録する
 
-Next we should think about what happens for each state and event combination.
-As with the sample code above, we'll group them so that we only have to deal with the events for one state at a time.
+次に、それぞれの状態とイベントの組み合わせで何が起こるかを考えます。
+上のサンプルコードのように、グループ分けをして、一度に一つの状態のイベントだけを処理すればよいようにします。
 
-Let's start with the `ZeroState` state. Here are the transitions for each type of input:
+まずは、`ZeroState`の状態から始めましょう。各入力タイプのトランジションは以下のとおりです。
 
 {{<rawtable>}}
 <table class="table table-condensed table-striped">
@@ -435,7 +435,7 @@ Let's start with the `ZeroState` state. Here are the transitions for each type o
 </table>
 {{</rawtable>}}
 
-We can repeat the process with the `AccumulatorState` state. Here are the transitions for each type of input:
+このプロセスを `AccumulatorState` 状態で繰り返すことができます。ここでは、各タイプの入力に対するトランジションを示します。
 
 {{<rawtable>}}
 <table class="table table-condensed table-striped">
@@ -489,9 +489,9 @@ We can repeat the process with the `AccumulatorState` state. Here are the transi
 </table>
 {{</rawtable>}}
 
-The event handling for `AccumulatorDecimalState` state is the same, except that `DecimalSeparator` is ignored.
+AccumulatorDecimalState`状態のイベント処理は、`DecimalSeparator`が無視されること以外は同じです。
 
-What about the `ComputedState` state. Here are the transitions for each type of input:
+ComputedState`状態はどうでしょう。入力の種類ごとに、以下のような遷移があります。
 
 {{<rawtable>}}
 <table class="table table-condensed table-striped">
@@ -541,7 +541,7 @@ What about the `ComputedState` state. Here are the transitions for each type of 
 </table>
 {{</rawtable>}}
 
-Finally, the `ErrorState` state is very easy. :
+最後に、`ErrorState`状態はとても簡単です。 :
 
 {{<rawtable>}}
 <table class="table table-condensed table-striped">
@@ -567,11 +567,11 @@ Finally, the `ErrorState` state is very easy. :
 </table>
 {{</rawtable>}}
 
-## Converting the states into F# code
+## ステートをF#コードに変換する
 
-Now that we've done all this work, the conversion into types is straightforward.
+ここまでの作業が終わったので、型への変換は簡単です。
 
-Here are the main types:
+主な型は以下の通りです。
 
 ```fsharp
 type Calculate = CalculatorInput * CalculatorState -> CalculatorState
@@ -601,8 +601,8 @@ and ErrorStateData =
     MathOperationError
 ```
 
-If we compare these types to the first design (below), we have now made it clear that there is something special about `Zero` and `DecimalSeparator`,
-as they have been promoted to first class citizens of the input type.
+これらの型を最初のデザイン（下記）と比較すると、`Zero`と`DecimalSeparator`には何か特別なものがあることがわかりました。
+これらは、入力タイプの一級市民に昇格したのです。
 
 ```fsharp
 // from the old design
@@ -621,8 +621,8 @@ type CalculatorInput =
     | Clear
 ```
 
-Also, in the old design, we had a single state type (below) that stored data for all contexts, while in the new design, the state is *explicitly different* for each context.
-The types `ZeroStateData`, `AccumulatorStateData`, `ComputedStateData`, and `ErrorStateData` make this obvious.
+また、旧デザインでは、すべてのコンテキストのデータを格納する単一のステートタイプ（以下）を持っていましたが、新デザインでは、各コンテキストごとにステートが*明示的に異なります。
+`ZeroStateData`, `AccumulatorStateData`, `ComputedStateData`, `ErrorStateData`という型がこれを明らかにしています。
 
 ```fsharp
 // from the old design
@@ -640,7 +640,7 @@ type CalculatorState =
     | ErrorState of ErrorStateData
 ```
 
-Now that we have the basics of the new design, we need to define the other types referenced by it:
+新しいデザインの基本がわかったところで、それによって参照される他の型を定義する必要があります。
 
 ```fsharp
 and DigitAccumulator = string
@@ -658,17 +658,17 @@ and MathOperationError =
     | DivideByZero
 ```
 
-And finally, we can define the services:
+そして最後に、サービスを定義します。
 
 ```fsharp
-// services used by the calculator itself
+// 電卓自身が使用するサービス
 type AccumulateNonZeroDigit = NonZeroDigit * DigitAccumulator -> DigitAccumulator
 type AccumulateZero = DigitAccumulator -> DigitAccumulator
 type AccumulateSeparator = DigitAccumulator -> DigitAccumulator
 type DoMathOperation = CalculatorMathOp * Number * Number -> MathOperationResult
 type GetNumberFromAccumulator = AccumulatorStateData -> Number
 
-// services used by the UI or testing
+// UIやテストで使用されるサービス
 type GetDisplayFromState = CalculatorState -> string
 type GetPendingOpFromState = CalculatorState -> string
 
@@ -683,22 +683,22 @@ type CalculatorServices = {
     }
 ```
 
-Note that because the state is much more complicated, I've added helper function `getDisplayFromState` that extracts the display text from the state.
-This helper function will be used the UI or other clients (such as tests) that need to get the text to display.
+なお、ステートはもっと複雑なので、ステートから表示テキストを抽出するヘルパー関数 `getDisplayFromState` を追加しました。
+このヘルパー関数は、UIや他のクライアント（テストなど）が表示するテキストを取得する必要がある場合に使用します。
 
-I've also added a `getPendingOpFromState`, so that we can show the pending state in the UI as well.
+また、`getPendingOpFromState`を追加して、保留中の状態をUIでも表示できるようにしました。
 
-## Creating a state-based implementation
+## ステートベースの実装の作成
 
-Now we can create a state-based implementation, using the pattern described earlier.
+先ほどのパターンを使って、ステートベースの実装を作ってみましょう。
 
-*(The complete code is available in [this gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v2-fsx).)*
+*(完全なコードは[this gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v2-fsx)にあります。)*。
 
-Let's start with the main function that does the state transitions:
+まずは、状態遷移を行うメインの関数から始めましょう。
 
 ```fsharp
-let createCalculate (services:CalculatorServices) :Calculate =
-    // create some local functions with partially applied services
+let createCalculate (services:CalculatorServices) :Calculate =.
+    // 部分的に適用されたサービスでいくつかのローカル関数を作成する
     let handleZeroState = handleZeroState services
     let handleAccumulator = handleAccumulatorState services
     let handleAccumulatorWithDecimal = handleAccumulatorWithDecimalState services
@@ -719,11 +719,11 @@ let createCalculate (services:CalculatorServices) :Calculate =
             handleError stateData input
 ```
 
-As you can see, it passes the responsibility to a number of handlers, one for each state, which will be discussed below.
+ご覧のように、各ステートごとに1つずつ、いくつかのハンドラに責任を渡していますが、これについては後述します。
 
-But before we do that, I thought it might be instructive to compare the new state-machine based design with the (buggy!) one I did previously.
+しかし、その前に、新しいステートマシンベースのデザインを、以前に行った（バグだらけの！）デザインと比較することが有益ではないかと思いました。
 
-Here is the code from the previous one:
+以下は、以前のコードです。
 
 ```fsharp
 let createCalculate (services:CalculatorServices) :Calculate =
@@ -744,26 +744,26 @@ let createCalculate (services:CalculatorServices) :Calculate =
             newState //return
 ```
 
-If we compare the two implementations, we can see that there has been a shift of emphasis from events to state.
-You can see this by comparing how main pattern matching is done in the two implementations:
+この2つの実装を比較してみると、イベントからステートに重点が移っていることがわかります。
+これは、2つの実装でメインのパターンマッチングがどのように行われているかを比較することでわかります。
 
-* In the original version, the focus was on the input, and the state was secondary.
-* In the new version, the focus is on the state, and the input is secondary.
+* オリジナルのバージョンでは、入力に重点が置かれ、状態は二の次でした。
+* 新しいバージョンでは、状態に焦点が当てられ、入力は二の次です。
 
-The focus on *input* over *state*, ignoring the context, is why the old version was such a bad design.
+文脈を無視して「状態」よりも「入力」に焦点を当てたことが、旧バージョンのデザインが悪かった理由です。
 
-To repeat what I said above, many nasty bugs are caused by processing an event when you shouldn't (as we saw with the original design).
-I feel much more confident in the new design because of the explicit emphasis on state and context from the very beginning.
+上で述べたことの繰り返しになりますが、多くの厄介なバグは、処理すべきでない時にイベントを処理することによって引き起こされます（オリジナルのデザインで見られたように）。
+新しいデザインでは、最初から状態と文脈を明確に強調しているので、ずっと自信を持っています。
 
-In fact, I'm not alone in noticing these kinds of issues.
-Many people think that classic "[event-driven programming](https://en.wikipedia.org/wiki/Event-driven_programming)" is flawed
-and recommend a more "state driven approach" (e.g. [here](http://www.barrgroup.com/Embedded-Systems/How-To/State-Machines-Event-Driven-Systems) and [here](http://seabites.wordpress.com/2011/12/08/your-ui-is-a-statechart/)),
-just as I have done here.
+実は、このような問題に気づいているのは私だけではありません。
+多くの人が、古典的な「イベント駆動型プログラミング」(https://en.wikipedia.org/wiki/Event-driven_programming)には欠陥があると考えています。
+そして、より「ステートドリブンなアプローチ」を推奨しています（例えば、[こちら](http://www.barrgroup.com/Embedded-Systems/How-To/State-Machines-Event-Driven-Systems)や[こちら](http://seabites.wordpress.com/2011/12/08/your-ui-is-a-statechart/)）。
+私がここで行ったように。
 
-## Creating the handlers
+## ハンドラの作成
 
-We have already documented the requirements for each state transition, so writing the code is straightforward.
-We'll start with the code for the `ZeroState` handler:
+各状態遷移の要件はすでに文書化されているので、コードを書くのは簡単です。
+まずは、`ZeroState`ハンドラのコードから。
 
 ```fsharp
 let handleZeroState services pendingOp input =
@@ -792,9 +792,9 @@ let handleZeroState services pendingOp input =
         ZeroState None // transition to ZeroState and throw away any pending ops
 ```
 
-Again, the *real* work is done in helper functions such as `accumulateNonZeroDigit` and `getComputationState`. We'll look at those in a minute.
+繰り返しになりますが、実際の作業は `accumulateNonZeroDigit` や `getComputationState` といったヘルパー関数で行われます。これらについては後ほど説明します。
 
-Here is the code for the `AccumulatorState` handler:
+以下は、`AccumulatorState`ハンドラのコードです。
 
 ```fsharp
 let handleAccumulatorState services stateData input =
@@ -823,7 +823,7 @@ let handleAccumulatorState services stateData input =
         ZeroState None // transition to ZeroState and throw away any pending op
 ```
 
-Here is the code for the `ComputedState` handler:
+以下は、`ComputedState`ハンドラのコードです。
 
 ```fsharp
 let handleComputedState services stateData input =
@@ -851,11 +851,11 @@ let handleComputedState services stateData input =
         ZeroState None // transition to ZeroState and throw away any pending op
 ```
 
-## The helper functions
+## ヘルパー関数
 
-Finally, let's look at the helper functions:
+最後に，ヘルパー関数を見てみましょう．
 
-The accumulator helpers are trivial -- they just call the appropriate service and wrap the result in an `AccumulatorData` record.
+アキュムレータヘルパーは些細なもので，適切なサービスを呼び出し，その結果を `AccumulatorData` レコードにまとめるだけです．
 
 ```fsharp
 let accumulateNonZeroDigit services digit accumulatorData =
@@ -865,20 +865,20 @@ let accumulateNonZeroDigit services digit accumulatorData =
     newAccumulatorData // return
 ```
 
-The `getComputationState` helper is much more complex -- the most complex function in the entire code base, I should think.
+getComputationState`ヘルパーはもっと複雑で、このコードベース全体で最も複雑な関数だと思います。
 
-It's very similar to the `updateDisplayFromPendingOp` that we implemented before,
-but there are a couple of changes:
+以前に実装した `updateDisplayFromPendingOp` と非常によく似ています。
+しかし、いくつかの変更点があります。
 
-* The `services.getNumberFromAccumulator` code can never fail, because of the state-based approach. That makes life simpler!
-* The `match result with Success/Failure` code now returns *two* possible states: `ComputedState` or `ErrorState`.
-* If there is no pending op, we *still* need to return a valid `ComputedState`, which is what `computeStateWithNoPendingOp` does.
+* ステートベースのアプローチにより、`services.getNumberFromAccumulator`コードは絶対に失敗しません。これは、人生をよりシンプルにするものです。
+* `match result with Success/Failure` コードは、2つの*可能な状態を返すようになりました。それは、「ComputedState」または「ErrorState」です。
+* これが `computeStateWithNoPendingOp` の役割です。
 
 ```fsharp
-let getComputationState services accumulatorStateData nextOp =
+let getComputationState services accumulatorStateData nextOp =.
 
-    // helper to create a new ComputedState from a given displayNumber
-    // and the nextOp parameter
+    // 与えられたdisplayNumberから新しいComputedStateを作成するヘルパー
+    // そしてnextOpパラメータ
     let getNewState displayNumber =
         let newPendingOp =
             nextOp |> Option.map (fun op -> op,displayNumber )
@@ -907,9 +907,9 @@ let getComputationState services accumulatorStateData nextOp =
 
 ```
 
-Finally, we have a new piece of code that wasn't in the previous implementation at all!
+最後に、以前の実装には全くなかった新しいコードをご紹介します。
 
-What do you do when you get two math ops in a row? We just replace the old pending op (if any) with the new one (if any).
+2つのmath opが連続して発生した場合、どうすればよいでしょうか？保留中の演算があれば、それを新しい演算に置き換えるだけです。
 
 ```fsharp
 let replacePendingOp (computedStateData:ComputedStateData) nextOp =
@@ -922,29 +922,29 @@ let replacePendingOp (computedStateData:ComputedStateData) nextOp =
     |> ComputedState
 ```
 
-## Completing the calculator
+## 計算機の完成
 
-To complete the application, we just need to implement the services and the UI, in the same way as we did before.
+アプリケーションを完成させるためには、先ほどと同じように、サービスとUIを実装するだけです。
 
-As it happens, we can reuse almost all of the previous code. The only thing that has really changed
-is the way that the input events are structured, which affects how the button handlers are created.
+偶然にも、以前のコードのほとんどすべてを再利用することができます。実際に変更したのは
+入力イベントの構成方法で、これはボタンハンドラの作成方法に影響します。
 
-You can get the code for the state machine version of the calculator [here](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v2-fsx).
+ステートマシン版の電卓のコードは[こちら](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v2-fsx)から入手できます。
 
-If you try it out the new code, I think that you will find that it works first time, and feels much more robust. Another win for state-machine driven design!
+新しいコードを試してみると、すぐに動作し、より堅牢になっていることがわかると思います。ステートマシン・ドリブンな設計の勝利です。
 
-## Exercises
+## 練習問題
 
-If you liked this design, and want to work on something similar, here are some exercises that you could do:
+このデザインが気に入って、似たようなものを作ってみたいと思ったら、以下のような練習ができます。
 
-* First, you could add some other operations. What would you have to change to implement unary ops such as `1/x` and `sqrt`?
-* Some calculators have a back button. What would you have to do to implement this? Luckily all the data structures are immutable, so it should be easy!
-* Most calculators have a one-slot memory with store and recall. What would you have to change to implement this?
-* The logic that says that there are only 10 chars allowed on the display is still hidden from the design. How would you make this visible?
+* まず、他の操作を追加してみましょう。`1/x`や`sqrt`のような単項演算を実装するためには、何を変更しなければならないでしょうか？
+* いくつかの電卓には戻るボタンがあります。これを実装するには何が必要ですか？幸いなことに、すべてのデータ構造は不変なので、簡単にできるはずです。
+* ほとんどの電卓は、保存と呼び出しが可能な1スロットのメモリを持っています。これを実装するには何を変えなければならないでしょうか?
+* ディスプレイに10文字までしか表示できないというロジックは、デザインからはまだ隠されています。これを表示するにはどうしたらいいでしょうか？
 
 
-## Summary
+## まとめ
 
-I hope you found this little experiment useful. I certainly learned something, namely:
-don't shortcut requirements gathering, and consider using a state based approach from the beginning -- it might save you time in the long run!
+この小さな実験が役に立ったことを願っています。私は確かに何かを学びました、すなわち
+そして、最初からステートベースのアプローチを使用することを検討してください -- 長い目で見れば、時間の節約になるかもしれません
 

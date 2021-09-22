@@ -9,7 +9,7 @@ seriesOrder: 2
 categories: [Types, DDD]
 ---
 
-At the end of the previous post, we had values for email addresses, zip codes, etc., defined like this:
+前回の記事の最後で、メールアドレスや郵便番号などの値を、次のように定義しました。
 
 ```fsharp
 
@@ -19,28 +19,28 @@ Zip: string;
 
 ```
 
-These are all defined as simple strings.  But really, are they just strings?  Is an email address interchangeable with a zip code or a state abbreviation?
+これらはすべて単純な文字列として定義されています。 しかし、本当にただの文字列なのでしょうか？ メールアドレスは、郵便番号や州の略語と互換性があるのでしょうか？
 
-In a domain driven design, they are indeed distinct things, not just strings. So we would ideally like to have lots of separate types for them so that they cannot accidentally be mixed up.
+ドメイン・ドリブンなデザインでは、これらは単なる文字列ではなく、確かに別個のものです。ですから、理想的には、それらが誤って混ざってしまわないように、別々のタイプをたくさん用意したいと思います。
 
-This has been [known as good practice](http://codemonkeyism.com/never-never-never-use-string-in-java-or-at-least-less-often/) for a long time,
-but in languages like C# and Java it can be painful to create hundred of tiny types like this, leading to the so called ["primitive obsession"](http://sourcemaking.com/refactoring/primitive-obsession) code smell.
+これは昔から[グッドプラクティスとして知られていること](http://codemonkeyism.com/never-never-never-use-string-in-java-or-at-least-less-often/)です。
+しかし、C#やJavaのような言語では、このような小さな型を何百個も作るのは苦痛であり、いわゆる["primitive obsession"](http://sourcemaking.com/refactoring/primitive-obsession)というコードの臭いにつながります。
 
-But F# there is no excuse! It is trivial to create simple wrapper types.
+しかし、F#にはそのような言い訳はありません。シンプルなラッパー型を作るのは簡単です。
 
-## Wrapping primitive types
+## プリミティブ型のラッピング
 
-The simplest way to create a separate type is to wrap the underlying string type inside another type.
+別の型を作る最も簡単な方法は、基礎となる文字列型を別の型で包むことです。
 
-We can do it using single case union types, like so:
+シングルケースのユニオン型を使って、次のように行うことができます。
 
 ```fsharp
 type EmailAddress = EmailAddress of string
-type ZipCode = ZipCode of string
-type StateCode = StateCode of string
+type ZipCode = 文字列のZipCode
+type StateCode = 文字列のStateCode
 ```
 
-or alternatively, we could use record types with one field, like this:
+あるいは，次のように，1つのフィールドを持つレコードタイプを使うこともできます。
 
 ```fsharp
 type EmailAddress = { EmailAddress: string }
@@ -48,20 +48,20 @@ type ZipCode = { ZipCode: string }
 type StateCode = { StateCode: string}
 ```
 
-Both approaches can be used to create wrapper types around a string or other primitive type, so which way is better?
+文字列やその他のプリミティブな型のラッパー型を作るには、どちらの方法も使えますが、どちらの方法が良いのでしょうか？
 
-The answer is generally the single case discriminated union.  It is much easier to "wrap" and "unwrap", as the "union case" is actually a proper constructor function in its own right. Unwrapping can be done using inline pattern matching.
+答えは、一般的にシングルケース・ディスクリミネーテッド・ユニオンです。 ユニオンケース」は実際にはそれ自体が適切なコンストラクタ関数であるため、「ラップ」と「アンラップ」がはるかに簡単です。アンラップはインラインのパターンマッチを使って行うことができます。
 
-Here's some examples of how an `EmailAddress` type might be constructed and deconstructed:
+以下に、`EmailAddress`型がどのように構築され、どのように解体されるかの例を示します。
 
 ```fsharp
 type EmailAddress = EmailAddress of string
 
-// using the constructor as a function
+// コンストラクタを関数として使用
 "a" |> EmailAddress
 ["a"; "b"; "c"] |> List.map EmailAddress
 
-// inline deconstruction
+// インライン・デコンストラクション
 let a' = "a" |> EmailAddress
 let (EmailAddress a'') = a'
 
@@ -74,9 +74,9 @@ let addresses' =
     |> List.map (fun (EmailAddress e) -> e)
 ```
 
-You can't do this as easily using record types.
+レコード型ではこのようなことは簡単にはできません。
 
-So, let's refactor the code again to use these union types.  It now looks like this:
+そこで、このユニオン型を使うようにコードを再度リファクタリングしてみましょう。 現在は次のようになっています。
 
 ```fsharp
 type PersonalName =
@@ -120,12 +120,12 @@ type Contact =
     }
 ```
 
-Another nice thing about the union type is that the implementation can be encapsulated with module signatures, as we'll discuss below.
+ユニオン型のもう一つの良い点は、後述するように、実装をモジュール・シグネチャでカプセル化できることです。
 
 
-## Naming the "case" of a single case union
+## シングルケースユニオンの "ケース "のネーミング
 
-In the examples above we used the same name for the case as we did for the type:
+上の例では、caseに型と同じ名前を使っています。
 
 ```fsharp
 type EmailAddress = EmailAddress of string
@@ -133,31 +133,31 @@ type ZipCode = ZipCode of string
 type StateCode = StateCode of string
 ```
 
-This might seem confusing initially, but really they are in different scopes, so there is no naming collision. One is a type, and one is a constructor function with the same name.
+最初は混乱するかもしれませんが，実際にはこれらは異なるスコープにあるので，名前の衝突はありません。1つは型で、もう1つは同じ名前のコンストラクタ関数です。
 
-So if you see a function signature like this:
+つまり、次のような関数のシグネチャがあるとします。
 
 ```fsharp
 val f: string -> EmailAddress
 ```
 
-this refers to things in the world of types, so `EmailAddress` refers to the type.
+これは，型の世界のものを指しており，`EmailAddress`は型を指しています。
 
-On the other hand, if you see some code like this:
+一方，次のようなコードがあるとします。
 
 ```fsharp
 let x = EmailAddress y
 ```
 
-this refers to things in the world of values, so `EmailAddress` refers to the constructor function.
+これは、値の世界のものを参照しているので、`EmailAddress`はコンストラクタ関数を参照しています。
 
-## Constructing single case unions
+## single case unionsの構築
 
-For values that have special meaning, such as email addresses and zip codes, generally only certain values are allowed.  Not every string is an acceptable email or zip code.
+メールアドレスや郵便番号のように特別な意味を持つ値の場合、一般的には特定の値しか許されません。 すべての文字列がメールや郵便番号として認められるわけではありません。
 
-This implies that we will need to do validation at some point, and what better point than at construction time? After all, once the value is constructed, it is immutable, so there is no worry that someone might modify it later.
+これは、どこかの時点で検証を行う必要があることを意味しており、構築時よりも良いタイミングがあるでしょう。結局のところ、一度構築された値は不変なので、後から誰かに修正される心配はありません。
 
-Here's how we might extend the above module with some constructor functions:
+上記のモジュールを拡張して、コンストラクタ関数を追加する方法を紹介します。
 
 ```fsharp
 
@@ -176,7 +176,7 @@ let CreateStateCode (s:string) =
         else None
 ```
 
-We can test the constructors now:
+これでコンストラクタをテストすることができます。
 
 ```fsharp
 CreateStateCode "CA"
@@ -186,31 +186,31 @@ CreateEmailAddress "a@example.com"
 CreateEmailAddress "example.com"
 ```
 
-## Handling invalid input in a constructor ###
+## コンストラクタでの無効な入力の処理 ###.
 
-With these kinds of constructor functions, one immediate challenge is the question of how to handle invalid input.
-For example, what should happen if I pass in "abc" to the email address constructor?
+このようなコンストラクタ関数の場合、すぐに問題になるのが、無効な入力をどう処理するかという問題です。
+例えば、メールアドレスのコンストラクタに「abc」を渡した場合、どうすればよいのでしょうか。
 
-There are a number of ways to deal with it.
+これに対処する方法はいくつかあります。
 
-First, you could throw an exception. I find this ugly and unimaginative, so I'm rejecting this one out of hand!
+まず、例外を発生させることができます。これは醜いし、想像力に欠けると思うので、私はこの方法を即座に却下します。
 
-Next, you could return an option type, with `None` meaning that the input wasn't valid.  This is what the constructor functions above do.
+次に、入力が有効でないことを意味する `None` を含むオプションタイプを返すことができます。 これは、上のコンストラクタ関数で行っていることです。
 
-This is generally the easiest approach. It has the advantage that the caller has to explicitly handle the case when the value is not valid.
+これは一般的に最も簡単な方法です。しかし、値が有効でない場合には、呼び出し側が明示的に処理しなければならないという利点があります。
 
-For example, the caller's code for the example above might look like:
+例えば，上の例の呼び出し側のコードは次のようになります。
 ```fsharp
 match (CreateEmailAddress "a@example.com") with
 | Some email -> ... do something with email
 | None -> ... ignore?
 ```
 
-The disadvantage is that with complex validations, it might not be obvious what went wrong. Was the email too long, or missing a '@' sign, or an invalid domain? We can't tell.
+欠点は、複雑なバリデーションでは、何が悪かったのかがはっきりしないかもしれないということです。メールが長すぎたのか、'@'マークがなかったのか、ドメインが無効だったのか。私たちにはわかりません。
 
-If you do need more detail, you might want to return a type which contains a more detailed explanation in the error case.
+より詳細な情報が必要な場合は、エラーケースでより詳細な説明を含んだ型を返すとよいでしょう。
 
-The following example uses a `CreationResult` type to indicate the error in the failure case.
+次の例では、失敗のケースでエラーを示すために `CreationResult` 型を使用しています。
 
 ```fsharp
 type EmailAddress = EmailAddress of string
@@ -225,7 +225,7 @@ let CreateEmailAddress2 (s:string) =
 CreateEmailAddress2 "example.com"
 ```
 
-Finally, the most general approach uses continuations. That is, you pass in two functions, one for the success case (that takes the newly constructed email as parameter), and another for the failure case (that takes the error string as parameter).
+最後に、最も一般的な方法として、連続性を利用します。つまり，2つの関数を渡すのです．1つは成功した場合（新しく構築されたメールをパラメータとして受け取る），もう1つは失敗した場合（エラー文字列をパラメータとして受け取る）です．
 
 ```fsharp
 type EmailAddress = EmailAddress of string
@@ -236,18 +236,18 @@ let CreateEmailAddressWithContinuations success failure (s:string) =
         else failure "Email address must contain an @ sign"
 ```
 
-The success function takes the email as a parameter and the error function takes a string. Both functions must return the same type, but the type is up to you.
+success関数はEmailをパラメータとして受け取り、error関数は文字列を受け取ります。どちらの関数も同じ型を返さなければなりませんが，その型は自由です。
 
-Here is a simple example -- both functions do a printf, and return nothing (i.e. unit).
+以下に簡単な例を示します。どちらの関数もprintfを行い、何も返しません（つまりユニット）。
 
 ```fsharp
 let success (EmailAddress s) = printfn "success creating email %s" s
-let failure  msg = printfn "error creating email: %s" msg
+let failure msg = printfn "error creating email: s" msg
 CreateEmailAddressWithContinuations success failure "example.com"
 CreateEmailAddressWithContinuations success failure "x@example.com"
 ```
 
-With continuations, you can easily reproduce any of the other approaches. Here's the way to create options, for example. In this case both functions return an `EmailAddress option`.
+コンティニュエーションを使えば、他のどのようなアプローチも簡単に再現することができます。例えば、オプションを作成する方法です。この場合、どちらの関数も、`EmailAddress option`を返します。
 
 ```fsharp
 let success e = Some e
@@ -256,7 +256,7 @@ CreateEmailAddressWithContinuations success failure "example.com"
 CreateEmailAddressWithContinuations success failure "x@example.com"
 ```
 
-And here is the way to throw exceptions in the error case:
+また、エラー時に例外を投げる方法は以下の通りです。
 
 ```fsharp
 let success e = e
@@ -265,15 +265,15 @@ CreateEmailAddressWithContinuations success failure "example.com"
 CreateEmailAddressWithContinuations success failure "x@example.com"
 ```
 
-This code seems quite cumbersome, but in practice you would probably create a local partially applied function that you use instead of the long-winded one.
+このコードは非常に面倒に見えますが、実際には、長ったらしい関数の代わりに、部分的に適用される関数をローカルに作成して使用することになるでしょう。
 
 ```fsharp
-// setup a partially applied function
+// 部分適用関数の設定
 let success e = Some e
-let failure _  = None
+let failure _ = None
 let createEmail = CreateEmailAddressWithContinuations success failure
 
-// use the partially applied function
+// 部分的に適用された関数を使う
 createEmail "x@example.com"
 createEmail "example.com"
 ```
@@ -281,11 +281,11 @@ createEmail "example.com"
 {{< book_page_ddd >}}
 
 
-## Creating modules for wrapper types ###
+## ラッパータイプ用モジュールの作成 ###
 
-These simple wrapper types are starting to get more complicated now that we are adding validations, and we will probably discover other functions that we want to associate with the type.
+これらのシンプルなラッパータイプは、バリデーションを追加することでより複雑になってきており、タイプに関連づけたい他の機能も発見できるでしょう。
 
-So it is probably a good idea to create a module for each wrapper type, and put the type and its associated functions there.
+そこで、ラッパータイプごとにモジュールを作成し、タイプと関連する関数をそこに配置するのがよいでしょう。
 
 ```fsharp
 module EmailAddress =
@@ -302,11 +302,11 @@ module EmailAddress =
     let value (EmailAddress e) = e
 ```
 
-The users of the type would then use the module functions to create and unwrap the type. For example:
+型のユーザーは、モジュールの関数を使って型を作成したり、アンラップしたりします。例えば、以下のようになります。
 
 ```fsharp
 
-// create email addresses
+// メールアドレスの作成
 let address1 = EmailAddress.create "x@example.com"
 let address2 = EmailAddress.create "example.com"
 
@@ -316,14 +316,14 @@ match address1 with
 | None -> ()
 ```
 
-## Forcing use of the constructor ###
+## コンストラクターの使用を強制する ##
 
-One issue is that you cannot force callers to use the constructor. Someone could just bypass the validation and create the type directly.
+ひとつの問題は、呼び出し側にコンストラクタの使用を強制できないことです。誰かが検証を回避して直接型を作成することができます。
 
-In practice, that tends not to be a problem.  One simple techinique is to use naming conventions to indicate
-a "private" type, and provide "wrap" and "unwrap" functions so that the clients never need to interact with the type directly.
+実際には問題にならないことが多いです。 単純なテクニックとしては、命名規則を使って「プライベート」型であることを示して
+そして、「ラップ」と「アンラップ」の関数を用意して、クライアントがその型を直接操作する必要がないようにすることです。
 
-Here's an example:
+以下にその例を示します。
 
 ```fsharp
 
@@ -342,11 +342,11 @@ module EmailAddress =
     let value (EmailAddress e) = e
 ```
 
-Of course the type is not really private in this case, but you are encouraging the callers to always use the "published" functions.
+もちろんこの場合、型は本当の意味でのプライベートではありませんが、呼び出し側には常に「公開された」関数を使うように促しています。
 
-If you really want to encapsulate the internals of the type and force callers to use a constructor function, you can use module signatures.
+もし、本当に型の内部をカプセル化して、呼び出し側にコンストラクタ関数を使わせたいのであれば、モジュール署名を使うことができます。
 
-Here's a signature file for the email address example:
+以下は，メールアドレスの例の署名ファイルです．
 
 ```fsharp
 // FILE: EmailAddress.fsi
@@ -363,9 +363,9 @@ val create : string -> T option
 val value : T -> string
 ```
 
-(Note that module signatures only work in compiled projects, not in interactive scripts, so to test this, you will need to create three files in an F# project, with the filenames as shown here.)
+(ただし，モジュール署名はコンパイル済みのプロジェクトでのみ動作し，インタラクティブなスクリプトでは動作しないので，これをテストするには，F#プロジェクトの中に，ここに示すようなファイル名で3つのファイルを作成する必要があります)。
 
-Here's the implementation file:
+ここでは，実装ファイルを紹介します．
 
 ```fsharp
 // FILE: EmailAddress.fs
@@ -386,7 +386,7 @@ let value (EmailAddress e) = e
 
 ```
 
-And here's a client:
+そして，これがクライアントです。
 
 ```fsharp
 // FILE: EmailAddressClient.fs
@@ -404,61 +404,61 @@ let address3 = T.EmailAddress "bad email"
 
 ```
 
-The type `EmailAddress.T` exported by the module signature is opaque, so clients cannot access the internals.
+モジュールのシグネチャによってエクスポートされた型 `EmailAddress.T` は不透明なので、クライアントは内部にアクセスすることができません。
 
-As you can see, this approach enforces the use of the constructor. Trying to create the type directly (`T.EmailAddress "bad email"`) causes a compile error.
+ご覧のように、この方法ではコンストラクタの使用が強制されます。型を直接作成しようとすると（`T.EmailAddress "bad email"`）、コンパイルエラーが発生します。
 
 
-## When to "wrap" single case unions ###
+## シングルケースユニオンを "ラップ "する場合 ###
 
-Now that we have the wrapper type, when should we construct them?
+さて、ラッパー型ができたところで、どのような場合にラッパー型を作成すればよいのでしょうか？
 
-Generally you only need to at service boundaries (for example, boundaries in a [hexagonal architecture](http://alistair.cockburn.us/Hexagonal+architecture))
+一般的には、サービスの境界（例えば、[六角アーキテクチャ](http://alistair.cockburn.us/Hexagonal+architecture))でのみ必要になります。
 
-In this approach, wrapping is done in the UI layer, or when loading from a persistence layer, and once the wrapped type is created, it is passed in to the domain layer and manipulated "whole", as an opaque type.
-It is surprisingly uncommon that you actually need the wrapped contents directly when working in the domain itself.
+このアプローチでは、ラッピングはUIレイヤーや、永続化レイヤーからの読み込み時に行われ、ラッピングされた型が作成されると、ドメインレイヤーに渡され、不透明な型として「全体」が操作されます。
+ドメイン自体を操作する際に、実際にラップされたコンテンツを直接必要とすることは驚くほど稀です。
 
-As part of the construction, it is critical that the caller uses the provided constructor rather than doing its own validation logic. This ensures that "bad" values can never enter the domain.
+コンストラクションの一環として、呼び出し側が独自の検証ロジックを行うのではなく、提供されたコンストラクタを使用することが重要です。これにより、「悪い」値がドメインに入ることはありません。
 
-For example, here is some code that shows the UI doing its own validation:
+例えば、以下のコードは、UIが独自の検証を行っていることを示しています。
 
 ```fsharp
 let processFormSubmit () =
     let s = uiTextBox.Text
     if (s.Length < 50)
-        then // set email on domain object
-        else // show validation error message
+        then // ドメインオブジェクトにメールを設定する
+        else // 検証エラーメッセージを表示する
 ```
 
-A better way is to let the constructor do it, as shown earlier.
+より良い方法は、先ほどのようにコンストラクタにやらせることです。
 
 ```fsharp
 let processFormSubmit () =
     let emailOpt = uiTextBox.Text |> EmailAddress.create
     match emailOpt with
-    | Some email -> // set email on domain object
-    | None -> // show validation error message
+    | Some email -> // ドメインオブジェクトにメールを設定する
+    | None -> // 検証エラーメッセージを表示する
 ```
 
 ## When to "unwrap" single case unions ###
 
-And when is unwrapping needed? Again, generally only at service boundaries. For example, when you are persisting an email to a database, or binding to a UI element or view model.
+では、どのような場合にアンラップが必要なのでしょうか？繰り返しになりますが、一般的にはサービスの境界でのみ必要になります。例えば、メールをデータベースに永続化する場合や、UI要素やビューモデルにバインドする場合などです。
 
-One tip to avoid explicit unwrapping is to use the continuation approach again, passing in a function that will be applied to the wrapped value.
+明示的なアンラップを避けるためのヒントとしては、継続的なアプローチを用いて、ラップされた値に適用される関数を渡すことです。
 
-That is, rather than calling the "unwrap" function explicitly:
+つまり、"unwrap "関数を明示的に呼び出すのではなく、次のようにします。
 
 ```fsharp
 address |> EmailAddress.value |> printfn "the value is %s"
 ```
 
-You would pass in a function which gets applied to the inner value, like this:
+次のように、内側の値に適用される関数を渡すのです。
 
 ```fsharp
 address |> EmailAddress.apply (printfn "the value is %s")
 ```
 
-Putting this together, we now have the complete `EmailAddress` module.
+これをまとめると、完全な`EmailAddress`モジュールになります。
 
 ```fsharp
 module EmailAddress =
@@ -485,11 +485,11 @@ module EmailAddress =
 
 ```
 
-The `create` and `value` functions are not strictly necessary, but are added for the convenience of callers.
+`create`と`value`の関数は厳密には必要ではありませんが、呼び出し側の利便性のために追加しています。
 
-## The code so far ###
+## これまでのコード ###
 
-Let's refactor the `Contact` code now, with the new wrapper types and modules added.
+それでは、新しいラッパータイプとモジュールを追加して、`Contact`のコードをリファクタリングしてみましょう。
 
 ```fsharp
 module EmailAddress =
@@ -597,23 +597,23 @@ type Contact =
 
 ```
 
-By the way, notice that we now have quite a lot of duplicate code in the three wrapper type modules. What would be a good way of getting rid of it, or at least making it cleaner?
+ところで、3つのラッパー・タイプ・モジュールの中には、かなり多くの重複したコードがあることに気がつきました。このコードを削除する、あるいは少なくともすっきりさせるには、どのような方法があるでしょうか？
 
-## Summary ###
+## まとめ ###
 
-To sum up the use of discriminated unions, here are some guidelines:
+差別化されたユニオンの使い方をまとめると、以下のようなガイドラインになります。
 
-* Do use single case discriminated unions to create types that represent the domain accurately.
-* If the wrapped value needs validation, then provide constructors that do the validation and enforce their use.
-* Be clear what happens when validation fails. In simple cases, return option types. In more complex cases, let the caller pass in handlers for success and failure.
-* If the wrapped value has many associated functions, consider moving it into its own module.
-* If you need to enforce encapsulation, use signature files.
+* ドメインを正確に表す型を作成するために、シングルケースの判別付きユニオンを使用する。
+* ラップされた値に検証が必要な場合は、検証を行うコンストラクタを用意し、その使用を強制すること。
+* 検証に失敗した場合に何が起こるかを明確にする。単純なケースでは、オプションタイプを返します。より複雑なケースでは、成功と失敗のハンドラを呼び出し側に渡すようにします。
+* ラップされた値に多くの関連する関数がある場合、それを独自のモジュールに移すことを検討してください。
+* カプセル化を強制する必要がある場合は、署名ファイルを使用します。
 
-We're still not done with refactoring.  We can alter the design of types to enforce business rules at compile time -- making illegal states unrepresentable.
+リファクタリングはまだ終わっていません。 違法な状態を表現できないように、コンパイル時にビジネスルールを強制するように型の設計を変更することができます。
 
 {{< linktarget "update" >}}
 
-## Update ##
+## アップデート ##
 
-Many people have asked for more information on how to ensure that constrained types such as `EmailAddress` are only created through a special constructor that does the validation.
-So I have created a [gist here](https://gist.github.com/swlaschin/54cfff886669ccab895a) that has some detailed examples of other ways of doing it.
+多くの方から、`EmailAddress`のような制約のある型が、検証を行う特別なコンストラクタを通してのみ作成されるようにする方法について、より詳しい情報を求められました。
+そこで、他の方法の詳細な例をまとめた[gist here](https://gist.github.com/swlaschin/54cfff886669ccab895a)を作成しました。

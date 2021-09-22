@@ -9,123 +9,123 @@ seriesOrder: 1
 
 ---
 
-One comment I hear often is a complaint about the gap between theory and practice in F# and functional programming in general.
-In other words, you know the theory, but how do you actually design and implement an application using FP principles?
+よく耳にするコメントに、F#や一般的な関数型プログラミングにおける理論と実践のギャップに対する不満があります。
+つまり、理論は知っていても、実際にFPの原則を使ってアプリケーションを設計・実装するにはどうすればいいのかということです。
 
-So I thought it might be useful to show you how I personally would go about designing and implementing some little applications from beginning to end.
+そこで、私が個人的に、いくつかの小さなアプリケーションを最初から最後までどのように設計・実装していくかをお見せすることが有益ではないかと考えました。
 
-These will be sort of annotated "live coding" sessions. I'll take a problem and start coding it, taking you through my thought process at each stage.
-I will make mistakes too, so you'll see how I deal with that, and do backtracking and refactoring.
+これは、注釈付きの「ライブコーディング」セッションのようなものです。問題を取り上げてコーディングを開始し、各段階での私の思考プロセスを紹介していきます。
+私もミスをするので、それにどう対処するか、バックトラックやリファクタリングをどう行うかを見ていただきます。
 
-Please be aware that I'm not claiming that this is production ready code. The code I'm going to show you is more like a exploratory sketch, and as
-a result I will do certain bad things (like not testing!) which I would not do for more critical code.
+なお、私はこのコードが量産可能なコードだとは言っていません。これからお見せするコードは、探索的なスケッチのようなものです。
+結果として、より重要なコードにはしないような悪いこと(テストをしないなど)をしてしまいます。
 
-For this first post in the series, I'll be developing a simple pocket calculator app, like this:
+このシリーズの最初の記事では、次のようなシンプルなポケット電卓アプリを開発します。
 
-![Calculator image](./calculator_1.png)
+![電卓画像](./calculator_1.png)
 
-## My development approach
+## 私の開発アプローチ
 
-My approach to software development is eclectic and pragmatic -- I like to mix different techniques and alternate between top-down and bottom-up approaches.
+私のソフトウェア開発のアプローチは、折衷的で実用的です。さまざまな技術を組み合わせたり、トップダウンとボトムアップのアプローチを交互に行ったりするのが好きです。
 
-Typically I start with the requirements -- I'm a fan of [requirements-driven design](http://fsharpforfunandprofit.com/posts/roman-numeral-kata/)!
-Ideally, I would aim to become an expert in the domain as well.
+一般的には、要件から始めます。私は[要件駆動設計](http://fsharpforfunandprofit.com/posts/roman-numeral-kata/)のファンです。
+理想的には、その分野の専門家になることです。
 
-Next, I work on modelling the domain, using [domain-driven design](http://fsharpforfunandprofit.com/ddd/)
-with a focus on domain events (["event storming"](http://ziobrando.blogspot.co.uk/2013/11/introducing-event-storming.html)), not just static data ("aggregates" in DDD terminology).
+次に、[ドメイン駆動設計](http://fsharpforfunandprofit.com/ddd/)を用いてドメインのモデリングに取り組みます。
+単なる静的なデータ(DDD用語では「集約」)ではなく、ドメインのイベント(["イベントストーミング"](http://ziobrando.blogspot.co.uk/2013/11/introducing-event-storming.html))に焦点を当てて、ドメインのモデリングに取り組みます。
 
-As part of the modelling process, I sketch a design using [type-first development](http://tomasp.net/blog/type-first-development.aspx/)
-to [create types](/series/designing-with-types.html) that represent both the domain data types ("nouns") and the domain activities ("verbs").
+モデリングプロセスの一環として、[タイプファースト開発](http://tomasp.net/blog/type-first-development.aspx/)を用いてデザインをスケッチします。
+ドメインのデータタイプ(「名詞」)とドメインのアクティビティ(「動詞」)の両方を表す[型の作成](/series/designing-with-types.html)を行います。
 
-After doing a first draft of the domain model, I typically switch to a "bottom up" approach and code a small prototype that exercises the model that I have defined so far.
+ドメインモデルの最初のドラフトを作成した後、私は通常、「ボトムアップ」のアプローチに切り替え、これまでに定義したモデルを実行する小さなプロトタイプをコーディングします。
 
-Doing some real coding at this point acts as a reality check. It ensures that the domain model actually makes sense and is not too abstract.
-And of course, it often drives more questions about the requirements and domain model,
-so I go back to step 1, do some refining and refactoring, and rinse and repeat until I am happy.
+この時点で実際にコーディングを行うことで、現実を確認することができます。ドメインモデルが実際に意味を持ち、抽象的すぎないことを確認します。
+そしてもちろん、要件やドメインモデルについての疑問がさらに深まることもよくあります。
+そこで私はステップ1に戻り、いくつかの改良とリファクタリングを行い、満足できるまで繰り返します。
 
-(Now if I was working with a team on a large project, at this point we could also start [building a real system incrementally](http://www.growing-object-oriented-software.com/)
-and start on the user interface (e.g. with paper prototypes). Both of these activities will typically generate yet more questions and changes in requirements too, so
-the whole process is cyclical at all levels.)
+(もし私が大規模なプロジェクトでチームと仕事をしていたら、この時点で[実際のシステムを段階的に構築する](http://www.growing-object-oriented-software.com/)こともできるでしょう)
+また、ユーザーインターフェースの開発にも着手することができます(ペーパープロトタイプなど)。これらの活動は、通常、さらに多くの質問や要件の変更を生み出します。
+プロセス全体がすべてのレベルで循環しているのです)。
 
-So this would be my approach in a perfect world. In practice, of course, the world is not perfect. There is bad management to contend with,
-a lack of requirements, silly deadlines and more, all of which mean that I rarely get to use an ideal process.
+完璧な世界では、これが私のアプローチです。もちろん、実際には完璧な世界ではありません。悪質な管理者に悩まされることもあります。
+理想的なプロセスを使用することはほとんどありません。
 
-But in this example, I'm the boss, so if I don't like the result, I've only myself to blame!
+しかし、この例では、私がボスなので、もし結果が気に入らなければ、自分自身を責めるしかないのです。
 
-## Getting started
+## はじめに
 
-So, let's get started. What should we do first?
+では、さっそく始めてみましょう。まず何をすればいいのでしょうか？
 
-Normally I would start with requirements.  But do I *really* need to spend a lot of time writing up requirements for a calculator?
+通常、私は要件から始めるでしょう。 しかし、電卓の要件を書くのに多くの時間を費やす必要があるでしょうか？
 
-I'm going to be lazy and say no. Instead I'm just to dive in -- I'm confident that I know how a calculator works.
-(*As you'll see later, I was wrong! Trying to write up the requirements would have been a good exercise, as there are some interesting edge cases.*)
+私は怠け者なので、「いいえ」と答えます。その代わりに、電卓がどのように動作するかを知っている自信があるので、ただ飛び込んでみることにします。
+(後で分かるように、私は間違っていました。興味深いエッジケースがいくつかあるので、要求事項を書いてみるのもいい練習になったでしょう。)
 
-So let's start with the type-first design instead.
+では、代わりに型優先の設計から始めましょう。
 
-In my designs, every use-case is a function, with one input and one output.
+私のデザインでは、すべてのユースケースは、1つの入力と1つの出力を持つ関数です。
 
-For this example then, we need to model the public interface to the Calculator as a function. Here's the signature:
+この例では、Calculatorのパブリックインターフェースを関数としてモデル化する必要があります。シグネチャーは以下の通りです。
 
 ```fsharp
 type Calculate = CalculatorInput -> CalculatorOutput
 ```
 
-That was easy!  The first question then is: are there any other use-cases that we need to model?
-I think for now, no. We'll just start with a single case that handles all the inputs.
+簡単でしたね。 では、最初の質問ですが、他にモデル化する必要のあるユースケースはあるでしょうか？
+今のところ、ないと思います。まずは、すべての入力を処理する1つのケースから始めましょう。
 
 
-## Defining the input and output to the function
+## 関数の入力と出力の定義
 
-But now we have created two new types, `CalculatorInput` and `CalculatorOutput`, that are undefined
-(and if you type this into a F# script file, you'll have red squigglies to remind you).
-We'd better define those now.
+しかし、ここで新たに `CalculatorInput` と `CalculatorOutput` という2つの型を作りましたが、これらは定義されていません。
+(これは未定義です(F#のスクリプトファイルにこれを入力すると、赤いスクウィグリーが表示されて気づかせることができます)。)
+今のうちに定義しておきましょう。
 
-Before moving on, I should make it very clear that the input and output types for this function are going to be pure and clean.
-When designing our domain we never want to be dealing with the messy world of strings, primitive datatypes, validation, and so on.
+先に進む前に、この関数の入力と出力の型は純粋でクリーンなものであることを明確にしておきます。
+ドメインを設計する際には、文字列、プリミティブデータ型、検証などの面倒な世界を扱いたくありません。
 
-Instead there will typically be a validation/transformation function that converts from the messy untrusted world into our lovely, pristine domain on the way in,
-and another similar function that does the reverse on the way out.
+その代わりに、一般的には、信頼できない面倒な世界から、私たちの素敵で純粋なドメインに変換する検証/変換関数があります。
+そして、その逆を行う同様の関数が、出てきます。
 
-![Domain input and output](./domain_input_output.png)
+![ドメインの入力と出力](./domain_input_output.png)
 
 
-Ok, let's work on the `CalculatorInput` first. What would the structure of the input look like?
+では、まず`CalculatorInput`に取り組んでみましょう。入力の構造はどのようになるでしょうか？
 
-First, obviously, there will be some keystrokes, or some other way of communicating the intent of the user.
-But also, since the calculator is stateless, we need to pass in some state as well. This state would contain, for example, the digits typed in so far.
+まず、当然のことながら、キー操作や、ユーザーの意図を伝える何らかの方法があるでしょう。
+しかし、電卓はステートレスなので、何かの状態も渡す必要があります。この状態には、例えば、これまでに入力された数字などが含まれます。
 
-As to the output, the function will have to emit a new, updated state, of course.
+出力に関しては、もちろん、関数は新しい、更新された状態を出力しなければなりません。
 
-But do we need anything else, such as a structure containing formatted output for display? I don't think we do.
-We want to isolate ourselves from the display logic, so we'll just let the UI turn the state into
-something that can be displayed.
+しかし、表示用にフォーマットされた出力を含む構造体など、他に何か必要なものがあるでしょうか？私はそうは思いません。
+私たちは表示ロジックから自分たちを分離したいので、UIが状態を表示可能なものに変換するようにします。
+表示できるようにします。
 
-What about errors? In [other posts](/rop/), I have spent a lot of time talking about error handling. Is it needed in this case?
+エラーについては？[他の記事](/rop/)では、エラー処理について多くの時間を費やしてきました。今回のケースでは必要なのでしょうか？
 
-In this case, I think not. In a cheap pocket calculator, any errors are shown right in the display, so we'll stick with that approach for now.
+今回の場合は必要ないと思います。安物の電卓では、エラーがあればすぐに表示されますので、今のところはその方法でいきます。
 
-So here's the new version of the function:
+では、新しいバージョンの関数を示します。
 
 ```fsharp
 type Calculate = CalculatorInput * CalculatorState -> CalculatorState
 ```
 
-`CalculatorInput` now means the keystrokes or whatever, and `CalculatorState` is the state.
+ここで、`CalculatorInput`はキーストロークなどを意味し、`CalculatorState`は状態を意味しています。
 
-Notice that I have defined this function using a [tuple](/posts/tuples/) (`CalculatorInput * CalculatorState`) as input,
-rather than as two separate parameters (which would look like `CalculatorInput -> CalculatorState -> CalculatorState`).
-I did this because both parameters are always needed and a tuple makes this clear -- I don't want to be partially applying the input, for example.
+この関数は、入力として[tuple](/posts/tuples/) (`CalculatorInput * CalculatorState`)を使って定義していることに注意してください。
+2つの別々のパラメータ(`CalculatorInput -> CalculatorState -> CalculatorState`)ではなく、入力として[tuple](/post/tuples/) (`CalculatorInput * CalculatorState`)を使って定義していることに注目してください。
+このようにしたのは、両方のパラメータが常に必要であり、タプルにすることでそれが明確になるからです。例えば、入力を部分的に適用したくはありません。
 
-In fact I do this for all functions when doing type-first design. Every function has one input and one output.
-This doesn't mean that there might not be potential for doing partial application later, just that, at the design stage, I only want one parameter.
+実際、型優先設計を行う際には、すべての関数に対してこのようにしています。すべての関数は1つの入力と1つの出力を持っています。
+これは、後から部分的に適用する可能性がないということではなく、設計段階ではパラメータは1つだけにしたいということです。
 
-Also note that things that are not part of the pure domain (such as configuration and connection strings) will *never* be shown at this stage,
-although, at implementation time, they will of course be added to the functions that implement the design.
+また、純粋なドメインの一部ではないもの(設定や接続文字列など)は、この段階では*決して*表示されないことに注意してください。
+ただし、実装時には、もちろん設計を実装する関数に追加されます。
 
-## Defining the CalculatorState type
+## CalculatorState型の定義
 
-Now let's look at the `CalculatorState`. All I can think of that we need right now is something to hold the information to display.
+それでは、`CalculatorState`を見てみましょう。今必要なのは、表示する情報を保持するものだと思います。
 
 ```fsharp
 type Calculate = CalculatorInput * CalculatorState -> CalculatorState
@@ -134,12 +134,12 @@ and CalculatorState = {
     }
 ```
 
-I've defined a type `CalculatorDisplay`, firstly as documentation to make it clear what the field value is used for,
-and secondly, so I can postpone deciding what the display actually is!
+まず、フィールドの値が何に使われるのかを明確にするための資料として、`CalculatorDisplay`という型を定義しました。
+そしてもう一つは、実際に表示するものを決めるのを先延ばしにするためです。
 
-So what should the type of the display be? A float? A string? A list of characters? A record with multiple fields?
+では、ディスプレイのタイプは何にしましょうか？float? 文字列ですか？文字のリスト？複数のフィールドを持つレコード？
 
-Well, I'm going to go for `string`, because, as I said above, we might need to display errors.
+というのも、上で述べたように、エラーを表示する必要があるかもしれないからです。
 
 ```fsharp
 type Calculate = CalculatorInput * CalculatorState -> CalculatorState
@@ -149,9 +149,9 @@ and CalculatorState = {
 and CalculatorDisplay = string
 ```
 
-Notice that I am using `and` to connect the type definitions together. Why?
+型定義をつなぐのに、`and`を使っていることに注目してください。なぜでしょう？
 
-Well, F# compiles from top to bottom, so you must define a type before it is used. The following code will not compile:
+F#は上から下に向かってコンパイルするので、型を使用する前に型を定義する必要があります。以下のコードはコンパイルされません。
 
 ```fsharp
 type Calculate = CalculatorInput * CalculatorState -> CalculatorState
@@ -161,16 +161,16 @@ type CalculatorState = {
 type CalculatorDisplay = string
 ```
 
-I could fix this by changing the order of the declarations,
-but since I am in "sketch" mode, and I don't want to reorder things all the time,
-I will just append new declarations to the bottom and use `and` to connect them.
+宣言の順番を変えることで、この問題を解決することができます。
+しかし、私は「スケッチ」モードにいるので、常に順序を変えたいとは思いません。
+新しい宣言を一番下に追加して、`and`を使ってそれらをつなげます。
 
-In the final production code though, when the design has stabilized, I *would* reorder these types to avoid using `and`.
-The reason is that `and` can [hide cycles between types](/posts/cyclic-dependencies/) and prevent refactoring.
+しかし、最終的な量産コードでは、デザインが安定してきたら、`and`を使わないように、これらの型を並べ替えることになります。
+その理由は、`and`は[型の間のサイクルを隠してしまい](/posts/cyclic-dependencies/)、リファクタリングを妨げてしまうからです。
 
-## Defining the CalculatorInput type
+## CalculatorInput型の定義
 
-For the `CalculatorInput` type, I'll just list all the buttons on the calculator!
+`CalculatorInput`型では、電卓のボタンをすべて列挙してみます!
 
 ```fsharp
 // as above
@@ -182,30 +182,30 @@ and CalculatorInput =
     | Equals | Clear
 ```
 
-Some people might say: why not use a `char` as the input? But as I explained above, in my domain I only want to deal with ideal data.
-By using a limited set of choices like this, I never have to deal with unexpected input.
+なぜ入力に `char` を使わないのかと言う人もいるでしょう。しかし、上で説明したように、私のドメインでは、理想的なデータだけを扱いたいのです。
+このように限られた選択肢を使うことで、想定外の入力に対処する必要がなくなります。
 
-Also, a side benefit of using abstract types rather than chars is that `DecimalSeparator` is not assumed to be ".".
-The actual separator should be obtained by first getting the current culture (`System.Globalization.CultureInfo.CurrentCulture`)
-and then using `CurrentCulture.NumberFormat.CurrencyDecimalSeparator` to get the separator. By hiding this implementation detail from the design,
-changing the actual separator used will have minimal effect on the code.
+また、文字列ではなく抽象型を使うことの副次的な利点は、`DecimalSeparator`が "."であると想定されないことです。
+実際のセパレータは、まず現在のカルチャを取得して(`System.Globalization.CultureInfo.CurrentCulture`)、次に`CurrentCulture`を使って取得します。
+を取得し，次に `CurrentCulture.NumberFormat.CurrencyDecimalSeparator` を使用してセパレータを取得する必要があります．この実装の詳細をデザインから隠すことで
+実際に使用するセパレータを変更しても、コードへの影響は最小限に抑えられます。
 
-## Refining the design: handling digits
+## デザインの改良: 数字の処理
 
-So that's a first pass at the design done. Now let's dig deeper and define some of the internal processes.
+以上で、デザインのファーストパスが完成しました。ここからは、より深く掘り下げて、内部処理を定義していきましょう。
 
-Let's start with how the digits are handled.
+まず、数字の処理について説明します。
 
-When a digit key is pressed, we want to append the digit to the current display. Let's define a function type that represents that:
+数字のキーが押されたら、その数字を現在のディスプレイに追加したいと思います。これを表す関数型を定義しましょう。
 
 ```fsharp
 type UpdateDisplayFromDigit = CalculatorDigit * CalculatorDisplay -> CalculatorDisplay
 ```
 
-The `CalculatorDisplay` type is the one we defined earlier, but what is this new `CalculatorDigit` type?
+`CalculatorDisplay`は先ほど定義した型ですが、この`CalculatorDigit`は何でしょうか？
 
-Well obviously we need some type to represent all the possible digits that can be used as input.
-Other inputs, such as `Add` and `Clear`, would not be valid for this function.
+もちろん、入力として使用可能なすべての数字を表す型が必要です。
+この関数では、`Add`や`Clear`などの他の入力は有効ではありません。
 
 ```fsharp
 type CalculatorDigit =
@@ -214,7 +214,7 @@ type CalculatorDigit =
     | DecimalSeparator
 ```
 
-So the next question is, how do we get a value of this type? Do we need a function that maps a `CalculatorInput` to a `CalculatorDigit` type, like this?
+さて、次の問題は、この型の値をどのようにして得るのかということです。次のように、`CalculatorInput`と`CalculatorDigit`を対応させる関数が必要でしょうか？
 
 ```fsharp
 let convertInputToDigit (input:CalculatorInput) =
@@ -226,10 +226,10 @@ let convertInputToDigit (input:CalculatorInput) =
         | Clear -> ???
 ```
 
-In many situations, this might be necessary, but in this case it seems like overkill.
-And also, how would this function deal with non-digits such as `Add` and `Clear`?
+多くの状況では、これは必要かもしれませんが、この場合はやりすぎのように思えます。
+また、`Add`や`Clear`のような数字ではないものを、この関数はどう扱うのでしょうか？
 
-So let's just redefine the `CalculatorInput` type to use the new type directly:
+そこで、`CalculatorInput`の型を再定義して、新しい型を直接使うようにしましょう。
 
 ```fsharp
 type CalculatorInput =
@@ -238,12 +238,12 @@ type CalculatorInput =
     | Equals | Clear
 ```
 
-While we're at it, let's classify the other buttons as well.
+ついでに、他のボタンも分類してみましょう。
 
-I would classify `Add | Subtract | Multiply | Divide` as math operations,
-and as for `Equals | Clear`, I'll just call them "actions" for lack of better word.
+私は、`Add｜Subtract｜Multiply｜Divide`を算術演算に分類します。
+そして、`Equals | Clear`については、言葉が足りないので、「アクション」と呼ぶことにします。
 
-Here's the complete refactored design with new types `CalculatorDigit`, `CalculatorMathOp` and `CalculatorAction`:
+以下は、新しい型 `CalculatorDigit`, `CalculatorMathOp`, `CalculatorAction` を含む、リファクタリングされた完全なデザインです。
 
 ```fsharp
 type Calculate = CalculatorInput * CalculatorState -> CalculatorState
@@ -267,38 +267,38 @@ and CalculatorAction =
 type UpdateDisplayFromDigit = CalculatorDigit * CalculatorDisplay -> CalculatorDisplay
 ```
 
-This is not the only approach. I could have easily left `Equals` and `Clear` as separate choices.
+これは唯一の方法ではありません。`Equals` と `Clear`を別々の選択肢として残すことも簡単にできました。
 
-Now let's revisit `UpdateDisplayFromDigit` again. Do we need any other parameters? For example, do we need any other part of the state?
+さて、`UpdateDisplayFromDigit`をもう一度見直してみましょう。何か他のパラメータが必要でしょうか？例えば、ステートの他の部分が必要でしょうか？
 
-No, I can't think of anything else. When defining these functions, I want to be as minimal as possible. Why pass in the whole calculator state if you only need the display?
+いいえ、他には何も思いつきません。これらの関数を定義するときは、できるだけ最小限にしたいと思っています。ディスプレイだけが必要なのに、なぜ電卓全体の状態を渡すのでしょうか？
 
-Also, would `UpdateDisplayFromDigit` ever return an error? For example, surely we can't add digits indefinitely -- what happens when we are not allowed to?
-And is there some other combination of inputs that might cause an error? For example, inputting nothing but decimal separators! What happens then?
+また、`UpdateDisplayFromDigit`がエラーを返すことはありますか？例えば、無限に桁を増やすことはできないはずですが、それが許されない場合はどうなるのでしょうか？
+また、エラーになるような他の入力の組み合わせはありますか? 例えば、10進数のセパレータだけを入力したとします。その場合はどうなるのでしょうか？
 
-For this little project, I will assume that neither of these will create an explicit error, but instead, bad input will be rejected silently.
-In other words, after 10 digits, say, other digits will be ignored. And after the first decimal separator, subsequent ones will be ignored as well.
+今回のプロジェクトでは、どちらも明示的なエラーにはならず、不正な入力は静かに拒否されると仮定します。
+言い換えれば、例えば10桁の数字を入力した後、他の数字は無視されます。また、最初の小数点セパレータの後は、それ以降の小数点セパレータも無視されます。
 
-Alas, I cannot encode these requirements in the design. But that fact that `UpdateDisplayFromDigit`
-does not return any explicit error type *does* at least tell me that errors will be handled silently.
+残念ながら、このような要求をデザインに盛り込むことはできません。しかし、`UpdateDisplayFromDigit`
+が明示的なエラータイプを返さないという事実は、少なくともエラーが静かに処理されることを示しています。
 
 ## Refining the design: the math operations
 
-Now let's move on to the math operations.
+さて、次は算術演算に移りましょう。
 
-These are all binary operations, taking two numbers and spitting out a new result.
+これらはすべて二項演算で、2つの数値を受け取り、新しい結果を出力します。
 
-A function type to represent this would look like this:
+これを表現する関数型は次のようになります。
 
 ```fsharp
 type DoMathOperation = CalculatorMathOp * Number * Number -> Number
 ```
 
-If there were unary operations as well, such as `1/x`, we would need a different type for those, but we don't, so we can keep things simple.
+もし、`1/x`のような単項演算があれば、別の型が必要になるが、そうではないので、シンプルにすることができる。
 
-Next decision: what numeric type should we use? Should we make it generic?
+次の決断：どのような数値型を使うべきか？汎用性を持たせるべきでしょうか？
 
-Again, let's just keep it simple and use `float`. But we'll keep the `Number` alias around to decouple the representation a bit. Here's the updated code:
+ここでもシンプルに、`float`を使うことにしましょう。しかし、表現を少し切り離すために、`Number`というエイリアスを残しておきます。以下に更新したコードを示します。
 
 ```fsharp
 type DoMathOperation = CalculatorMathOp * Number * Number -> Number
@@ -306,20 +306,20 @@ and Number = float
 ```
 
 
-Now let's ponder `DoMathOperation`, just as we did for `UpdateDisplayFromDigit` above.
+さて、上記の `UpdateDisplayFromDigit` と同様に、`DoMathOperation` について考えてみましょう。
 
-Question 1: Is this the minimal set of parameters? For example, do we need any other part of the state?
+質問1：これは最小限のパラメータセットですか？例えば、他の部分の状態が必要なのでしょうか？
 
-Answer: No, I can't think of anything else.
+回答 いいえ、他には何も思いつきません。
 
-Question 2: Can `DoMathOperation` ever return an error?
+質問2： `DoMathOperation` がエラーを返すことはありますか？
 
-Answer: Yes! What about dividing by zero?
+回答 Yes! ゼロで割るのはどうですか？
 
-So how should we handle errors?
-Let's create a new type that represents a result of a math operation, and make that the output of `DoMathOperation`:
+では，エラーはどのように処理すればよいのでしょうか？
+数学演算の結果を表す新しい型を作成して、それを `DoMathOperation` の出力としましょう。
 
-The new type, `MathOperationResult` will have two choices (discriminated union) between `Success` and `Failure`.
+新しい型である`MathOperationResult`は、`Success`と`Failure`の2つの選択肢(discriminated union)を持つことになります。
 
 ```fsharp
 type DoMathOperation = CalculatorMathOp * Number * Number -> MathOperationResult
@@ -331,53 +331,53 @@ and MathOperationError =
     | DivideByZero
 ```
 
-We could have also used the built-in generic `Choice` type, or even a full ["railway oriented programming"](/rop/) approach, but since this is a sketch of the design,
-I want the design to stand alone, without a lot of dependencies, so I'll just define the specific type right here.
+ビルトインされている汎用の `Choice` 型や、完全な ["鉄道指向プログラミング"](/rop/) アプローチを使うこともできましたが、
+これはデザインのスケッチなので、多くの依存関係なしにデザインを独立させたいので、ここで特定の型を定義することにしました。
 
-Any other errors? NaNs or underflows or overflows? I'm not sure. We have the `MathOperationError` type, and it would be easy to extend it as needed.
+他のエラーは？NaNとかアンダーフローとかオーバーフローとか？よくわかりません。`MathOperationError`という型があるので、必要に応じて簡単に拡張できそうです。
 
-## Where do numbers come from?
+## 数字はどこから来るの？
 
-We've defined `DoMathOperation` to use `Number` values as input. But where does a `Number` come from?
+`DoMathOperation` は `Number` 値を入力として使用するように定義しました。しかし、`Number`はどこから来るのでしょうか？
 
-Well they come from the sequence of digits that have been entered -- converting the digits into a float.
+数字は入力された一連の数字から、その数字を浮動小数点に変換します。
 
-One approach would be to store a `Number` in the state along with the string display, and update it as each digit comes in.
+1つの方法としては、文字列の表示と一緒に `Number` をステートに保存し、各桁が入力されるたびに更新するというものがあります。
 
-I'm going to take a simpler approach, and just get the number from the display directly. In other words, we need a function that looks like this:
+ここでは、もっと単純な方法で、ディスプレイから直接数字を取得することにします。つまり、次のような関数が必要なのです。
 
 ```fsharp
 type GetDisplayNumber = CalculatorDisplay -> Number
 ```
 
-Thinking about it though, the function could fail, because the display string could be "error" or something. So let's return an option instead.
+考えてみると、この関数は失敗する可能性があります。なぜなら、表示される文字列は「error」か何かだからです。そこで，代わりにオプションを返すことにしましょう。
 
 ```fsharp
 type GetDisplayNumber = CalculatorDisplay -> Number option
 ```
 
-Similarly, when we *do* have a successful result, we will want to display it, so we need a function that works in the other direction:
+同様に、結果が成功したときには、それを表示したいので、逆方向に動作する関数が必要です。
 
 ```fsharp
 type SetDisplayNumber = Number -> CalculatorDisplay
 ```
 
-This function can never error (I hope), so we don't need the `option`.
+この関数は絶対にエラーにならない(はず)なので、`option`は必要ありません。
 
-## Refining the design: handling a math operation input
+## Refining the design: Handling a math operation input
 
-We're not done with math operations yet, though!
+演算の処理はまだ終わっていません。
 
-What is the visible effect when the input is `Add`? None!
+入力が `Add` の場合、目に見える効果は何でしょうか？何もありません。
 
-The `Add` event needs another number to be entered later, so the `Add` event is somehow kept pending,
-waiting for the next number.
+`Add` イベントは後で別の数字を入力する必要があるので、`Add` イベントは何らかの形で保留されています。
+次の数字を待っているのです。
 
-If you think about, we not only have to keep the `Add` event pending, but also the previous number, ready to be added to the latest number that is input.
+考えてみると、`Add`イベントを保留にしておくだけでなく、前の数字も保留にして、入力された最新の数字に追加できるようにしておかなければなりません。
 
-Where will we keep track of this? In the `CalculatorState` of course!
+これをどこで管理するのでしょうか？もちろん、`CalculatorState`の中です。
 
-Here's our first attempt to add the new fields:
+ここでは、新しいフィールドを追加する最初の試みを紹介します。
 
 ```fsharp
 and CalculatorState = {
@@ -387,7 +387,7 @@ and CalculatorState = {
     }
 ```
 
-But sometimes there isn't a pending operation, so we have to make it optional:
+しかし，保留中の操作がない場合もあるので，オプションにする必要があります。
 
 ```fsharp
 and CalculatorState = {
@@ -397,44 +397,44 @@ and CalculatorState = {
     }
 ```
 
-But this is wrong too!  Can we have a `pendingOp` without a `pendingNumber`, or vice versa? No. They live and die together.
+しかし、これも間違っています。 `pendingNumber`がないのに`pendingOp`があったり、その逆があったりするでしょうか？いいえ、これらは一緒に生きたり死んだりします。
 
-This implies that the state should contain a pair, and the whole pair is optional, like this:
+これは、ステートがペアを含み、ペア全体がオプションであることを意味しています。
 
 ```fsharp
-and CalculatorState = {
+そしてCalculatorState = {
     display: CalculatorDisplay
     pendingOp: (CalculatorMathOp * Number) option
     }
 ```
 
-But now we are still missing a piece. If the operation is added to the state as pending,
-when does the operation actually get *run* and the result displayed?
+しかし、ここでまだ1つ足りません。操作がpendingとして状態に追加された場合。
+実際に操作が実行され、結果が表示されるのはいつですか？
 
-Answer: when the `Equals` button is pushed, or indeed any another math op button. We'll deal with that later.
+答え: `Equals` ボタンが押されたとき、あるいは他の演算ボタンが押されたときです。これについては後ほど説明します。
 
-## Refining the design: handling the Clear button
+## Refining the design: Handling the Clear button
 
-We've got one more button to handle, the `Clear` button. What does it do?
+もう一つのボタン、`Clear`ボタンを扱います。これは何をするものでしょうか？
 
-Well, it obviously just resets the state so that the display is empty and any pending operations are removed.
+もちろん、ディスプレイが空になるように状態をリセットし、保留されていた操作を削除します。
 
-I'm going to call this function `InitState` rather than "clear", and here is its signature:
+この関数を "clear"ではなく、`InitState`と呼ぶことにしました。
 
 ```fsharp
 type InitState = unit -> CalculatorState
 ```
 
-## Defining the services
+## サービスの定義
 
-At this point, we have everything we need to switch to bottom up development.
-I'm eager to try building a trial implementation of the `Calculate` function, to see if the design is usable, and if we've missed anything.
+この時点で、ボトムアップ開発に切り替えるために必要なものがすべて揃いました。
+私は、`Calculate`関数の試験的な実装を作ってみて、デザインが使えるかどうか、何か見落としていないかどうかを確認したいと思っています。
 
-But how can I create a trial implementation without implementing the whole thing?
+でも、全部を実装するのではなく、どうやって試験的な実装をすればいいのでしょうか？
 
-This is where all these types come in handy. We can define a set of "services" that the `calculate` function will use, but without actually implementing them!
+そこで便利なのが、これらのタイプです。このタイプは、`calculate`関数が使用する一連の「サービス」を、実際には実装せずに定義することができます。
 
-Here's what I mean:
+ここでは、次のように説明します。
 
 ```fsharp
 type CalculatorServices = {
@@ -446,23 +446,23 @@ type CalculatorServices = {
     }
 ```
 
-We've created a set of services that can be injected into an implementation of the `Calculate` function.
-With these in place, we can code the `Calculate` function immediately and deal with the implementation of the services later.
+これで、`Calculate`関数の実装に注入できるサービスのセットができました。
+これで、`Calculate`関数をすぐにコーディングして、サービスの実装は後回しにすることができます。
 
-At this point, you might be thinking that this seems like overkill for a tiny project.
+この時点では、小さなプロジェクトには無理があると思われるかもしれません。
 
-It's true -- we don't want this to turn into [FizzBuzz Enterprise Edition](https://github.com/EnterpriseQualityCoding/FizzBuzzEnterpriseEdition)!
+確かに、これが[FizzBuzz Enterprise Edition](https://github.com/EnterpriseQualityCoding/FizzBuzzEnterpriseEdition)のようになってしまうことは避けたいですね。
 
-But I'm demonstrating a principle here. By separating the "services" from the core code, you can start prototyping immediately.
-The goal is not to make a production ready codebase, but to find any issues in the design. We are still in the requirements discovery phase.
+しかし、私はここである原則を示しています。「サービス」をコア・コードから分離することで、すぐにプロトタイピングを始めることができます。
+目標は本番用のコードベースを作ることではなく、設計上の問題点を見つけることです。今はまだ、要件発見の段階です。
 
-This approach should not be unfamiliar to you -- it is directly equivalent to the OO principle of
-creating a bunch of interfaces for services and then injecting them into the core domain.
+このアプローチは馴染みがないかもしれませんが、これは、サービスのためにたくさんのインターフェースを作成し、
+それらをコア・ドメインに注入するというOOOの原則と直接同じです。
 
-## Review
+## レビュー
 
-So let's review -- with the addition of the services, our initial design is complete.
-Here is all the code so far:
+サービスを追加したことで、初期設計は完了しました。
+これまでのコードは以下の通りです。
 
 ```fsharp
 type Calculate = CalculatorInput * CalculatorState -> CalculatorState
@@ -512,11 +512,11 @@ type CalculatorServices = {
 ```
 
 
-## Summary
+## まとめ
 
-I think that this is quite nice. We haven't written any "real" code yet, but with a bit of thought, we have already built quite a detailed design.
+これは非常に素晴らしいことだと思います。まだ「本当の」コードは書いていませんが、少し考えただけで、かなり詳細な設計ができています。
 
-In the [next post](/posts/calculator-implementation), I'll put this design to the test by attempting to create an implementation.
+[次の投稿](/posts/calculator-implementation)では、この設計をテストして、実装を作ってみたいと思います。
 
-*The code for this post is available in this [gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_design-fsx) on GitHub.*
+*この記事のコードは、GitHubのこの[gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_design-fsx)にあります。
 

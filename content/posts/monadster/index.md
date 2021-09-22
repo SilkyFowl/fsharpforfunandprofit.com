@@ -11,485 +11,485 @@ seriesOrder: 1
 
 *UPDATE: [Slides and video from my talk on this topic](/monadster/)*
 
-*Warning! This post contains gruesome topics, strained analogies, discussion of monads*
+*Warning! この記事には、陰惨なトピック、苦しいアナロジー、モナドの議論が含まれています*。
 
-For generations, we have been captivated by the tragic story of Dr Frankenfunctor.
-The fascination with vital forces,
-the early experiments with electricity and galvanism,
-and finally the breakthrough culminating in the bringing to life of a collection of dead body parts -- the Monadster.
+何世代にもわたって、私たちはフランケンフアンクター博士の悲劇的な物語に魅了されてきました。
+生命の力に魅了されています。
+電気とガルバニズムの初期の実験。
+そして最終的には、死んだ体の一部を集めて命を吹き込むという画期的な方法で、モナドスターを完成させました。
 
-But then, as we all know, the creature escaped and the free Monadster rampaged through computer science conferences,
-bringing fear to the hearts of even the most seasoned programmers.
+しかし、ご存知のように、その生物は逃げ出し、自由なモナドスターはコンピュータサイエンスの学会で暴れまわりました。
+熟練したプログラマーの心にも恐怖を与えたのです。
 
 ![The horror, The horror](./monadster_horror.jpg)
 
-*CAPTION: The terrible events at the 1990 ACM Conference on LISP and Functional Programming.*
+*1990年に開催されたACM Conference on LISP and Functional Programmingで起きた恐ろしい出来事を紹介します。
 
-I will not repeat the details here; the story is still too terrible to recall.
+その詳細はここでは繰り返しません。この話はまだ思い出すにはあまりにもひどいものです。
 
-But in all the millions of words devoted to this tragedy, one topic has never been satisfactorily addressed.
+しかし、この悲劇に捧げられた何百万もの言葉の中で、一つのトピックが満足に取り上げられたことはありません。
 
-*How was the creature assembled and brought to life?*
+*その生物はどのようにして組み立てられ、命を吹き込まれたのでしょうか？*
 
-We know that Dr Frankenfunctor built the creature from dead body parts, and then animated them in a single instant, using a bolt of lightning to create the vital force.
+フランケンファンクター博士は、死んだ体のパーツからクリーチャーを作り、生命力を生み出すために稲妻を使って一瞬にしてそれらを動かしたことは分かっています。
 
-But the various body parts had to be assembled into a whole, and the vital force had to be transmitted through the assembly in the appropriate manner,
-and all this done in a split second, in the moment that the lightning struck.
+しかし、体の各部分は全体に組み合わされなければならず、生命力は適切な方法で組み立てられた中を伝わらなければなりませんでした。
+それも、雷が落ちた瞬間の一瞬である。
 
-I have devoted many years of research into this matter, and recently, at great expense, I have managed to obtain Dr Frankenfunctor's personal laboratory notebooks.
+私はこの問題を長年にわたって研究し、最近になって、フランケンファンクター博士の個人的な実験ノートを、多大な費用をかけて入手することができました。
 
-So at last, I can present Dr Frankenfunctor's technique to the world.  Use it as you will. I do not make any judgements as to its morality,
-after all, it is not for mere developers to question the real-world effects of what we build.
+これでようやく、フランケンファンクター博士の技術を世に問うことができるようになりました。 お好きなようにお使いください。私はその道徳性については何も判断しない。
+結局のところ、我々が作ったものが実際にどのような影響を及ぼすのかを問うことは、単なる開発者にはできないことなのです。
 
-## Background
+## 背景
 
-To start with, you need to understand the fundamental process involved.
+まず始めに、基本的なプロセスを理解する必要があります。
 
-First, you must know that no whole body was available to Dr Frankenfunctor. Instead, the creature was created from an assemblage of body parts
--- arms, legs, brain, heart -- whose provenances were murky and best left unspoken.
+まず知っておかなければならないのは、フランケンファンクター博士には全身が用意されていなかったということです。代わりに、クリーチャーは体のパーツの集合体から作られました。
+-- 腕、足、脳、心臓など、その出所は曖昧で、語られないのが最善である。
 
-Dr Frankenfunctor started with a dead body part, and infused it with some amount of vital force. The result was two things:
-a now live body part, and the remaining, diminished, vital force, because of course some of the vital force was transferred to the live part.
+フランケンファンクター博士は、死んだ体の一部から始めて、それにある種の生命力を注入した。その結果、2つのことが起こった。
+その結果、生きている体の部分と、生きている部分に生命力の一部が伝達されたために残った、減少した生命力の2つが得られたのです。
 
-Here is a diagram demonstrating the principle:
+この原理を示した図があります。
 
-![The principle](./monadster1.png)
+![原理](./monadster1.png)
 
-But this creates only *one* body part. How can we create more than one? This is the challenge that faced Dr Frankenfunctor.
+しかし、これでは体の一部は1つしか作れません。どうすれば、複数のパーツを作ることができるのでしょうか？これが、Dr. Frankenfunctorが直面した課題です。
 
-The first problem is that we only have a limited quantity of the vital force.
-This means that when we need to animate a second body part, we have available only the remaining vital force from a previous step.
+最初の問題は、私たちが持っている生命力の量には限りがあるということです。
+つまり、2つ目の体のパーツをアニメーション化する必要があるとき、前のステップで得た残りのバイタルフォースしか利用できないということです。
 
-How can we connect the two steps together so that the vital force from the first step is fed into the input of the second step?
+では、2つのステップをつなげて、1つ目のステップのバイタルフォースを2つ目のステップの入力に送り込むにはどうしたらいいのでしょうか？
 
-![Connecting steps together](./monadster_connect.png)
+![ステップをつなぐ](./monadster_connect.png)
 
-Even if we have chained the steps correctly, we need to take the various live body parts and combine them somehow. But we only have access to *live* body parts during the moment of creation.
-How can we combine them in that split second?
+ステップを正しく連結したとしても、さまざまな生きた体のパーツを、何らかの方法で組み合わせる必要があります。しかし、私たちが「生きている」身体のパーツにアクセスできるのは、創造の瞬間だけです。
+その一瞬の間に、どうやって組み合わせるのか。
 
-![Combining the outputs of each step](./monadster_combine.png)
+![各ステップの出力を組み合わせる](./monadster_combine.png)
 
-It was Dr Frankenfunctor's genius that led to an elegant approach that solved both of these problems, the approach that I will present to you now.
+この2つの問題を解決するエレガントなアプローチを導き出したのは、フランケンファンクター博士の天才的な才能であり、今から紹介するアプローチです。
 
-## The common context
+## 共通のコンテキスト
 
-Before discussing the particulars of assembling the body parts, we should spend a moment on common functionality that is required for the rest of the procedure.
+ボディパーツの組み立て方を説明する前に、残りの手順で必要となる共通の機能について少し説明します。
 
-First, we need a label type. Dr Frankenfunctor was very disciplined in labeling the source of every part used.
-
-```fsharp
-type Label = string
-```
-
-The vital force we will model with a simple record type:
+まず、ラベルタイプが必要です。フランケンファンクター博士は、使用したすべての部品の出所をラベルで示すことに非常にこだわっていました。
 
 ```fsharp
-type VitalForce = {units:int}
+タイプ ラベル = 文字列
 ```
 
-Since we will be using vital force frequently, we will create a function that extracts one unit and returns a tuple of the unit and remaining force.
+生命力は、シンプルなレコード型でモデル化します。
+
+```fsharp
+type VitalForce = {units:int}.
+```
+
+バイタルフォースは頻繁に使用するので、1つのユニットを抽出し、ユニットと残りのフォースのタプルを返す関数を作成します。
 
 ```fsharp
 let getVitalForce vitalForce =
-   let oneUnit = {units = 1}
-   let remaining = {units = vitalForce.units-1}  // decrement
-   oneUnit, remaining  // return both
+   let oneUnit = {units = 1}.
+   let remaining = {units = vitalForce.units-1} // デクリメント
+   oneUnit, remaining // 両方を返す
 ```
 
-## The Left Leg
+## 左足
 
-With the common code out of the way, we can return to the substance.
+一般的なコードの説明が終わったので、中身に戻りましょう。
 
-Dr Frankenfunctor's notebooks record that the lower extremities were created first. There was a left leg lying around in the laboratory, and that was the starting point.
+フランケンファンクター博士のノートには、まず下肢が作られたと記録されています。研究室には左足が転がっていて、それが出発点となった。
 
 ```fsharp
-type DeadLeftLeg = DeadLeftLeg of Label
+type DeadLeftLeg = DeadLeftLeg of Label（デッドレフトレッグオブラベル
 ```
 
-From this leg, a live leg could be created with the same label and one unit of vital force.
+この脚から、同じラベルと1単位のバイタルフォースを持つ生きた脚を作ることができた。
 
 ```fsharp
 type LiveLeftLeg = LiveLeftLeg of Label * VitalForce
 ```
 
-The type signature for the creation function would thus look like this:
+作成関数の型署名は次のようになる。
 
 ```fsharp
-type MakeLiveLeftLeg =
+タイプ MakeLiveLeftLeg =
     DeadLeftLeg * VitalForce -> LiveLeftLeg * VitalForce
 ```
 
-And the actual implementation like this:
+そして、実際の実装は次のようになります。
 
 ```fsharp
-let makeLiveLeftLeg (deadLeftLeg,vitalForce) =
-    // get the label from the dead leg using pattern matching
+let makeLiveLeftLeg (deadLeftLeg,vitalForce) =.
+    // パターンマッチを使って死んだ脚からラベルを取得する
     let (DeadLeftLeg label) = deadLeftLeg
-    // get one unit of vital force
+    // 1単位のバイタルフォースを得る
     let oneUnit, remainingVitalForce = getVitalForce vitalForce
-    // create a live leg from the label and vital force
+    // ラベルとバイタルフォースから生きている脚を作る
     let liveLeftLeg = LiveLeftLeg (label,oneUnit)
-    // return the leg and the remaining vital force
+    // 脚と残りのバイタルフォースを返す
     liveLeftLeg, remainingVitalForce
 ```
 
-As you can see, this implementation matched the earlier diagram precisely.
+見ての通り、この実装は先ほどの図と正確に一致しています。
 
-![Version 1](./monadster1.png)
+![バージョン1](./monadster1.png)
 
-At this point Dr Frankenfunctor had two important insights.
+この時点で、フランケンファンクター博士は2つの重要な洞察を得ました。
 
-The first insight was that, thanks to [currying](/posts/currying/), the function could be converted from a function taking a tuple to a two parameter function, with each parameter passed in turn.
+1つ目は、[currying](/posts/currying/)のおかげで、この関数はタプルを受け取る関数から、各パラメータを順番に渡す2パラメータの関数に変換できるということでした。
 
-![Version 2](./monadster2.png)
+![バージョン2](./monadster2.png)
 
-And the code now looked like this:
+そして、コードは次のようになりました。
 
 ```fsharp
 type MakeLiveLeftLeg =
     DeadLeftLeg -> VitalForce -> LiveLeftLeg * VitalForce
 
-let makeLiveLeftLeg deadLeftLeg vitalForce =
-    let (DeadLeftLeg label) = deadLeftLeg
+let makeLiveLeftLeg deadLeftLeg vitalForce =.
+    let (DeadLeftLeg ラベル) = deadLeftLeg
     let oneUnit, remainingVitalForce = getVitalForce vitalForce
-    let liveLeftLeg = LiveLeftLeg (label,oneUnit)
-    liveLeftLeg, remainingVitalForce
+    LiveLeftLeg = LiveLeftLeg (label,oneUnit) とする。
+    LiveLeftLeg, 残りのバイタルフォース
 ```
 
-The second insight was that this *same* code can be interpreted as a function that in turn returns a "becomeAlive" function.
+2つ目の発見は、この同じコードは、「beetAlive」関数を返す関数として解釈できるということでした。
 
-That is, we have the dead part on hand, but we won't have any vital force until the final moment, so why not process the dead part right now and return a function
-that can be used when the vital force becomes available.
+つまり、死んだ部分は手元にあるが、最後の瞬間まで生命力はないので、今すぐ死んだ部分を処理して、生命力があるときに使える関数
+を返せば、生命力が湧いてきたときに使うことができます。
 
-In other words, we pass in a dead part, and we get back a function that creates a live part when given some vital force.
+つまり、死んだ部品を渡すと、生命力があれば生きた部品を作る関数が返ってくるのです。
 
-![Version 3](./monadster3.png)
+![バージョン3](./monadster3.png)
 
-These "become alive" functions can then be treated as "steps in a recipe", assuming we can find some way of combining them.
+これらの「生きている状態になる」関数は、何らかの方法で組み合わせることができれば、「レシピのステップ」として扱うことができます。
 
-The code looks like this now:
+コードは次のようになっています。
 
 ```fsharp
 type MakeLiveLeftLeg =
     DeadLeftLeg -> (VitalForce -> LiveLeftLeg * VitalForce)
 
-let makeLiveLeftLeg deadLeftLeg =
-    // create an inner intermediate function
+let makeLiveLeftLeg deadLeftLeg =.
+    // 内部の中間関数を作る
     let becomeAlive vitalForce =
         let (DeadLeftLeg label) = deadLeftLeg
         let oneUnit, remainingVitalForce = getVitalForce vitalForce
-        let liveLeftLeg = LiveLeftLeg (label,oneUnit)
-        liveLeftLeg, remainingVitalForce
-    // return it
-    becomeAlive
+        LiveLeftLeg = LiveLeftLeg (label,oneUnit) とする。
+        LiveLeftLeg, 残りのバイタルフォース
+    // 戻す
+    生きる
 ```
 
-It may not be obvious, but this is *exactly the same code* as the previous version, just written slightly differently.
+よくわからないかもしれませんが、これは前のバージョンとまったく同じコード*で、書き方が少し違うだけです。
 
-This curried function (with two parameters) can be interpreted as a normal two parameter function,
-or it can be interpreted as a *one parameter* function that returns *another* one parameter function.
+このcurried関数（2つのパラメータを持つ）は、通常の2つのパラメータを持つ関数として解釈することができます。
+あるいは、もう一つの*1つの1つのパラメータ関数を返す*1つのパラメータ*関数と解釈することもできます。
 
-If this is not clear, consider the much simpler example of a two parameter `add` function:
+もしこれがよくわからなければ，もっと単純な2パラメータの`add`関数の例を考えてみましょう．
 
 ```fsharp
 let add x y =
     x + y
 ```
 
-Because F# curries functions by default, that implementation is exactly the same as this one:
+F#はデフォルトで関数をcurryするので，この実装はこの実装と全く同じです。
 
 ```fsharp
 let add x =
     fun y -> x + y
 ```
 
-Which, if we define an intermediate function, is also exactly the same as this one:
+また，中間関数を定義すると，以下のようになります．
 
 ```fsharp
 let add x =
-    let addX y = x + y
-    addX // return the function
+    レット addX y = x + y
+    addX // 関数を返す
 ```
 
-### Creating the Monadster type
+### モナドスター型の作成
 
-Looking ahead, we can see that we can use a similar approach for all the functions that create live body parts.
+今後は、生きた体のパーツを作るすべての関数に同じような手法を使えることがわかります。
 
-All those functions will return a function that has a signature like: `VitalForce -> LiveBodyPart * VitalForce`.
+これらの関数はすべて、次のようなシグネチャーを持つ関数を返します。VitalForce -> LiveBodyPart * VitalForce`.
 
-To make our life easy, let's give that function signature a name, `M`, which stands for "Monadster part generator",
-and give it a generic type parameter `'LiveBodyPart` so that we can use it with many different body parts.
+簡単にするために、この関数のシグネチャに名前をつけましょう。`M`、これは "Monadster part generator "の略です。
+そして、汎用的な型のパラメータ`'LiveBodyPart`を与えて、様々なボディパーツで使えるようにしましょう。
 
 ```fsharp
-type M<'LiveBodyPart> =
+タイプ M<'LiveBodyPart> =
     VitalForce -> 'LiveBodyPart * VitalForce
 ```
 
-We can now explicitly annotate the return type of the `makeLiveLeftLeg` function with `:M<LiveLeftLeg>`.
+これで、`makeLiveLeftLeg`関数の戻り値の型を、`:M<LiveLeftLeg>`で明示的にアノテーションすることができます。
 
 ```fsharp
-let makeLiveLeftLeg deadLeftLeg :M<LiveLeftLeg> =
+let makeLiveLeftLeg deadLeftLeg :M<LiveLeftLeg> =.
     let becomeAlive vitalForce =
         let (DeadLeftLeg label) = deadLeftLeg
         let oneUnit, remainingVitalForce = getVitalForce vitalForce
         let liveLeftLeg = LiveLeftLeg (label,oneUnit)
-        liveLeftLeg, remainingVitalForce
-    becomeAlive
+        LiveLeftLeg, 残りのバイタルフォース
+    生きる力
 ```
 
-The rest of the function is unchanged because the `becomeAlive` return value is already compatible with `M<LiveLeftLeg>`.
+関数の残りの部分は、`becomeAlive`の戻り値がすでに`M<LiveLeftLeg>`と互換性があるので、変更はありません。
 
-But I don't like having to explicitly annotate all the time. How about we wrap the function in a single case union -- call it "M" -- to give it its own distinct type? Like this:
+しかし、常に明示的にアノテーションをしなければならないのは好ましくありません。そこで、この関数を1つのcase union -- "M "と呼ぶ -- で囲み、独自の型を与えるのはどうでしょうか。こんな感じです。
 
 ```fsharp
-type M<'LiveBodyPart> =
+タイプ M<'LiveBodyPart> =
     M of (VitalForce -> 'LiveBodyPart * VitalForce)
 ```
 
-That way, we can [distinguish between a "Monadster part generator" and an ordinary function returning a tuple](https://stackoverflow.com/questions/2595673/state-monad-why-not-a-tuple).
+こうすることで、「モナドスターのパーツジェネレータ」と「タプルを返す普通の関数」を[区別することができます](https://stackoverflow.com/questions/2595673/state-monad-why-not-a-tuple)。
 
-To use this new definition, we need to tweak the code to wrap the intermediate function in the single case union `M` when we return it, like this:
+この新しい定義を使うためには、中間関数を返すときに、シングルケースユニオン `M` で包むように、コードを次のように調整する必要があります。
 
 ```fsharp
-let makeLiveLeftLegM deadLeftLeg  =
+let makeLiveLeftLegM deadLeftLeg = (左脚)
     let becomeAlive vitalForce =
         let (DeadLeftLeg label) = deadLeftLeg
         let oneUnit, remainingVitalForce = getVitalForce vitalForce
         let liveLeftLeg = LiveLeftLeg (label,oneUnit)
-        liveLeftLeg, remainingVitalForce
-    // changed!
-    M becomeAlive // wrap the function in a single case union
+        LiveLeftLeg, 残りのバイタルフォース
+    // 変化した!
+    M becomeAlive // この関数を1つのケースにまとめる union
 ```
 
-For this last version, the type signature will be correctly inferred without having to specify it explicitly: a function that takes a dead left leg and returns an "M" of a live leg:
+この最後のバージョンでは，型シグネチャを明示的に指定しなくても正しく推論されます：死んだ左脚を受け取り，生きた脚の "M "を返す関数です．
 
 ```fsharp
-val makeLiveLeftLegM : DeadLeftLeg -> M<LiveLeftLeg>
+val makeLiveLeftLegM : DeadLeftLeg -> M<LiveLeftLeg>.
 ```
 
-Note that I've renamed the function `makeLiveLeftLegM` to make it clear that it returns a `M` of `LiveLeftLeg`.
+なお、関数名を `makeLiveLeftLegM` に変更して、`LiveLeftLeg` の `M` を返すことを明確にしています。
 
-### The meaning of M
+### Mの意味
 
-So what does this "M" type mean exactly? How can we make sense of it?
+では、この「M」という型は具体的にどのような意味を持つのでしょうか？どうやって意味を理解すればいいのでしょうか？
 
-One helpful way is to think of a `M<T>` as a *recipe* for creating a `T`. You give me some vital force and I'll give you back a `T`.
+ひとつの方法として、`M<T>`を`T`を作るための*レシピ*と考えるとよいでしょう。あなたが私に生命力を与えてくれたら、私はあなたに`T`を返します。
 
-But how can an `M<T>` create a `T` out of nothing?
+しかし、`M<T>`はどうやって無から`T`を作り出すことができるのでしょうか？
 
-That's where functions like `makeLiveLeftLegM` are critically important. They take a parameter and "bake" it into the result.
-As a result, you will see lots of "M-making" functions with similar signatures, all looking something like this:
+そこで、`makeLiveLeftLegM`のような関数が非常に重要になってきます。この関数はパラメータを受け取り、それを結果に「焼き付ける」のです。
+その結果、似たようなシグネチャーを持つ「Mを作る」関数がたくさん出てきますが、それらはすべて次のようなものです。
 
 ![](./monadster5.png)
 
-Or in code terms:
+コードで言えば、次のようになります。
 
 ```fsharp
-DeadPart -> M<LivePart>
+デッドパート -> M<ライブパート
 ```
 
-The challenge now will be how to combine these in an elegant way.
+今後の課題は、これらをいかにしてエレガントに組み合わせるかということです。
 
-### Testing the left leg
+### 左足のテスト
 
-Ok, let's test what we've got so far.
+それでは、これまでに得られた成果をテストしてみましょう。
 
-We'll start by creating a dead leg and use `makeLiveLeftLegM` on it to get an `M<LiveLeftLeg>`.
+まず、死んだ足を作り、それに`makeLiveLeftLegM`を使って、`M<LiveLeftLeg>`を取得します。
 
 ```fsharp
 let deadLeftLeg = DeadLeftLeg "Boris"
 let leftLegM = makeLiveLeftLegM deadLeftLeg
 ```
 
-What is `leftLegM`? It's a recipe for creating a live left leg, given some vital force.
+leftLegM "とは何でしょうか？何らかの生命力を与えて、生きた左足を作るためのレシピです。
 
-What's useful is that we can create this recipe *up front*, *before* the lightning strikes.
+便利なのは、このレシピを*前もって*、つまり雷が落ちる前に作ることができることです。
 
-Now let's pretend that the storm has arrived, the lightning has struck, and 10 units of vital force are now available:
+嵐が来て、雷が落ちて、10ユニットのバイタルフォースが使えるようになったとしましょう。
 
 ```fsharp
-let vf = {units = 10}
+let vf = {units = 10}.
 ```
 
-Now, inside the `leftLegM` is a function which we can apply to the vital force.
-But first we need to get the function out of the wrapper using pattern matching.
+さて、`leftLegM`の中には、バイタルフォースに適用できる関数が入っています。
+しかし，まず，パターンマッチを使ってラッパーから関数を取り出す必要がある．
 
 ```fsharp
 let (M innerFn) = leftLegM
 ```
 
-And then we can run the inner function to get the live left leg and the remaining vital force:
+そして、内部の関数を実行して、生きている左足と残りのバイタルフォースを得ることができる。
 
 ```fsharp
 let liveLeftLeg, remainingAfterLeftLeg = innerFn vf
 ```
 
-The results look like this:
+結果は次のようになります。
 
-```text
-val liveLeftLeg : LiveLeftLeg =
+```テキスト
+val liveLeftLeg : LiveLeftLeg = ライブレフトレッグ
    LiveLeftLeg ("Boris",{units = 1;})
-val remainingAfterLeftLeg : VitalForce =
+val remainingAfterLeftLeg : VitalForce = {units = 9;}.
    {units = 9;}
 ```
 
-You can see that a `LiveLeftLeg` was created successfully and that the remaining vital force is reduced to 9 units now.
+LiveLeftLeg "の生成に成功し，残りのバイタルフォースが9個になったことがわかります．
 
-This pattern matching is awkward, so let's create a helper function that both unwraps the inner function and calls it, all in one go.
+このパターンマッチは厄介なので、内部の関数をアンラップして一度に呼び出すヘルパー関数を作ってみましょう。
 
-We'll call it `runM` and it looks like this:
+これを`runM`と呼び、次のようにします。
 
 ```fsharp
 let runM (M f) vitalForce = f vitalForce
 ```
 
-So the test code above would now be simplified to this:
+上のテストコードは次のように簡単になります。
 
 ```fsharp
 let liveLeftLeg, remainingAfterLeftLeg = runM leftLegM vf
 ```
 
-So now, finally, we have a function that can create a live left leg.
+これでようやく、生きた左足を作ることができる関数ができました。
 
-It took a while to get it working, but we've also built some useful tools and concepts that we can use moving forwards.
+動作させるのに時間がかかりましたが、今後使える便利なツールやコンセプトを構築することができました。
 
-## The Right Leg
+# #右足
 
-Now that we know what we are doing, we should be able to use the same techniques for the other body parts now.
+何をしているのかがわかったので、今度は他の体の部位にも同じテクニックを使えるようになるはずです。
 
-How about a right leg then?
+では、右足はどうだろう？
 
-Unfortunately, according to the notebook, Dr Frankenfunctor could not find a right leg in the laboratory. The problem was solved with a hack... but we'll come to that later.
+残念ながら、ノートによると、フランケンファンクター博士は実験室で右足を見つけることができませんでした。この問題はハックで解決しましたが...その話は後ほど。
 
-## The Left Arm
+# #左腕
 
-Next, the arms were created, starting with the left arm.
+次に、腕が作られた。まずは左腕だ。
 
-But there was a problem.  The laboratory only had a *broken* left arm lying around. The arm had to be healed before it could be used in the final body.
+しかし、問題がありました。 研究室には、壊れた左腕しかありませんでした。最終的なボディに使用するには、この腕を治さなければならない。
 
-Now Dr Frankenfunctor, being a doctor, *did* know how to heal a broken arm, but only a live one.  Trying to heal a dead broken arm would be impossible.
+フランケンファンクター博士は医者なので、折れた腕の治し方は知っていたが、それは生きている腕に限られていた。 死んだ腕の骨折を治そうとしても、それは不可能です。
 
-In code terms, we have this:
+コードで言えば、こうなります。
 
 ```fsharp
 type DeadLeftBrokenArm = DeadLeftBrokenArm of Label
 
-// A live version of the broken arm.
+// 壊れた腕のライブバージョン。
 type LiveLeftBrokenArm = LiveLeftBrokenArm of Label * VitalForce
 
-// A live version of a heathly arm, with no dead version available
-type LiveLeftArm = LiveLeftArm of Label * VitalForce
+// 死んだバージョンが存在しない、健常者の腕のライブバージョン
+タイプ LiveLeftArm = LiveLeftArm of Label * VitalForce
 
-// An operation that can turn a broken left arm into a heathly left arm
+// 壊れた左腕を健常者の左腕にすることができる手術
 type HealBrokenArm = LiveLeftBrokenArm -> LiveLeftArm
 ```
 
-The challenge was therefore this: how can we make a live left arm out the material we have on hand?
+そこで課題となったのは、「手持ちの材料でどうやって生きた左腕を作るか」ということです。
 
-First, we have to rule out creating a `LiveLeftArm` from a `DeadLeftUnbrokenArm`, as there isn't any such thing. Nor can we convert a `DeadLeftBrokenArm` into a healthy `LiveLeftArm` directly.
+まず、「DeadLeftUnbrokenArm」から「LiveLeftArm」を作ることはできません。また、「DeadLeftBrokenArm」を健康な「LiveLeftArm」に直接変換することもできません。
 
 ![Map dead to dead](./monadster_map1.png)
 
-But what we *can* do is turn the `DeadLeftBrokenArm` into a *live* broken arm and then heal the live broken arm, yes?
+しかし、私たちが*できることは、`DeadLeftBrokenArm`を*生きた*壊れた腕に変えて、生きた壊れた腕を治すことですよね？
 
-![Can't create live broken arm directly](./monadster_map2.png)
+![生きた腕を直接作ることはできません](./monadster_map2.png)
 
-No, I'm afraid that won't work.  We can't create live parts directly, we can only create live parts in the context of the `M` recipe.
+残念ながら、それはできません。 ライブパーツを直接作成することはできません。ライブパーツは、`M`レシピのコンテキストの中でのみ作成できます。
 
-What we need to do then is create a special version of `healBrokenArm` (call it `healBrokenArmM`) that converts a `M<LiveBrokenArm>` to a `M<LiveArm>`.
+そこで必要なのは、`M<LiveBrokenArm>`を`M<LiveArm>`に変換する特別バージョンの`healBrokenArm`（`healBrokenArmM`と呼ぶ）を作ることです。
 
-![Can't create live broken arm directly](./monadster_map3.png)
+![ライブブロークンアームを直接作ることはできません](./monadster_map3.png)
 
-But how do we create such a function?  And how can we reuse `healBrokenArm` as part of it?
+しかし、このような関数をどうやって作るのでしょうか？ また、その一部として `healBrokenArm` を再利用するにはどうすればよいでしょうか？
 
-Let's start with the most straightforward implementation.
+まずは、最も簡単な実装方法から説明します。
 
-First, since the function will return an `M` something, it will have the same form as the `makeLiveLeftLegM` function that we saw earlier.
-We'll need to create an inner function that has a vitalForce parameter, and then return it wrapped in an `M`.
+まず、この関数は `M` を返すので、先ほどの `makeLiveLeftLegM` 関数と同じ形になります。
+vitalForceのパラメータを持つ内側の関数を作り、それを`M`で包んで返す必要があります。
 
-But unlike the function that we saw earlier, this one has an `M` as parameter too (an `M<LiveBrokenArm>`).  How can we extract the data we need from this input?
+しかし、先ほどの関数とは異なり、この関数にはパラメータとして`M`もあります（`M<LiveBrokenArm>`）。 この入力から必要なデータを取り出すにはどうすればいいでしょうか？
 
-Simple, just run it with some vitalForce.  And where are we going to get the vitalForce from? From the parameter to the inner function!
+単純に、vitalForceで動かすだけです。 では、そのvitalforceはどこから得られるのでしょうか？それは、内部関数のパラメータからです。
 
-So our finished version will look like this:
+というわけで、完成版は以下のようになります。
 
 ```fsharp
-// implementation of HealBrokenArm
+// HealBrokenArmの実装
 let healBrokenArm (LiveLeftBrokenArm (label,vf)) = LiveLeftArm (label,vf)
 
-/// convert a M<LiveLeftBrokenArm> into a M<LiveLeftArm>
-let makeHealedLeftArm brokenArmM =
+/// M<LiveLeftBrokenArm>をM<LiveLeftArm>に変換する。
+let makeHealedLeftArm brokenArmM =.
 
-    // create a new inner function that takes a vitalForce parameter
-    let healWhileAlive vitalForce =
-        // run the incoming brokenArmM with the vitalForce
-        // to get a broken arm
-        let brokenArm,remainingVitalForce = runM brokenArmM vitalForce
+    // vitalForceのパラメータを受け取る新しい内部関数を作成する
+    let healWhileAlive vitalForce =.
+        // 入力されたbrokenArmMをvitalForceで実行する
+        // 壊れた腕を得るために
+        let brokenArm,remainVitalForce = runM brokenArmM vitalForce
 
-        // heal the broken arm
+        // 壊れた腕を治す
         let healedArm = healBrokenArm brokenArm
 
-        // return the healed arm and the remaining VitalForce
+        // 癒された腕と残りのVitalForceを返す
         healedArm, remainingVitalForce
 
-    // wrap the inner function and return it
-    M healWhileAlive
+    // 内部の関数をラップして返す
+    M HealWhileAlive
 ```
 
-If we evaluate this code, we get the signature:
+このコードを評価すると，シグネチャが得られます．
 
 ```fsharp
-val makeHealedLeftArm : M<LiveLeftBrokenArm> -> M<LiveLeftArm>
+val makeHealedLeftArm : M<LiveLeftBrokenArm> -> M<LiveLeftArm>.
 ```
 
-which is exactly what we want!
+これはまさに私たちが望むものです。
 
-But not so fast -- we can do better.
+しかし、そうはいきません。もっと良い方法があります。
 
-We've hard-coded the `healBrokenArm` transformation in there. What happens if we want to do some other transformation, and for some other body part?
-Can we make this function a bit more generic?
+HealBrokenArm "という変換をハードコーディングしてしまったのです。もし、他の体の部位に、他の変換をしたい場合はどうしたらいいでしょうか？
+この関数をもう少し汎用的にすることはできないでしょうか？
 
-Yes, it's easy. All we need to is pass in a function ("f" say) that transforms the body part, like this:
+はい、簡単にできます。次のように、体の一部を変換する関数("f")を渡せばいいのです。
 
 ```fsharp
-let makeGenericTransform f brokenArmM =
+let makeGenericTransform f brokenArmM =.
 
-    // create a new inner function that takes a vitalForce parameter
+    // vitalForceのパラメータを受け取る新しい内部関数を作る
     let healWhileAlive vitalForce =
-        let brokenArm,remainingVitalForce = runM brokenArmM vitalForce
+        let brokenArm,remainVitalForce = runM brokenArmM vitalForce
 
-        // heal the broken arm using passed in f
+        // 渡されたfを使って壊れた腕を治す
         let healedArm = f brokenArm
-        healedArm, remainingVitalForce
+        癒された腕、残りのバイタルフォース
 
-    M healWhileAlive
+    M HealWhileAlive
 ```
 
-What's amazing about this is that by parameterizing that one transformation with the `f` parameter, the *whole* function becomes generic!
+驚くべきことに、この一つの変換を `f` パラメータでパラメータ化することで、*全体* の関数がジェネリックになるのです!
 
-We haven't made any other changes, but the signature for `makeGenericTransform` no longer refers to arms. It works with anything!
+他には何も変更していませんが、`makeGenericTransform`のシグネチャはもはや腕を参照していません。どんなものでも使えます。
 
 ```fsharp
-val makeGenericTransform : f:('a -> 'b) -> M<'a> -> M<'b>
+val makeGenericTransform : f:('a -> 'b) -> M<'a> -> M<'b>)
 ```
 
-### Introducing mapM
+### mapMの紹介
 
-Since it is so generic now, the names are confusing. Let's rename it.
-I'll call it `mapM`.  It works with *any* body part and *any* transformation.
+今はとても汎用的なので、名前が混乱しています。名前を変えてみましょう。
+mapM`と呼ぶことにします。 これは *あらゆる* ボディパーツと *あらゆる* トランスフォームに対応します。
 
-Here's the implementation, with the internal names fixed up too.
+内部の名前も修正した実装は以下の通りです。
 
 ```fsharp
-let mapM f bodyPartM =
+let mapM f ボディパーツM =
     let transformWhileAlive vitalForce =
         let bodyPart,remainingVitalForce = runM bodyPartM vitalForce
-        let updatedBodyPart = f bodyPart
-        updatedBodyPart, remainingVitalForce
-    M transformWhileAlive
+        更新されたボディ・パート = f ボディ・パート
+        更新された体の部分、残りのバイタルフォース
+    M トランスフォームウォリアライヴ
 ```
 
-In particular, it works with the `healBrokenArm` function, so to create a version of "heal" that has been lifted to work with `M`s we can just write this:
+特に、`healBrokenArm`関数と連動しているので、`M`を使えるようにしたバージョンの "heal "を作るには、次のように書けばよいでしょう。
 
 ```fsharp
 let healBrokenArmM = mapM healBrokenArm
@@ -497,236 +497,236 @@ let healBrokenArmM = mapM healBrokenArm
 
 ![mapM with heal](./monadster_map4.png)
 
-### The importance of mapM
+### mapMの重要性
 
-One way of thinking about `mapM` is that it is a "function converter". Given any "normal" function, it converts it to a function where the input and output are `M`s.
+mapM`を考える一つの方法は、「関数変換器」であることです。任意の「通常の」関数が与えられると、それを入力と出力が `M` である関数に変換します。
 
 ![mapM](./monadster_mapm.png)
 
-Functions similar to `mapM` crop up in many situations. For example, `Option.map` transforms a "normal" function into a function whose inputs and outputs are options.
-Similarly, `List.map` transforms a "normal" function into a function whose inputs and outputs are lists. And there are many other examples.
+mapM`に似た関数は様々な場面で登場します。例えば、`Option.map`は、「通常の」関数を、入力と出力がオプションである関数に変換します。
+同様に、`List.map`は、「通常の」関数を、入力と出力がリストである関数に変換します。他にもたくさんの例があります。
 
 ```fsharp
-// map works with options
+// マップはオプションで動作する
 let healBrokenArmO = Option.map healBrokenArm
-// LiveLeftBrokenArm option -> LiveLeftArm option
+// LiveLeftBrokenArmオプション -> LiveLeftArmオプション
 
-// map works with lists
-let healBrokenArmL = List.map healBrokenArm
-// LiveLeftBrokenArm list -> LiveLeftArm list
+// マップはリストで動作します
+let healBrokenArmmL = List.map healBrokenArm
+// LiveLeftBrokenArmのリスト -> LiveLeftArmのリスト
 ```
 
-What might be new to you is that the "wrapper" type `M` contains a *function*, not a simple data structure like Option or List. That might make your head hurt!
+ラッパー」タイプの `M` には、Option や List のような単純なデータ構造ではなく、*関数* が含まれていることが、皆さんにとって新しい発見かもしれません。頭が痛くなるかもしれませんね。
 
-In addition, the diagram above implies that `M` could wrap *any* normal type and `mapM` could map *any* normal function.
+さらに、上の図は、`M` は *あらゆる* 通常の型をラップすることができ、`mapM` は *あらゆる* 通常の関数をマッピングすることができることを意味しています。
 
-Let's try it and see!
+試しにやってみましょう。
 
 ```fsharp
-let isEven x = (x%2 = 0)   // int -> bool
-// map it
-let isEvenM = mapM isEven  // M<int> -> M<bool>
+let isEven x = (x%2 = 0) // int -> bool
+// 写す
+let isEvenM = mapM isEven // M<int> -> M<bool>
 
-let isEmpty x = (String.length x)=0  // string -> bool
-// map it
-let isEmptyM = mapM isEmpty          // M<string> -> M<bool>
+let isEmpty x = (String.length x)=0 // string -> bool
+// 写す
+let isEmptyM = mapM isEmpty // M<string> -> M<bool>
 ```
 
-So, yes, it works!
+というわけで、はい、動きました!
 
-### Testing the left arm
+### 左腕のテスト
 
-Again, let's test what we've got so far.
+ここまででできたことをもう一度テストしてみましょう。
 
-We'll start by creating a dead broken arm and use `makeLiveLeftBrokenArm` on it to get an `M<BrokenLeftArm>`.
+まず、壊れた腕を作り、`makeLiveLeftBrokenArm`を使って、`M<BrokenLeftArm>`を取得します。
 
 ```fsharp
-let makeLiveLeftBrokenArm deadLeftBrokenArm =
+let makeLiveLeftBrokenArm deadLeftBrokenArm = (デッドレフトブロッケンアーム)
     let (DeadLeftBrokenArm label) = deadLeftBrokenArm
     let becomeAlive vitalForce =
         let oneUnit, remainingVitalForce = getVitalForce vitalForce
         let liveLeftBrokenArm = LiveLeftBrokenArm (label,oneUnit)
-        liveLeftBrokenArm, remainingVitalForce
+        LiveLeftBrokenArm, remainingVitalForce
     M becomeAlive
 
-/// create a dead Left Broken Arm
+/// 死んだ左ブロークンアームを作る
 let deadLeftBrokenArm = DeadLeftBrokenArm "Victor"
 
-/// create a M<BrokenLeftArm> from the dead one
+/// 死んだものからM<BrokenLeftArm>を作る
 let leftBrokenArmM = makeLiveLeftBrokenArm deadLeftBrokenArm
 ```
 
-Now we can use `mapM` and `healBrokenArm` to convert the `M<BrokenLeftArm>` into a `M<LeftArm>`:
+あとは、`mapM`と`healBrokenArm`を使って、`M<BrokenLeftArm>`を`M<LeftArm>`に変換することができる。
 
 ```fsharp
 let leftArmM = leftBrokenArmM |> mapM healBrokenArm
 ```
 
-What we have now in `leftArmM` is a recipe for creating a unbroken and live left arm. All we need to do is add some vital force.
+leftArmM`には、壊れていない生きた左腕を作るためのレシピが入っています。あとは、生命力を加えるだけです。
 
-As before, we can do all these things up front, before the lightning strikes.
+以前のように、雷が落ちる前に、これらのことをすべて前もって行うことができます。
 
-Now when the storm arrives, and the lightning has struck, and vital force is available, we
-can run `leftArmM` with the vital force...
+嵐が来て、稲妻が落ちて、バイタルフォースが使えるようになったら、次は
+leftArmM`にバイタルフォースを加えて実行します。
 
 ```fsharp
-let vf = {units = 10}
+let vf = {units = 10}.
 
 let liveLeftArm, remainingAfterLeftArm = runM leftArmM vf
 ```
 
-...and we get this result:
+...そして、次のような結果が得られます。
 
 ```text
-val liveLeftArm : LiveLeftArm =
+val liveLeftArm : LiveLeftArm = ライブレフトアーム
     LiveLeftArm ("Victor",{units = 1;})
 val remainingAfterLeftArm :
-    VitalForce = {units = 9;}
+    VitalForce = {units = 9;} です。
 ```
 
-A live left arm, just as we wanted.
+思い通りの左腕ができあがりました。
 
-## The Right Arm
+## ♪ ♪ The Right Arm
 
-On to the right arm next.
+次は右腕です。
 
-Again, there was a problem.  Dr Frankenfunctor's notebooks record that there was no whole arm available.
-However there *was* a lower arm and an upper arm...
+ここでも問題がありました。 フランケンファンクター博士のノートには、腕全体がなかったと記録されています。
+しかし、下腕と上腕はあった。
 
 ```fsharp
-type DeadRightLowerArm = DeadRightLowerArm of Label
-type DeadRightUpperArm = DeadRightUpperArm of Label
+type DeadRightLowerArm = ラベルのDeadRightLowerArm
+type DeadRightUpperArm = DeadRightUpperArm of Label（デッドライトアッパーアームオブラベル
 ```
 
-...which could be turned into corresponding live ones:
+...これは、対応する生きているものに変えることができる。
 
 ```fsharp
-type LiveRightLowerArm = LiveRightLowerArm of Label * VitalForce
+type LiveRightLowerArm = ラベルのLiveRightLowerArm * VitalForce
 type LiveRightUpperArm = LiveRightUpperArm of Label * VitalForce
 ```
 
-Dr Frankenfunctor decided to do surgery to join the two arm sections into a whole arm.
+フランケンファンクター博士は、2つの腕の部分を1つの腕にする手術をすることにしました。
 
 ```fsharp
-// define the whole arm
+// 腕全体の定義
 type LiveRightArm = {
     lowerArm : LiveRightLowerArm
     upperArm : LiveRightUpperArm
     }
 
-// surgery to combine the two arm parts
-let armSurgery lowerArm upperArm =
-    {lowerArm=lowerArm; upperArm=upperArm}
+// 2つの腕のパーツを結合する手術
+let armSurgery lowerArm upperArm = {lowerArm=lowerArm; upperArm
+    {lowerArm=lowerArm; upperArm=upperArm}。
 ```
 
-As with the broken arm, the surgery could only be done with *live* parts. Doing that with dead parts would be yucky and gross.
+壊れた腕と同様に、この手術は*生きている*パーツでしかできません。死んだパーツを使って手術をするのは、嫌で嫌で仕方がありません。
 
-But also, as with the broken arm, we don't have access to the live parts directly, only within the context of an `M` wrapper.
+しかし、腕が折れたときと同様に、生きているパーツには直接アクセスできず、`M`ラッパーのコンテキストの中でしかアクセスできませんでした。
 
-In other words we need to convert our `armSurgery` function that works with normal live parts, and convert it into a `armSurgeryM` function that works with `M`s.
+言い換えれば、通常のライブパーツで動作する `armSurgery` 関数を `M` で動作する `armSurgeryM` 関数に変換する必要があります。
 
-![armsurgeryM](./monadster_armsurgeryM.png)
+![armSurgeryM](./monadster_armsurgeryM.png)
 
-We can use the same approach as we did before:
+先ほどと同じ方法を使うことができます。
 
-* create a inner function that takes a vitalForce parameter
-* run the incoming parameters with the vitalForce to extract the data
-* from the inner function return the new data after surgery
-* wrap the inner function in an "M" and return it
+* vitalForce パラメータを受け取る内部関数を作成します。
+* 入力されたパラメータを vitalForce で実行し、データを抽出します。
+* 内側の関数から、手術後の新しいデータを返します。
+* 内側の関数を "M "で囲み、それを返す
 
-Here's the code:
+以下はそのコードです。
 
 ```fsharp
-/// convert a M<LiveRightLowerArm> and  M<LiveRightUpperArm> into a M<LiveRightArm>
-let makeArmSurgeryM_v1 lowerArmM upperArmM =
+/// M<LiveRightLowerArm>とM<LiveRightUpperArm>をM<LiveRightArm>に変換する。
+let makeArmSurgeryM_v1 lowerArmM upperArmM =.
 
-    // create a new inner function that takes a vitalForce parameter
+    // vitalForceのパラメータを受け取る新しい内部関数を作る
     let becomeAlive vitalForce =
-        // run the incoming lowerArmM with the vitalForce
-        // to get the lower arm
+        // 入力されたlowerArmMをvitalForceで動かす
+        // 下アームを取得する
         let liveLowerArm,remainingVitalForce = runM lowerArmM vitalForce
 
-        // run the incoming upperArmM with the remainingVitalForce
-        // to get the upper arm
+        // 入ってくる上腕部を残りのバイタルフォースで走らせる
+        // 上腕を取るために
         let liveUpperArm,remainingVitalForce2 = runM upperArmM remainingVitalForce
 
-        // do the surgery to create a liveRightArm
+        // liveRightArmを作るための手術を行う
         let liveRightArm = armSurgery liveLowerArm liveUpperArm
 
-        // return the whole arm and the SECOND remaining VitalForce
-        liveRightArm, remainingVitalForce2
+        // 腕全体と2番目に残ったバイタルフォースを返す
+        ライブRightArm, 残りのバイタルフォース2
 
-    // wrap the inner function and return it
-    M becomeAlive
+    // 内部の関数をラップして返す
+    M 生き返る
 ```
 
-One big difference from the broken arm example is that we have *two* parameters, of course.
-When we run the second parameter (to get the `liveUpperArm`), we must be sure to pass in the *remaining vital force* after the first step, not the original one.
+壊れた腕の例との大きな違いは、もちろんパラメータが*2つ*あることです。
+2番目のパラメータ（`liveUpperArm`を取得する）を実行するときには、元のものではなく、最初のステップの後の*残っているバイタルフォース*を渡すようにしなければなりません。
 
-And then, when we return from the inner function, we must be sure to return `remainingVitalForce2` (the remainder after the second step) not any other one.
+そして、内部の関数から戻るときには、他のものではなく、必ず `remainingVitalForce2` (第2ステップの後の残り) を返さなければなりません。
 
-If we compile this code, we get:
+このコードをコンパイルすると、次のようになります。
 
 ```fsharp
-M<LiveRightLowerArm> -> M<LiveRightUpperArm> -> M<LiveRightArm>
+M<RightLowerArm> -> M<RightUpperArm> -> M<LiveRightArm>となります。
 ```
 
-which is just the signature we are looking for.
+となり、まさに求めていたシグネチャーとなります。
 
-### Introducing map2M
+### map2Mの紹介
 
-But as before, why not make this more generic?  We don't need to hard-code `armSurgery` -- we can pass it as a parameter.
+しかし、以前のように、これをもっと一般的にしてはどうでしょうか？ armSurgery`をハードコーディングする必要はなく、パラメータとして渡せばいいのです。
 
-We'll call the more generic function `map2M` -- just like `mapM` but with two parameters.
+ここでは、より汎用性の高い関数として、`map2M`を呼び出します。
 
-Here's the implementation:
+これがその実装です。
 
 ```fsharp
 let map2M f m1 m2 =
     let becomeAlive vitalForce =
-        let v1,remainingVitalForce = runM m1 vitalForce
+        let v1,reverentVitalForce = runM m1 vitalForce
         let v2,remainingVitalForce2 = runM m2 remainingVitalForce
         let v3 = f v1 v2
-        v3, remainingVitalForce2
+        v3, 残りのバイタルフォース2
     M becomeAlive
 ```
 
-And it has the signature:
+そして、これには署名があります。
 
 ```fsharp
-f:('a -> 'b -> 'c) -> M<'a> -> M<'b> -> M<'c>
+f:('a -> 'b -> 'c) -> M<'a> -> M<'b> -> M<'c>)
 ```
 
-Just as with `mapM` we can interpret this function as a "function converter" that converts a "normal" two parameter function into a function in the world of `M`.
+mapM`と同様に、この関数は「関数コンバータ」と解釈することができ、「通常の」2パラメータ関数を`M`の世界の関数に変換します。
 
 ![map2M](./monadster_map2m.png)
 
 
-### Testing the right arm
+### 右腕のテスト
 
-Again, let's test what we've got so far.
+今回も、これまでに得たものをテストしてみましょう。
 
-As always, we need some functions to convert the dead parts into live parts.
+いつものように、死んだパーツを生きたパーツに変換するための関数が必要です。
 
 ```fsharp
-let makeLiveRightLowerArm (DeadRightLowerArm label) =
+let makeLiveRightLowerArm (DeadRightLowerArm label) = （右腕を生きた状態にする
     let becomeAlive vitalForce =
         let oneUnit, remainingVitalForce = getVitalForce vitalForce
         let liveRightLowerArm = LiveRightLowerArm (label,oneUnit)
-        liveRightLowerArm, remainingVitalForce
-    M becomeAlive
+        ライブ右腕、残りのバイタルフォース
+    M 生きている状態になる
 
-let makeLiveRightUpperArm (DeadRightUpperArm label) =
+let makeLiveRightUpperArm (DeadRightUpperArm label) =.
     let becomeAlive vitalForce =
         let oneUnit, remainingVitalForce = getVitalForce vitalForce
         let liveRightUpperArm = LiveRightUpperArm (label,oneUnit)
-        liveRightUpperArm, remainingVitalForce
-    M becomeAlive
+        LiveRightUpperArm, remainingVitalForce
+    M 生きる力
 ```
 
-*By the way, are you noticing that there is a lot of duplication in these functions? Me too! We will attempt to fix that later.*
+*ところで、これらの関数には多くの重複があることに気付きましたか？私もです。これは後で修正します。
 
-Next, we'll create the parts:
+次に、パーツを作ります。
 
 ```fsharp
 let deadRightLowerArm = DeadRightLowerArm "Tom"
@@ -736,47 +736,47 @@ let deadRightUpperArm = DeadRightUpperArm "Jerry"
 let upperRightArmM = makeLiveRightUpperArm deadRightUpperArm
 ```
 
-And then create the function to make a whole arm:
+そして、腕全体を作る関数を作ります。
 
 ```fsharp
-let armSurgeryM  = map2M armSurgery
+let armSurgeryM = map2M armSurgery
 let rightArmM = armSurgeryM lowerRightArmM upperRightArmM
 ```
 
-As always, we can do all these things up front, before the lightning strikes, building a recipe (or *computation* if you like) that will do everything we need when the time comes.
+いつものように、雷が落ちる前にこれらのことを前もって行い、いざというときに必要なことをすべて行うためのレシピ（あるいは計算）を作っておくことができます。
 
-When the vital force is available, we can run `rightArmM` with the vital force...
+バイタルフォースが使えるようになったら、バイタルフォースを使って`rightArmM`を実行することができます...。
 
 ```fsharp
-let vf = {units = 10}
+let vf = {units = 10}.
 
 let liveRightArm, remainingFromRightArm = runM rightArmM vf
 ```
 
-...and we get this result:
+...そして、次のような結果が得られました。
 
 ```text
-val liveRightArm : LiveRightArm =
+val liveRightArm : LiveRightArm = {lowerArm = LiveRightArm}.
     {lowerArm = LiveRightLowerArm ("Tom",{units = 1;});
-     upperArm = LiveRightUpperArm ("Jerry",{units = 1;});}
+     upperArm = LiveRightUpperArm ("Jerry",{units = 1;});}。
 
-val remainingFromRightArm : VitalForce =
+val remainingFromRightArm : VitalForce =.
     {units = 8;}
 ```
 
-A live right arm, composed of two subcomponents, just as required.
+必要に応じて2つのサブコンポーネントで構成された生きた右腕。
 
-Also note that the remaining vital force has gone down to *eight*. We have correctly used up two units of vital force.
+また、残りのバイタルフォースが*8*になっていることにも注目してください。正しく2ユニットのバイタルフォースを使い切ったことになります。
 
-## Summary
+## まとめ
 
-In this post, we saw how to create a `M` type that wrapped a "become alive" function that in turn could only be activated when lightning struck.
+この記事では、「生きている状態になる」関数をラップした `M` 型を作成する方法を見ました。この関数は、雷が落ちたときにのみ起動することができます。
 
-We also saw how various M-values could be processed and combined using `mapM` (for the broken arm) and `map2M` (for the arm in two parts).
+また、`mapM`(折れた腕の場合)や`map2M`(2つに分かれた腕の場合)を使って、様々なM値を処理したり組み合わせたりする方法も見てきました。
 
-*The code samples used in this post are [available on GitHub](https://gist.github.com/swlaschin/54489d9586402e5b1e8a)*.
+*この記事で使用したコードサンプルは[GitHubで公開されています](https://gist.github.com/swlaschin/54489d9586402e5b1e8a)*.
 
-## Next time
+## 次回予告
 
-This exciting tale has more shocks in store for you! Stay tuned for [the next installment](/posts/monadster-2/), when I reveal how the head and body were created.
+このワクワクするような物語には、まだまだ衝撃が待っています。次回は、頭部と胴体がどのようにして作られたのかを明らかにしますので、お楽しみに。
 

@@ -6,59 +6,59 @@ date: 2019-12-20
 categories: []
 ---
 
-> This post is part of the [2019 F# Advent Calendar](https://sergeytihon.com/2019/11/05/f-advent-calendar-in-english-2019/).
-> Check out all the other great posts there! And special thanks to Sergey Tihon for organizing this.
+> この投稿は[2019 F# Advent Calendar](https://sergeytihon.com/2019/11/05/f-advent-calendar-in-english-2019/)の一部です。
+> そこにある他のすべての素晴らしい投稿をチェックしてください! そして、これを企画してくれたSergey Tihonさんに感謝します。
 
-Six and half years ago, I wrote a post and did a talk on what I called ["Railway Oriented Programming"](https://fsharpforfunandprofit.com/rop/). It was a way for me to explain to myself and others how to use `Result`/`Either` to for chaining together error-generating functions.
+6年半前、私は["Railway Oriented Programming"](https://fsharpforfunandprofit.com/rop/)と呼ばれるものについて記事を書き、講演を行いました。これは、エラーを発生させる関数を連鎖させるために、`Result`/`Either`をどのように使うかを自分や他の人に説明するためのものでした。
 
-To my surprise, this silly railway analogy really took off, and now there are railway-oriented programming libraries and posts for all sorts of languages, including [Ruby](https://www.morozov.is/2018/05/27/do-notation-ruby.html), [Java](https://github.com/StefanMacke/ao-railway), [JavaScript](https://dorp.io/posts/railway-oriented-programming/), [Kotlin](https://proandroiddev.com/railway-oriented-programming-in-kotlin-f1bceed399e5?gi=ce6e3bd2f69),
-[Python](https://github.com/rob-earwaker/rail) and more.
+驚いたことに、このくだらない鉄道の例えは本当に流行りました。今では、[Ruby](https://www.morozov.is/2018/05/27/do-notation-ruby.html)、[Java](https://github.com/StefanMacke/ao-railway)、[JavaScript](https://dorp.io/posts/railway-oriented-programming/)、[Kotlin](https://proandroiddev.com/railway-oriented-programming-in-kotlin-f1bceed399e5?gi=ce6e3bd2f69)など、あらゆる種類の言語で鉄道指向のプログラミングライブラリや投稿があります。
+[Python](https://github.com/rob-earwaker/rail)などです。
 
-I still think it's a good analogy, but I do think it is [often used thoughtlessly](https://twitter.com/scottwlaschin/status/997009818329198592), especially if it's a shiny new technique that you've just added to your toolbox.
+今でも良い例えだとは思いますが、特に自分のツールボックスに追加したばかりのピカピカの新しいテクニックであれば、[よく軽率に使われる](https://twitter.com/scottwlaschin/status/997009818329198592)と思います。
 
-So, in this post, I'm going to lay out reasons why you *shouldn't* use Railway-Oriented Programming! Or to be more precise, why you shouldn't use the `Result` type everywhere (because ROP is just the plumbing that is used to connect `Result`-returning functions). The [Microsoft page on error management](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/conventions#error-management) also has good advice, as does [this blog post](https://eiriktsarpalis.wordpress.com/2017/02/19/youre-better-off-using-exceptions/).
+そこで、この記事では、鉄道指向プログラミングを使用するべきではない理由を説明します。もっと正確に言うと、`Result`型をどこでも使ってはいけない理由です（なぜなら、ROPは`Result`型を返す関数を接続するための配管に過ぎないからです）。また、[Microsoft page on error management](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/conventions#error-management)にも、[this blog post](https://eiriktsarpalis.wordpress.com/2017/02/19/youre-better-off-using-exceptions/)と同様に良いアドバイスがあります。
 
-## #1 -- Don't use Result if you need diagnostics
+## #1 -- 診断が必要な場合はResultを使わないでください
 
-If you care about the location of an error, having a stack trace, or other diagnostics, don't use `Result`. In particular, don't use `Result` as a substitute for exceptions but then store a stack trace or a whole exception inside a `Result`. What's the point?
+エラーの場所やスタックトレース、その他の診断が必要な場合は、`Result`を使用しないでください。特に、例外の代わりに `Result` を使用して、スタックトレースや例外全体を `Result` の中に格納してはいけません。これでは意味がありません。
 
-Instead, think of `Result` as a glorified boolean with extra information. It's only for *expected* control-flow, not for unexpected situations.
+代わりに、`Result` を追加情報を持つ立派なブール値と考えてください。これは想定内の制御フローのためのもので、想定外の状況のためのものではありません。
 
-## #2 -- Don't use Result to reinvent exceptions
+## #2 -- Resultを使って例外を再発明してはいけない
 
-I've see people use `Result` indiscriminately for all kinds of error handling, including things that would be better handled with exceptions. Don't reinvent "try-catch"!
+例外で処理したほうがいいものも含めて、あらゆる種類のエラー処理に無差別に `Result` を使っている人を見たことがあります。"Try-catch "を再発明しないでください。
 
-I've also seen people trying to hide exceptions altogether. This is fruitless. No matter how many exceptions you convert into `Result`s, some will always leak out. You will always need to handle exceptions appropriately in the highest parts of the system.
+また、例外を完全に隠そうとしている人も見かけます。これは無意味です。どんなに多くの例外をResult」に変換しても、一部は必ず漏れてしまいます。システムの最上位部分で例外を適切に処理する必要があります。
 
-## #3 -- Don't use Result if you need to fail fast
+## #3 -- 早く失敗する必要がある場合はResultを使わない
 
-If something does go wrong, and you can't continue, don't return a `Result` and keep going. Fail fast instead with an exception or even just [exit the app immediately](https://docs.microsoft.com/en-us/dotnet/api/system.environment.failfast).
+何か問題が発生して続行できなくなった場合、`Result`を返して続行するのはやめましょう。代わりに例外を発生させるか、あるいは[アプリを直ちに終了](https://docs.microsoft.com/en-us/dotnet/api/system.environment.failfast)するようにしましょう。
 
-## #4 -- Don't use Result if no one will see it
+## #4 -- 誰も見ないならResultは使わない
 
-If you are doing some complex control flow but the logic is hidden from the outside world, don't use `Result` just for the sake of it. Often, using an exception locally will be cleaner.
+複雑な制御フローを行っていても、そのロジックが外部から見えない場合は、ただ目的のために `Result` を使用しないでください。多くの場合、ローカルで例外を使用したほうがすっきりします。
 
-For example, let's say you are collecting information by traversing a tree, and you need to exit early when something goes wrong.
+例えば、ツリーをトラバースして情報を収集しているときに、何か問題が発生したときには早期に終了する必要があるとします。
 
-In the ROP approach, you'd have the node processing function return a `Result`, which then has to be passed to the next node processing function using `bind`, and so on. For complex navigation, you can spend a lot of time working out the logic so that the code will compile ([Haskell programmers excepted, of course](https://hackage.haskell.org/package/recursion-schemes))
+ROPのアプローチでは、ノード処理関数に`Result`を返させて、それを`bind`を使って次のノード処理関数に渡す、というようなことをしています。複雑なナビゲーションの場合、コードがコンパイルされるようにロジックを組み立てるのに多くの時間を費やすことになります([Haskellプログラマはもちろん除外](https://hackage.haskell.org/package/recursion-schemes))。
 
-On the other hand, you could define a private local exception (e.g. in the style of Python's `StopIteration`), write the iteration imperatively, throw the exception when you need to return early, and then catch the exception at the top level. As long as the code is not too long, and the exception is defined locally, this approach can often make the code clearer. And if no consumers ever see the internals, then no harm, no foul.
+一方で、プライベートなローカル例外を定義して（例えばPythonの`StopIteration`のようなスタイルで）、反復を命令的に書き、早く戻る必要があるときに例外を投げ、トップレベルでその例外をキャッチすることもできます。コードが長すぎず、例外がローカルに定義されている限り、このアプローチはしばしばコードをより明確にします。また、消費者が内部を見ることがなければ、害もなければ反則もないでしょう。
 
-Another example might be when defining microservices. If the entire code is only a few hundred lines long, and is opaque to the callers, then using exceptions rather than `Result` is perfectly OK as long as they don't escape the service boundary.
+他の例としては、マイクロサービスを定義する場合があります。コード全体の長さが数百行程度で、呼び出し側には不透明な場合、サービスの境界を越えない限り、`Result`ではなく例外を使用しても全く問題ありません。
 
-## #5 -- Don't use Result if no one cares about the error cases
+## #5 -- 誰もエラーケースを気にしない場合は Result を使わないこと
 
-Typically, `Result` is defined with the error case being a discriminated union of all the things that can go wrong.
+一般的に、`Result`は、エラーケースが、うまくいかないすべてのことの差別化された結合であると定義されます。
 
-For example, lets say you want to read the text from a file, so you define a function like this:
+例えば、ファイルからテキストを読み取るために、次のような関数を定義します。
 
-```
+```fs
 type ReadTextFromFile = FileInfo -> Result<string, FileError>
 ```
 
-where `FileError` is defined like this:
+ここで、`FileError` は次のように定義されます。
 
-```
+```fs
 type FileError =
   | FileNotFound
   | DirectoryNotFound
@@ -67,70 +67,70 @@ type FileError =
   | OtherIOError of string
 ```
 
-But do the consumers of this function really care about every possible thing that can go wrong reading a file?
-Perhaps they just want the text, and they don't care why it didn't work. In which case, it might be simpler to return an `option` instead, like this:
+しかし、この関数の消費者は、ファイルの読み込みに失敗する可能性のあるあらゆることを本当に気にするでしょうか？
+おそらく彼らはテキストが欲しいだけで、なぜうまくいかなかったのかは気にしていないでしょう。その場合は、次のように、代わりに `option` を返す方が簡単かもしれません。
 
-```
+```fs
 type ReadTextFromFile = FileInfo -> string option
 ```
 
-`Result` is a tool for domain modeling, so if the domain model doesn't need it, don't use it.
+`Result` はドメインモデリングのためのツールなので、ドメインモデルが必要としない場合は使用しないでください。
 
-A similar example can be found when implementing event sourcing, in the [command processing function](https://medium.com/@dzoukr/event-sourcing-step-by-step-in-f-be808aa0ca18) which has the standard signature
+同様の例は、イベントソーシングを実装する際に見られ、標準的なシグネチャを持つ[コマンド処理関数](https://medium.com/@dzoukr/event-sourcing-step-by-step-in-f-be808aa0ca18)に見られます。
 
-```
+```fs
 'state -> 'command -> 'event list
 ```
 
-If something goes wrong in executing the command, how does that affect the return value (the list of events created by the command) in practice? Of course you need to handle errors and log them, but do you actually need to return a `Result` from the function itself? It will make the code more complicated for not much benefit.
+コマンドを実行する際に何か問題が発生した場合、実際には戻り値（コマンドによって作成されたイベントのリスト）にどのような影響があるのでしょうか。もちろん、エラーを処理してログを取る必要はありますが、実際に関数自体から`Result`を返す必要があるのでしょうか？あまりメリットがないのに、コードが複雑になってしまうのではないでしょうか。
 
-## #6 -- Be careful when using Result for I/O errors
+## #6 -- I/OエラーにResultを使うときは注意が必要
 
-If you try to open a file, but you get an error, should you wrap that in a `Result`? It depends on your domain.
-If you're writing a word processor, not being able to open a file is expected and should be handled gracefully. On the other hand, if you can't open a config file that your app depends on, you shouldn't return a `Result`, you should just fail fast.
+ファイルを開こうとしてエラーが発生した場合、それを `Result` で囲むべきでしょうか？それは、あなたのドメインによります。
+もしあなたがワープロを書いているのであれば、ファイルを開くことができないことは想定内であり、適切に処理されるべきです。一方で、アプリが依存している設定ファイルを開けない場合は、`Result`を返すべきではなく、速やかに失敗するべきです。
 
-Anywhere that there is I/O there will many, many things that can go wrong. It is tempting to try to model all possibilities with a `Result`, but I strongly advise against this. Instead, only model the bare minimum that you need for your domain, and let all the other errors become exceptions.
+I/Oがある場所では、うまくいかないことがたくさんあります。すべての可能性を `Result` でモデル化しようとするのは魅力的ですが、これには強い忠告があります。代わりに、自分のドメインに必要な最低限のものだけをモデル化して、他のすべてのエラーを例外にしてください。
 
-Of course, if you follow best practices and separate your I/O from your pure business logic, then you should rarely need to work with exceptions in your core code anyway.
+もちろん、ベストプラクティスに則り、I/Oを純粋なビジネスロジックから分離しているのであれば、コアコードで例外を扱う必要はほとんどないはずです。
 
-## #7 -- Don't use Result if you care about performance
+## #7 -- パフォーマンスを気にするなら、Resultは使うな
 
-This is more of a "be careful" than an absolute prohibition. If you know up front that you have a section of performance-sensitive code, then be wary of using `Result` there. In fact, you probably want to be wary of other built-in types too (e.g. `List`). But as always, measure to find the hotspots rather than guessing in advance so that you don't over-optimize the wrong thing.
+これは絶対的な禁止事項というよりも、「注意してください」という意味合いが強いです。パフォーマンスを気にするコードがあることを前もって知っているのであれば、そこで `Result` を使用することに注意してください。実際、他の組み込み型（例：`List`）にも注意したほうがいいでしょう。しかし、いつものように、間違った最適化をしないように、事前に推測するのではなく、ホットスポットを見つけるようにしてください。
 
-## #8 -- Don't use Result if you care about interop
+## #8 -- 相互運用性を重視するなら Result は使うな
 
-Most OO languages do not understand `Result` or other discriminated unions. If you need to return a possible failure from an API, consider using an approach that is more idiomatic for the caller. Even -- shock horror -- using null on occasion. Don't force the caller to become an expert in functional idioms just so they can call your API.
+ほとんどの OO 言語は `Result` やその他の差別化されたユニオンを理解していません。APIから失敗の可能性があるものを返す必要がある場合は、呼び出し側にとってより自然なアプローチを検討してください。たまには null を使ってみるのもいいかもしれません。あなたのAPIを呼び出すために、呼び出し側に関数型イディオムのエキスパートになることを強要しないでください。
 
 
-## Summary of the reasons not to use Result
+## 使わない理由のまとめ 結果
 
-* **Diagnostics**: If you care about stack traces or the location of an error, don't use `Result`.
-* **Reinventing try/catch**: Why not use the language tools that are already built-in?
-* **Fail fast**: If the end of your workflow will throw an exception anyway, don't use `Result` inside the workflow.
-* **Local exceptions for control flow are OK**: If the control flow is complicated and private, it's OK to use exceptions for control flow.
-* **Apathy**: Don't return a `Result` if no one cares about the errors.
-* **I/O**: Don't try and model every possible I/O error with a Result.
-* **Performance**: If you care about performance, be wary of using `Result`.
-* **Interop**: If you care about interop, don't force callers to understand what `Result` is and how it works.
+* **Diagnostics**: スタックトレースやエラーの場所を気にする場合は、`Result`を使用しないでください。
+* **Try/catchの再発明**: 既に組み込まれている言語ツールを使ってみませんか?
+* **Fail fast**: ワークフローの最後で例外が発生する場合は、ワークフロー内で `Result` を使用しないでください。
+* **制御フローのローカル例外はOK**: コントロールフローが複雑でプライベートなものであれば、コントロールフローに例外を使っても構いません。
+* **Apathy**: 誰もエラーを気にしないのであれば、`Result`を返してはいけません。
+* **I/O**: I/O**：ありとあらゆるI/OエラーをResultでモデル化しようとしないでください。
+* **Performance**: パフォーマンスを気にするのであれば パフォーマンスを重視する場合は、`Result`の使用に注意してください。
+* **Interop**: 相互運用性を重視する場合は、`Result` が何であるか、どのように動作するかを呼び出し側に理解させる必要はありません。
 
-## When should you use Result?
+## どんなときにResultを使うのか？
 
-So after all that negativity, what situations *should* you use `Result` for?
+では、このような否定的な意見が出た後、どのような場面で `Result` を使うべきなのでしょうか？
 
-As I said in my book [*Domain Modeling Made Functional*](/books/), I like to classify errors into three classes:
+拙著[*Domain Modeling Made Functional*](/books/)でも述べましたが、私はエラーを3つのクラスに分類したいと考えています。
 
-* **Domain Errors**. These are errors that are to be expected as part of the business process, and therefore must be included in the design of the domain. For example, an order that is rejected by billing, or an order than contains an invalid product code. The business will already have procedures in place to deal with this kind of thing, and so the code will need to reflect these processes. Domain errors are part of the domain, like anything else, and so should be incorporated into our domain modeling, discussed with domain experts, and
-documented in the type system if possible. Note that diagnostics are not needed -- we are using `Result` as a glorified `bool`.
-* **Panics**. These are errors that leave the system in an unknown state, such as unhandleable system errors (e.g. "out of memory") or errors caused by programmer oversight (e.g. "divide by zero," "null reference"). Panics are best handled by abandoning the workflow and raising an exception which is then caught and logged at the highest appropriate level (e.g. the main function of the application or equivalent).
-* **Infrastructure Errors**. These are errors that are to be expected as part of the architecture, but are not part of any business process and are not included in the domain. For example, a network timeout, or an authentication failure. Sometimes handling these should be modeled as part of the domain, and sometimes they can be treated as panics. If in doubt, ask a domain expert!
+* **ドメイン・エラー**. これは、ビジネスプロセスの一部として予想されるエラーで、ドメインの設計に含まれていなければなりません。例えば、請求書で拒否された注文や、無効な製品コードを含む注文などがこれにあたります。ビジネスでは、このような事態に対処するための手順がすでに用意されているので、コードにはこれらのプロセスを反映させる必要があります。ドメインエラーは、他のものと同様にドメインの一部であり、ドメインモデリングに組み込まれ、ドメインの専門家と議論し、
+可能であれば、型システムで文書化する必要があります。診断は必要ないことに注意してください。
+* **Panics**. これはシステムを未知の状態にしてしまうエラーで、処理不可能なシステムエラー (例: "out of memory") やプログラマの過失によるエラー (例: "divide by zero" や "null reference") などがあります。パニックが発生した場合は、ワークフローを中断して例外を発生させ、その例外をキャッチして最も適切なレベル（アプリケーションのメイン関数など）でログに記録するのが最善の方法です。
+* **インフラストラクチャーエラー**. これは、アーキテクチャの一部として予想されるエラーですが、ビジネスプロセスの一部ではなく、ドメインにも含まれません。例えば、ネットワークのタイムアウトや認証の失敗などがあります。これらの処理をドメインの一部としてモデル化すべき場合もあれば、パニックとして扱うこともできる。疑問がある場合は、ドメインの専門家に聞いてください。
 
-So using the definitions above:
+そこで、上記の定義を使用します。
 
-* `Result` should only be used as part of the domain modeling process, to document expected return values. And then to ensure at compile-time that you handle all the possible *expected* error cases.
-* Micro-domains, such as libraries, could also use `Result` if appropriate.
+* `Result` は、期待される戻り値を文書化するために、ドメインモデリングプロセスの一部としてのみ使用されるべきです。そして、コンパイル時に、想定されるすべてのエラーケースを確実に処理します。
+* ライブラリなどのマイクロドメインでも、必要に応じて `Result` を使用することができます。
 
-So to sum up, I think the `Result` type and railway-oriented programming are extremely useful when used appropriately, but the use-cases are more limited than you might think, and they shouldn't be used everywhere just because it's cool and interesting.
+結論としては、`Result`型や鉄道指向プログラミングは、適切に使えば非常に便利ですが、その使用例は思ったよりも限られており、かっこいいから、面白いからといって、あらゆるところで使うべきではないと思います。
 
-Thanks for reading! If you're interested in more F# posts, check out the rest of the [2019 F# Advent Calendar](https://sergeytihon.com/2019/11/05/f-advent-calendar-in-english-2019/).
+お読みいただきありがとうございました。もっとF#の記事に興味がある方は、[2019 F# Advent Calendar](https://sergeytihon.com/2019/11/05/f-advent-calendar-in-english-2019/)の続きをご覧ください。
 
 {{< book_page_ddd_img >}}

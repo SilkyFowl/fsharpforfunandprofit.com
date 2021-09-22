@@ -9,23 +9,23 @@ seriesOrder: 2
 
 ---
 
-In this post, I'll continue developing a simple pocket calculator app, like this:
+今回の記事では、引き続き以下のようなシンプルなポケット電卓アプリを開発してみます。
 
-![Calculator image](../calculator-design/calculator_1.png)
+![電卓画像](../calculator-design/calculator_1.png)
 
-In the [previous post](/posts/calculator-design/), we completed a first draft of the design, using only types (no UML diagrams!).
+[前の記事](/posts/calculator-design/)では、型だけを使ってデザインの最初のドラフトを完成させました（UML図はありません！）。
 
-Now it's time to create a trial implementation that uses the design.
+次はその設計を使って実際に実装してみる番です。
 
-Doing some real coding at this point acts as a reality check. It ensures that the domain model actually makes sense and is not too abstract.
-And of course, it often drives more questions about the requirements and domain model.
+この時点で実際にコーディングを行うことで、現実を確認することができます。ドメインモデルが実際に意味を持ち、抽象的すぎないことを確認します。
+そしてもちろん、要件やドメインモデルについての質問が増えることもよくあります。
 
 
 ## First implementation
 
-So let's try implementing the main calculator function, and see how we do.
+それでは、メインの電卓機能を実装してみて、どうなるか見てみましょう。
 
-First, we can immediately create a skeleton that matches each kind of input and processes it accordingly.
+まず、各種類の入力にマッチし、それに応じて処理するスケルトンをすぐに作ることができます。
 
 ```fsharp
 let createCalculate (services:CalculatorServices) :Calculate =
@@ -45,15 +45,15 @@ let createCalculate (services:CalculatorServices) :Calculate =
             newState //return
 ```
 
-You can see that this skeleton has a case for each type of input to handle it appropriately.
-Note that in all cases, a new state is returned.
+このスケルトンでは、入力の種類ごとにケースを用意して、適切に処理していることがわかります。
+すべてのケースで、新しいステートが返されることに注意してください。
 
-This style of writing a function might look strange though. Let's look at it a bit more closely.
+このようなスタイルの関数の書き方は、奇妙に見えるかもしれません。もう少し詳しく見てみましょう。
 
-First, we can see that `createCalculate` is the not the calculator function itself, but a function that *returns* another function.
-The returned function is a value of type `Calculate` -- that's what the `:Calculate` at the end means.
+まず、`createCalculate`は、電卓の関数そのものではなく、別の関数を*返す*関数であることがわかります。
+返された関数は、`Calculate`型の値です。これが最後の`:Calculate`の意味です。
 
-Here's just the top part:
+上の部分だけを見てみましょう。
 
 ```fsharp
 let createCalculate (services:CalculatorServices) :Calculate =
@@ -62,9 +62,9 @@ let createCalculate (services:CalculatorServices) :Calculate =
             // code
 ```
 
-Since it is returning a function, I chose to write it using a lambda. That's what the `fun (input,state) -> ` is for.
+関数を返しているので、ラムダを使って書くことにしました。それは`fun (input,state) -> `のためです。
 
-But I could have also written it using an inner function, like this
+しかし，次のように内部関数を使って書くこともできました。
 
 ```fsharp
 let createCalculate (services:CalculatorServices) :Calculate =
@@ -74,41 +74,41 @@ let createCalculate (services:CalculatorServices) :Calculate =
     innerCalculate // return the inner function
 ```
 
-Both approaches are basically the same* -- take your pick!
+どちらのアプローチも基本的には同じです* -- お好みでどうぞ。
 
 {{<footnote "*">}}
-Although there might be some performance differences.
+多少の性能差はあるかもしれませんが。
 {{</footnote>}}
 
-## Dependency injection of services
+## サービスのディペンデンシー・インジェクション
 
-But `createCalculate` doesn't just return a function, it also has a `services` parameter.
-This parameter is used for doing the "dependency injection" of the services.
+しかし、`createCalculate`は単に関数を返すだけではなく、`services`というパラメータを持っています。
+このパラメータは、サービスの「依存性の注入」を行うために使用されます。
 
-That is, the services are only used in `createCalculate` itself, and are not visible in the function of type `Calculate` that is returned.
+つまり、サービスは `createCalculate` 自身でのみ使用され、返される `Calculate` 型の関数では表示されません。
 
-The "main" or "bootstrapper" code that assembles all the components for the application would look something like this:
+アプリケーションのすべてのコンポーネントを組み立てる「メイン」または「ブートストラップ」のコードは、以下のようになります。
 
 ```fsharp
-// create the services
+// サービスの作成
 let services = CalculatorServices.createServices()
 
-// inject the services into the "factory" method
+// サービスを "factory "メソッドに注入する
 let calculate = CalculatorImplementation.createCalculate services
 
-// the returned "calculate" function is of type Calculate
-// and can be passed into the UI, for example
+// 返される "calculate "関数は、Calculate型です。
+// そして、以下のようにUIに渡すことができます。
 
-// create the UI and run it
+// UIの作成と実行
 let form = new CalculatorUI.CalculatorForm(calculate)
 form.Show()
 ```
 
-## Implementation: handling digits
+## 実装：数字の扱い
 
-Now let's start implementing the various parts of the calculation function. We'll start with the digits handling logic.
+それでは、計算機能の各部分の実装を始めましょう。まずは数字を扱うロジックから始めましょう。
 
-To keep the main function clean, let's pass the responsibility for all the work to a helper function `updateDisplayFromDigit`, like this:
+メインの関数をすっきりさせるために、すべての処理をヘルパー関数の`updateDisplayFromDigit`に渡しましょう。
 
 ```fsharp
 let createCalculate (services:CalculatorServices) :Calculate =
@@ -119,27 +119,27 @@ let createCalculate (services:CalculatorServices) :Calculate =
             newState //return
 ```
 
-Note that I'm creating a `newState` value from the result of `updateDisplayFromDigit` and then returning it as a separate step.
+`updateDisplayFromDigit`の結果から`newState`の値を作成し、それを別のステップで返していることに注意してください。
 
-I could have done the same thing in one step, without an explicit `newState` value, as shown below:
+同じことを、以下のように、明示的な`newState`値を使わずに、1つのステップで行うこともできました。
 
 ```fsharp
-let createCalculate (services:CalculatorServices) :Calculate =
+let createCalculate (services:CalculatorServices) :Calculate =.
     fun (input,state) ->
-        match input with
-        | Digit d ->
+        入力にマッチ
+        | ディジット d ->
             updateDisplayFromDigit services d state
 ```
 
-Neither approach is automatically best. I would pick one or the other depending on the context.
+どちらの方法も自動的に最善ではありません。私は文脈に応じてどちらかを選択します。
 
-For simple cases, I would avoid the extra line as being unnecessary, but sometimes having an explicit return value is more readable.
-The name of the value tells you an indication of the return type, and it gives you something to watch in the debugger, if you need to.
+単純なケースでは、余計な行は必要ないので避けますが、明示的な戻り値がある方が読みやすい場合もあります。
+値の名前を見れば、戻り値のタイプがわかりますし、必要に応じてデバッガで確認することもできます。
 
-Alright, let's implement `updateDisplayFromDigit` now. It's pretty straightforward.
+さて、`updateDisplayFromDigit`を実装してみましょう。これはとても簡単です。
 
-* first use the `updateDisplayFromDigit` in the services to actually update the display
-* then create a new state from the new display and return it.
+* まず、サービスで `updateDisplayFromDigit` を使用して、実際にディスプレイを更新します。
+* 次に、新しいディスプレイから新しいステートを作成し、それを返します。
 
 ```fsharp
 let updateDisplayFromDigit services digit state =
@@ -148,19 +148,19 @@ let updateDisplayFromDigit services digit state =
     newState //return
 ```
 
-## Implementation: handling Clear and Equals
+## 実装：ClearとEqualsの処理
 
-Before we move onto the implementation of the math operations, lets look at handling `Clear` and `Equals`, as they are simpler.
+演算の実装に移る前に、よりシンプルな `Clear` と `Equals` の処理について見てみましょう。
 
-For `Clear`, just init the state, using the provided `initState` service.
+`Clear`では、提供されている`initState`サービスを使って、状態を初期化するだけです。
 
-For `Equals`, we check if there is a pending math op. If there is, run it and update the display, otherwise do nothing.
-We'll put that logic in a helper function called `updateDisplayFromPendingOp`.
+`Equals`では、保留中の数学演算があるかどうかをチェックします。もしあれば、それを実行してディスプレイを更新し、そうでなければ何もしません。
+このロジックは、`updateDisplayFromPendingOp`というヘルパー関数に記述します。
 
-So here's what `createCalculate` looks like now:
+現在、`createCalculate`は次のようになっています。
 
 ```fsharp
-let createCalculate (services:CalculatorServices) :Calculate =
+let createCalculate (services:CalculatorServices) :Calculate =.
     fun (input,state) ->
         match input with
         | Digit d -> // as above
@@ -173,19 +173,19 @@ let createCalculate (services:CalculatorServices) :Calculate =
             newState //return
 ```
 
-Now to `updateDisplayFromPendingOp`. I spent a few minutes thinking about, and I've come up with the following algorithm for updating the display:
+さて、`updateDisplayFromPendingOp`です。数分考えて、以下のようなアルゴリズムでディスプレイを更新することにしました。
 
-* First, check if there is any pending op. If not, then do nothing.
-* Next, try to get the current number from the display. If you can't, then do nothing.
-* Next, run the op with the pending number and the current number from the display. If you get an error, then do nothing.
-* Finally, update the display with the result and return a new state.
-* The new state also has the pending op set to `None`, as it has been processed.
+* まず、ペンディング中のオペがあるかどうかをチェックします。そうでなければ、何もしません。
+* 次に、ディスプレイから現在の番号を取得しようとします。もしできなければ、何もしない。
+* 次に、保留中の番号とディスプレイからの現在の番号でオペを実行します。もしエラーが出たら、何もしない。
+* 最後に、ディスプレイを結果で更新し、新しい状態を返します。
+* 新しい状態では、処理が完了しているため、pending opも`None`に設定されています。
 
-And here's what that logic looks like in imperative style code:
+このロジックを命令型のコードにすると、以下のようになります。
 
 ```fsharp
-// First version of updateDisplayFromPendingOp
-// * very imperative and ugly
+// updateDisplayFromPendingOpの最初のバージョン
+// * 非常に命令的で醜い
 let updateDisplayFromPendingOp services state =
     if state.pendingOp.IsSome then
         let op,pendingNumber = state.pendingOp.Value
@@ -206,25 +206,25 @@ let updateDisplayFromPendingOp services state =
         state // original state is untouched
 ```
 
-Ewww! Don't try that at home!
+ええっ！？家では試さないでくださいね。
 
-That code does follow the algorithm exactly, but is really ugly and also error prone (using `.Value` on an option is a code smell).
+このコードはアルゴリズムに正確に従っていますが、非常に醜く、またエラーが発生しやすいものです（オプションに `.Value` を使用するのはコードの臭いがします）。
 
-On the plus side, we did make extensive use of our "services", which has isolated us from the actual implementation details.
+プラス面としては、「サービス」を多用したことで、実際の実装の詳細から切り離されています。
 
-So, how can we rewrite it to be more functional?
+では、どうすればより機能的に書き換えることができるでしょうか？
 
 
 {{< linktarget "bind" >}}
 
-## Bumping into bind
+## bindにぶつかる
 
-The trick is to recognize that the pattern "if something exists, then act on that value" is exactly the `bind` pattern discussed [here](/posts/computation-expressions-continuations/)
-and [here](/rop/).
+このトリックは、「何かが存在すれば、その値に作用する」というパターンが、[ここ](/posts/computation-expressions-continuations/)や[ここ](/rop/computation-expressions-continuations/)
+と [ここ](/rop/)で説明した`bind`パターンです。
 
-In order to use the bind pattern effectively, it's a good idea to break the code into many small chunks.
+bindパターンを効果的に使うためには、コードをいくつもの小さな塊に分けるのがよいでしょう。
 
-First, the code `if state.pendingOp.IsSome then do something` can be replaced by `Option.bind`.
+まず，`if state.pendingOp.IsSome then do something`というコードは，`Option.bind`で置き換えることができます．
 
 ```fsharp
 let updateDisplayFromPendingOp services state =
@@ -233,10 +233,10 @@ let updateDisplayFromPendingOp services state =
         |> Option.bind ???
 ```
 
-But remember that the function has to return a state.
-If the overall result of the bind is `None`, then we have *not* created a new state, and we must return the original state that was passed in.
+しかし、この関数は状態を返さなければならないことを覚えておいてください。
+バインドの全体的な結果が `None` であれば、新しい状態を作成したことにはならないので、渡された元の状態を返さなければなりません。
 
-This can be done with the built-in `defaultArg` function which, when applied to an option, returns the option's value if present, or the second parameter if `None`.
+これを実現するには，組み込みの`defaultArg`関数を使います。この関数は，オプションに適用すると，オプションがあればその値を，`None`であれば第2パラメータを返します。
 
 ```fsharp
 let updateDisplayFromPendingOp services state =
@@ -246,18 +246,18 @@ let updateDisplayFromPendingOp services state =
     defaultArg result state
 ```
 
-You can also tidy this up a bit as well by piping the result directly into `defaultArg`, like this:
+また、次のように結果を直接`defaultArg`にパイプすることで、少し整理することができます。
 
 ```fsharp
 let updateDisplayFromPendingOp services state =
-    state.pendingOp
-    |> Option.bind ???
+    State.pendingOp
+    |> Option.bind ??
     |> defaultArg <| state
 ```
 
-I admit that the reverse pipe for `state` looks strange -- it's definitely an acquired taste!
+確かに`state`のリバースパイプは不思議な感じがしますが、これは後天的なものです。
 
-Onwards! Now what about the parameter to `bind`?  When this is called, we know that pendingOp is present, so we can write a lambda with those parameters, like this:
+では、次のステップに進みましょう。さて、`bind`のパラメータはどうでしょうか？ これが呼ばれると、pendingOpが存在することがわかるので、これらのパラメータを持つラムダを次のように書くことができます。
 
 ```fsharp
 let result =
@@ -268,7 +268,7 @@ let result =
         )
 ```
 
-Alternatively, we could create a local helper function instead, and connect it to the bind, like this:
+あるいは，次のように，ローカルなヘルパー関数を作成して，それをbindに接続することもできます．
 
 ```fsharp
 let executeOp (op,pendingNumber) =
@@ -280,8 +280,8 @@ let result =
     |> Option.bind executeOp
 ```
 
-I myself generally prefer the second approach when the logic is complicated, as it allows a chain of binds to be simple.
-That is, I try to make my code look like:
+私自身は、ロジックが複雑な場合は、バインドの連鎖をシンプルにできる2番目のアプローチを好みます。
+つまり，私は自分のコードを次のようにするようにしています。
 
 ```fsharp
 let doSomething input = return an output option
@@ -294,22 +294,22 @@ state.pendingOp
 |> Option.bind doAThirdThing
 ```
 
-Note that in this approach, each helper function has a non-option for input but always must output an *option*.
+この方法では、各ヘルパー関数の入力は非オプションですが、出力は常に*オプション*でなければならないことに注意してください。
 
-## Using bind in practice
+## bindの実際の使い方
 
-Once we have the pending op, the next step is to get the current number from the display so we can do the addition (or whatever).
+保留中の演算子を手に入れたら、次は足し算をするために現在の数字をディスプレイから取得します（あるいは何でも）。
 
-Rather than having a lot of logic, I'm going keep the helper function (`getCurrentNumber`) simple.
+たくさんのロジックを用意するのではなく、ヘルパー関数 (`getCurrentNumber`) はシンプルにしておきましょう。
 
-* The input is the pair (op,pendingNumber)
-* The output is the triple (op,pendingNumber,currentNumber) if currentNumber is `Some`, otherwise `None`.
+* 入力はペア(op,pendingNumber)
+* 出力は、currentNumberが`Some`であればトリプル(op,pendingNumber,currentNumber)、そうでなければ`None`となります。
 
-In other words, the signature of `getCurrentNumber` will be `pair -> triple option`, so we can be sure that is usable with the `Option.bind` function.
+つまり，`getCurrentNumber`のシグネチャは，`pair -> triple option`となり，`Option.bind`関数で使用可能であることが確認できます．
 
-How to convert the pair into the triple? This can be done just by using `Option.map` to convert the currentNumber option to a triple option.
-If the currentNumber is `Some`, then the output of the map is `Some triple`.
-On the other hand, if the currentNumber is `None`, then the output of the map is `None` also.
+ペアをトリプルに変換するには？これは`Option.map`を使って，currentNumberオプションをトリプルオプションに変換すればよいのです．
+currentNumberが`Some`であれば，マップの出力は`Some triple`となります．
+一方，currentNumberが`None`であれば，マップの出力も`None`となります。
 
 ```fsharp
 let getCurrentNumber (op,pendingNumber) =
@@ -323,7 +323,7 @@ let result =
     |> Option.bind ???
 ```
 
-We can rewrite `getCurrentNumber` to be a bit more idiomatic by using pipes:
+パイプを使って，`getCurrentNumber`をもう少しイディオム的に書き換えることができます．
 
 ```fsharp
 let getCurrentNumber (op,pendingNumber) =
@@ -332,11 +332,11 @@ let getCurrentNumber (op,pendingNumber) =
     |> Option.map (fun currentNumber -> (op,pendingNumber,currentNumber))
 ```
 
-Now that we have a triple with valid values, we have everything we need to write a helper function for the math operation.
+有効な値を持つトリプルができたので、数学演算のヘルパー関数を書くのに必要なものが揃いました。
 
-* It takes a triple as input (the output of `getCurrentNumber`)
-* It does the math operation
-* It then pattern matches the Success/Failure result and outputs the new state if applicable.
+* 入力としてトリプルを受け取ります（`getCurrentNumber`の出力です）。
+* 演算処理を行います。
+* そして、成功/失敗の結果をパターンマッチし、該当する場合は新しい状態を出力します。
 
 ```fsharp
 let doMathOp (op,pendingNumber,currentNumber) =
@@ -350,25 +350,25 @@ let doMathOp (op,pendingNumber,currentNumber) =
         None // failed
 ```
 
-Note that, unlike the earlier version with nested ifs, this version returns `Some` on success and `None` on failure.
+先ほどのifを入れ子にしたバージョンとは異なり、このバージョンでは成功時には`Some`を、失敗時には`None`を返すことに注意してください。
 
-## Displaying errors
+## エラーの表示
 
-Writing the code for the `Failure` case made me realize something.
-If there is a failure, we are not displaying it *at all*, just leaving the display alone. Shouldn't we show an error or something?
+`Failure`ケースのコードを書いていて、あることに気づきました。
+失敗した場合、それを *全く* 表示しておらず、ただ表示を放置しているだけです。エラーを表示すべきではないでしょうか？
 
-Hey, we just found a requirement that got overlooked! This is why I like to create an implementation of the design as soon as possible.
-Writing real code that deals with all the cases will invariably trigger a few "what happens in this case?" moments.
+おい、見落とされていた要件が見つかったぞ！」と。だから私は、設計したものをできるだけ早く実装したいのです。
+すべてのケースに対応する実際のコードを書くと、必ずと言っていいほど「この場合はどうなるんだろう」という瞬間が訪れます。
 
-So how are we going to implement this new requirement?
+では、この新しい要求をどうやって実装するのでしょうか？
 
-In order to do this, we'll need a new "service" that accepts a `MathOperationError` and generates a `CalculatorDisplay`.
+そのためには、`MathOperationError`を受け取り、`CalculatorDisplay`を生成する新しい「サービス」が必要になります。
 
 ```fsharp
 type SetDisplayError = MathOperationError -> CalculatorDisplay
 ```
 
-and we'll need to add it to the `CalculatorServices` structure too:
+そして，これを`CalculatorServices`構造体にも追加する必要があります．
 
 ```fsharp
 type CalculatorServices = {
@@ -379,10 +379,10 @@ type CalculatorServices = {
     }
 ```
 
-`doMathOp` can now be altered to use the new service. Both `Success` and `Failure` cases now result in a new display, which in turn is wrapped in a new state.
+`doMathOp` は新しいサービスを使用するように変更できるようになりました。`Success` と `Failure`の両方のケースで、新しい表示が行われるようになり、それが新しいステートでラップされるようになりました。
 
 ```fsharp
-let doMathOp (op,pendingNumber,currentNumber) =
+let doMathOp (op,pendingNumber,currentNumber) = ...
     let result = services.doMathOperation (op,pendingNumber,currentNumber)
     let newDisplay =
         match result with
@@ -394,31 +394,31 @@ let doMathOp (op,pendingNumber,currentNumber) =
     Some newState //return something
 ```
 
-I'm going to leave the `Some` in the result, so we can stay with `Option.bind` in the result pipeline*.\
-{{<footnote "*">}}
-An alternative would be to not return `Some`, and then use `Option.map` in the result pipeline
-{{</footnote>}}
+結果に`Some`を残すことで、結果のパイプラインで`Option.bind`を残すことができるようになります*。
+{{<footnote "*">}}。
+代わりに `Some` を返さずに，結果パイプラインで `Option.map` を使うこともできます。
+{{</footnote>}}となります。
 
-Putting it all together, we have the final version of `updateDisplayFromPendingOp`.
-Note that I've also added a `ifNone` helper that makes defaultArg better for piping.
+以上をまとめると、`updateDisplayFromPendingOp`の最終バージョンが完成しました。
+なお、defaultArgをパイピングに適したものにするために、`ifNone`ヘルパーも追加しています。
 
 ```fsharp
-// helper to make defaultArg better for piping
+// defaultArgをパイピングに適したものにするヘルパー
 let ifNone defaultValue input =
-    // just reverse the parameters!
+    // パラメータを逆にしてみましょう
     defaultArg input defaultValue
 
-// Third version of updateDisplayFromPendingOp
-// * Updated to show errors on display in Failure case
-// * replaces awkward defaultArg syntax
-let updateDisplayFromPendingOp services state =
-    // helper to extract CurrentNumber
+// 3番目のバージョンのupdateDisplayFromPendingOp
+// * 失敗した場合にディスプレイにエラーを表示するように更新
+// * 厄介な defaultArg 構文を置き換える
+let updateDisplayFromPendingOp services state = !
+    // CurrentNumberを抽出するヘルパー
     let getCurrentNumber (op,pendingNumber) =
         state.display
         |> services.getDisplayNumber
         |> Option.map (fun currentNumber -> (op,pendingNumber,currentNumber))
 
-    // helper to do the math op
+    // 計算を行うヘルパー op
     let doMathOp (op,pendingNumber,currentNumber) =
         let result = services.doMathOperation (op,pendingNumber,currentNumber)
         let newDisplay =
@@ -430,23 +430,23 @@ let updateDisplayFromPendingOp services state =
         let newState = {display=newDisplay;pendingOp=None}
         Some newState //return something
 
-    // connect all the helpers
+    // すべてのヘルパーを接続する
     state.pendingOp
     |> Option.bind getCurrentNumber
     |> Option.bind doMathOp
-    |> ifNone state // return original state if anything fails
+    |> ifNone state // 何か失敗したら元の状態に戻す
 ```
 
-## Using a "maybe" computation expression instead of bind
+## bindの代わりに "may "計算式を使う
 
-So far, we've being using "bind" directly.  That has helped by removing the cascading `if/else`.
+これまでは、bindを直接使っていました。 これにより、カスケード接続された `if/else` を取り除くことができました。
 
-But F# allows you to hide the complexity in a different way, by creating [computation expressions](/posts/computation-expressions-intro/).
+しかし、F#では、[computation expression](/posts/computation-expressions-intro/)を作成することで、別の方法で複雑さを隠すことができます。
 
-Since we are dealing with Options, we can create a "maybe" computation expression that allows clean handling of options.
-(If we were dealing with other types, we would need to create a different computation expression for each type).
+今回はオプションを扱っているので、オプションをきれいに扱える「maybe」計算式を作ることができます。
+(他の型を扱う場合は、型ごとに異なる計算式を作成する必要があります）。)
 
-Here's the definition -- only four lines!
+以下にその定義を示します -- たった4行です!
 ```fsharp
 type MaybeBuilder() =
     member this.Bind(x, f) = Option.bind f x
@@ -455,7 +455,7 @@ type MaybeBuilder() =
 let maybe = new MaybeBuilder()
 ```
 
-With this computation expression available, we can use `maybe` instead of bind, and our code would look something like this:
+この計算式が使えるようになると，bindの代わりに`maybe`が使えるようになり，コードは以下のようになります。
 
 ```fsharp
 let doSomething input = return an output option
@@ -470,14 +470,14 @@ let finalResult = maybe {
     }
 ```
 
-In our case, then we can write yet another version of `updateDisplayFromPendingOp` -- our fourth!
+私たちの場合、`updateDisplayFromPendingOp`の別のバージョンを書くことができます。
 
 ```fsharp
-// Fourth version of updateDisplayFromPendingOp
-// * Changed to use "maybe" computation expression
-let updateDisplayFromPendingOp services state =
+// updateDisplayFromPendingOpの4つ目のバージョン
+// * "may" 計算式を使うように変更しました
+let updateDisplayFromPendingOp services state = !
 
-    // helper to do the math op
+    // 計算式を実行するヘルパー
     let doMathOp (op,pendingNumber,currentNumber) =
         let result = services.doMathOperation (op,pendingNumber,currentNumber)
         let newDisplay =
@@ -488,7 +488,7 @@ let updateDisplayFromPendingOp services state =
                 services.setDisplayError error
         {display=newDisplay;pendingOp=None}
 
-    // fetch the two options and combine them
+    // 2つのオプションを取得して組み合わせる
     let newState = maybe {
         let! (op,pendingNumber) = state.pendingOp
         let! currentNumber = services.getDisplayNumber state.display
@@ -497,25 +497,25 @@ let updateDisplayFromPendingOp services state =
     newState |> ifNone state
 ```
 
-Note that in *this* implementation, I don't need the `getCurrentNumber` helper any more, as I can just call `services.getDisplayNumber` directly.
+この実装では、`services.getDisplayNumber` を直接呼び出すことができるので、`getCurrentNumber` ヘルパーはもう必要ないことに注意してください。
 
-So, which of these variants do I prefer?
+さて、これらのバリエーションのうち、どのバージョンがいいのでしょうか？
 
-It depends.
+それは場合によります。
 
-* If there is a very strong "pipeline" feel, as in [the ROP](/rop/) approach, then I prefer using an explicit `bind`.
-* On the other hand, if I am pulling options from many different places, and I want to combine them in various ways, the `maybe` computation expression makes it easier.
+* [ROP](/rop/)アプローチのように、非常に強い「パイプライン」感がある場合は、明示的な `bind` を使用することを好みます。
+* 一方で、さまざまな場所からオプションを引き出し、それらをさまざまな方法で組み合わせたい場合は、`maybe`という計算式がそれを容易にしてくれます。
 
-So, in this case, I'll go for the last implementation, using `maybe`.
+ということで、今回は `maybe` を使った最後の実装にしてみます。
 
-## Implementation: handling math operations
+## 実装：数学演算の処理
 
-Now we are ready to do the implementation of the math operation case.
+これで、数学演算のケースの実装を行う準備が整いました。
 
-First, if there is a pending operation, the result will be shown on the display, just as for the `Equals` case.
-But *in addition*, we need to push the new pending operation onto the state as well.
+まず、保留中の演算があれば、`Equals`の場合と同様に、その結果がディスプレイに表示されます。
+しかし、*それに加えて*、新しい保留中の操作をステートにプッシュする必要があります。
 
-For the math operation case, then, there will be *two* state transformations, and `createCalculate` will look like this:
+算術演算のケースでは、状態の変換が*2回*行われ、`createCalculate`は次のようになります。
 
 ```fsharp
 let createCalculate (services:CalculatorServices) :Calculate =
@@ -528,19 +528,19 @@ let createCalculate (services:CalculatorServices) :Calculate =
             newState2 //return
 ```
 
-We've already defined `updateDisplayFromPendingOp` above.
-So we just need `addPendingMathOp` as a helper function to push the operation onto the state.
+上記で`updateDisplayFromPendingOp`を定義しました。
+そのため、操作をステートに反映させるためのヘルパー関数として、`addPendingMathOp`が必要になるだけです。
 
-The algorithm for `addPendingMathOp` is:
+`addPendingMathOp` のアルゴリズムは以下の通りです。
 
-* Try to get the current number from the display. If you can't, then do nothing.
-* Update the state with the op and current number.
+* ディスプレイから現在の数字を取得しようとします。もしできなければ、何もしません。
+* オペレータと現在の数値でステートを更新します。
 
-Here's the ugly version:
+これが醜いバージョンです。
 
 ```fsharp
-// First version of addPendingMathOp
-// * very imperative and ugly
+// addPendingMathOpの最初のバージョン
+// * 非常に命令的で醜い
 let addPendingMathOp services op state =
     let currentNumberOpt = services.getDisplayNumber state.display
     if currentNumberOpt.IsSome then
@@ -549,16 +549,16 @@ let addPendingMathOp services op state =
         let newState = {state with pendingOp=pendingOp}
         newState //return
     else
-        state // original state is untouched
+        state // 元の状態はそのまま
 ```
 
-Again, we can make this more functional using exactly the same techniques we used for `updateDisplayFromPendingOp`.
+繰り返しになりますが，`updateDisplayFromPendingOp`で使ったのと全く同じ手法を使って，より関数的にすることができます．
 
-So here's the more idiomatic version using `Option.map` and a `newStateWithPending` helper function:
+ここでは，`Option.map`と`newStateWithPending`ヘルパー関数を使った，よりイージーなバージョンを紹介します．
 
 ```fsharp
-// Second version of addPendingMathOp
-// * Uses "map" and helper function
+// addPendingMathOpの第2バージョン
+// * "map "とヘルパー関数を使う
 let addPendingMathOp services op state =
     let newStateWithPending currentNumber =
         let pendingOp = Some (op,currentNumber)
@@ -570,11 +570,11 @@ let addPendingMathOp services op state =
     |> ifNone state
 ```
 
-And here's one using `maybe`:
+また、`maybe`を使ったものもあります。
 
 ```fsharp
-// Third version of addPendingMathOp
-// * Uses "maybe"
+// addPendingMathOpの第3バージョン
+// * "maybe "を使う
 let addPendingMathOp services op state =
     maybe {
         let! currentNumber =
@@ -582,14 +582,14 @@ let addPendingMathOp services op state =
         let pendingOp = Some (op,currentNumber)
         return {state with pendingOp=pendingOp}
         }
-    |> ifNone state // return original state if anything fails
+    |> ifNone state // 何か失敗したら元の状態に戻す
 ```
 
-As before, I'd probably go for the last implementation using `maybe`. But the `Option.map` one is fine too.
+先ほどと同様に、私はおそらく最後の `maybe` を使った実装を選ぶでしょう。しかし、`Option.map`を使った実装も良いでしょう。
 
-## Implementation: review
+## 実装: レビュー
 
-Now we're done with the implementation part. Let's review the code:
+さて，これで実装の部分は終わりです．コードを見てみましょう。
 
 ```fsharp
 let updateDisplayFromDigit services digit state =
@@ -645,12 +645,12 @@ let createCalculate (services:CalculatorServices) :Calculate =
             newState //return
 ```
 
-Not bad -- the whole implementation is less than 60 lines of code.
+悪くないですね。全体の実装は60行以下のコードです。
 
-## Summary
+## まとめ
 
-We have proved that our design is reasonable by making an implementation -- plus we found a missed requirement.
+私たちは、実装を行うことで、私たちの設計が妥当であることを証明しました -- さらに、見逃していた要件を見つけました。
 
-In the [next post](/posts/calculator-complete-v1/), we'll implement the services and the user interface to create a complete application.
+[次の投稿](/posts/calculator-complete-v1/)では、サービスとユーザーインターフェイスを実装して、完全なアプリケーションを作成します。
 
-*The code for this post is available in this [gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_implementation-fsx) on GitHub.*
+*この記事のコードは、GitHubのこの[gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_implementation-fsx)にあります。

@@ -9,18 +9,18 @@ seriesOrder: 7
 categories: [Types, DDD]
 ---
 
-In this series we've seen a lot of uses of single case discriminated unions to wrap strings.
+このシリーズでは、文字列をラップするためのシングルケース判別式ユニオンの使い方をたくさん見てきました。
 
-There is no reason why you cannot use this technique with other primitive types, such as numbers and dates.  Let's look a few examples.
+このテクニックを、数字や日付などの他のプリミティブな型に使えない理由はありません。 いくつかの例を見てみましょう。
 
-## Single case unions
+## シングルケースユニオン
 
-In many cases, we want to avoid accidentally mixing up different kinds of integers. Two domain objects may have the same representation (using integers) but they should never be confused.
+多くの場合、異なる種類の整数を誤って混ぜてしまうことは避けたいものです。2つのドメインオブジェクトが（整数を使って）同じ表現をしていても、決して混同してはいけません。
 
-For example, you may have an `OrderId` and a `CustomerId`, both of which are stored as ints. But they are not *really* ints. You cannot add 42 to a `CustomerId`, for example.
-And `CustomerId(42)` is not equal to `OrderId(42)`. In fact, they should not even be allowed to be compared at all.
+例えば、`OrderId`と`CustomerId`があり、両方ともintとして格納されているかもしれません。しかし、それらは本当の意味での整数ではありません。例えば、`CustomerId`に42を加えることはできません。
+そして、`CustomerId(42)` は `OrderId(42)` と等しくありません。実際のところ、これらは比較することさえ許されていません。
 
-Types to the rescue, of course.
+もちろん、型が助けてくれます。
 
 ```fsharp
 type CustomerId = CustomerId of int
@@ -29,18 +29,18 @@ type OrderId = OrderId of int
 let custId = CustomerId 42
 let orderId = OrderId 42
 
-// compiler error
+// コンパイラエラー
 printfn "cust is equal to order? %b" (custId = orderId)
 ```
 
-Similarly, you might want avoid mixing up semantically different date values by wrapping them in a type. (`DateTimeKind` is an attempt at this, but not always reliable.)
+同様に、意味的に異なる日付の値を型で囲むことで、それらの値が混ざらないようにしたい場合もあるでしょう。(`DateTimeKind`はこの試みですが、必ずしも信頼できるものではありません。)
 
 ```fsharp
 type LocalDttm = LocalDttm of System.DateTime
 type UtcDttm = UtcDttm of System.DateTime
 ```
 
-With these types we can ensure that we always pass the right kind of datetime as parameters. Plus, it acts as documentation as well.
+これらの型を使えば、常に正しい種類のdatetimeをパラメータとして渡すことができます。さらに、これはドキュメントとしても機能します。
 
 ```fsharp
 let SetOrderDate (d:LocalDttm) =
@@ -50,11 +50,11 @@ let SetAuditTimestamp (d:UtcDttm) =
     () // do something
 ```
 
-## Constraints on integers
+## 整数の制約
 
-Just as we had validation and constraints on types such as `String50` and `ZipCode`, we can use the same approach when we need to have constraints on integers.
+`String50`や `ZipCode`のような型に対する検証や制約があったように、整数に対する制約が必要な場合にも同じアプローチをとることができます。
 
-For example, an inventory management system or a shopping cart may require that certain types of number are always positive.  You might ensure this by creating a `NonNegativeInt` type.
+例えば、在庫管理システムやショッピングカートでは、ある種の数値が常に正の値であることが求められるかもしれません。 `NonNegativeInt`という型を作ることで、これを保証することができます。
 
 ```fsharp
 module NonNegativeInt =
@@ -73,20 +73,20 @@ module InventoryManager =
         ()
 ```
 
-## Embedding business rules in the type
+## ビジネスルールを型に埋め込む
 
-Just as we wondered earlier whether first names could ever be 64K characters long, can you really add 999999 items to your shopping cart?
+先ほど、ファーストネームの長さが64K文字になることがあるかどうか疑問に思ったように、ショッピングカートに99999個のアイテムを追加することは本当にできるのでしょうか？
 
-![State transition diagram: Package Delivery](./AddToCart.png)
+![状態遷移図: パッケージ配送](./AddToCart.png)
 
-Is it worth trying to avoid this issue by using constrained types? Let's look at some real code.
+制約付きの型を使ってこの問題を回避する価値はあるでしょうか？実際のコードを見てみましょう。
 
-Here is a very simple shopping cart manager using a standard `int` type for the quantity. The quantity is incremented or decremented when the related buttons are clicked. Can you find the obvious bug?
+ここでは、数量に標準的な `int` 型を使用した、非常にシンプルなショッピングカートマネージャを紹介します。関連するボタンがクリックされると、数量が増加または減少します。明らかなバグを見つけられるでしょうか？
 
 ```fsharp
-module ShoppingCartWithBug =
+モジュール ShoppingCartWithBug =
 
-    let mutable itemQty = 1  // don't do this at home!
+    let mutable itemQty = 1 // 家ではやらないでください!
 
     let incrementClicked() =
         itemQty <- itemQty + 1
@@ -95,9 +95,9 @@ module ShoppingCartWithBug =
         itemQty <- itemQty - 1
 ```
 
-If you can't quickly find the bug, perhaps you should consider making any constraints more explicit.
+もし、すぐにバグを見つけられないのであれば、おそらく、どんな制約でももっと明示的にすることを検討すべきでしょう。
 
-Here is the same simple shopping cart manager using a typed quantity instead. Can you find the bug now?  (Tip: paste the code into a F# script file and run it)
+以下は同じシンプルなショッピングカートマネージャで、代わりに型付けされた数量を使用しています。これでバグを見つけられるでしょうか？ (ヒント: コードをF#スクリプトファイルに貼り付けて実行してください)
 
 ```fsharp
 module ShoppingCartQty =
@@ -125,15 +125,15 @@ module ShoppingCartWithTypedQty =
         itemQty <- ShoppingCartQty.decrement itemQty
 ```
 
-You might think this is overkill for such a trivial problem. But if you want to avoid being in the DailyWTF, it might be worth considering.
+このような些細な問題に対して、これはやりすぎだと思うかもしれません。しかし、DailyWTFに載ることを避けたいのであれば、検討する価値はあるかもしれません。
 
 {{< book_page_ddd >}}
 
-## Constraints on dates
+## 日付の制約
 
-Not all systems can handle all possible dates. Some systems can only store dates going back to 1/1/1980, and some systems can only go into the future up to 2038 (I like to use 1/1/2038 as a max date to avoid US/UK issues with month/day order).
+すべてのシステムがすべての可能な日付を扱えるわけではありません。1980年1月1日までの日付しか保存できないシステムもあれば、2038年までの未来の日付しか保存できないシステムもあります (私は、月/日の順序に関する米国/英国の問題を避けるために、2038年1月1日を最大の日付として使用しています)。
 
-As with integers, it might be useful to have constraints on the valid dates built into the type, so that any out of bound issues are dealt with at construction time rather than later on.
+整数と同じように、型に有効な日付の制約を組み込んでおくと、境界を越えた問題に後から対処するのではなく、構築時に対処することができて便利かもしれません。
 
 ```fsharp
 type SafeDate = SafeDate of System.DateTime
@@ -147,20 +147,20 @@ let create dttm =
 ```
 
 
-## Union types vs. units of measure
+## ユニオンタイプと単位の比較
 
-You might be asking at this point: What about [units of measure](/posts/units-of-measure/)? Aren't they meant to be used for this purpose?
+この時点で疑問に思うかもしれません。[units of measure](/posts/units-of-measure/)ってどうなの？この目的のために使われるものではないのか？
 
-Yes and no.  Units of measure can indeed be used to avoid mixing up numeric values of different type, and are much more powerful than the single case unions we've been using.
+はい、そして違います。 単位は、異なる種類の数値が混ざらないようにするために使用することができ、これまで使用してきたシングルケースユニオンよりもはるかに強力です。
 
-On the other hand, units of measure are not encapsulated and cannot have constraints. Anyone can create a int with unit of measure `<kg>` say, and there is no min or max value.
+その一方で、単位はカプセル化されておらず、制約を持つことができません。誰もがintの単位を`<kg>`として作成することができ、最小値も最大値もありません。
 
-In many cases, both approaches will work fine.  For example, there are many parts of the .NET library that use timeouts, but sometimes the timeouts are set in seconds, and sometimes in milliseconds.
-I often have trouble remembering which is which. I definitely don't want to accidentally use a 1000 second timeout when I really meant a 1000 millisecond timeout.
+多くの場合、どちらのアプローチもうまくいきます。 例えば、.NETライブラリにはタイムアウトを使用する部分が多くありますが、タイムアウトは秒単位で設定されることもあれば、ミリ秒単位で設定されることもあります。
+どっちがどっちだか覚えられないことがよくあります。本当は1000ミリ秒のタイムアウトを指定しているのに、誤って1000秒のタイムアウトを指定してしまうことは絶対に避けたいものです。
 
-To avoid this scenario, I often like to create separate types for seconds and milliseconds.
+このような事態を避けるために、私は秒とミリ秒に別々の型を作りたいと思っています。
 
-Here's a type based approach using single case unions:
+ここでは、シングルケースユニオンを使った型ベースのアプローチを紹介します。
 
 ```fsharp
 type TimeoutSecs = TimeoutSecs of int
@@ -181,7 +181,7 @@ let commandTimeout (TimeoutSecs s) (cmd:System.Data.IDbCommand) =
     cmd.CommandTimeout <- s
 ```
 
-And here's the same thing using units of measure:
+また、単位を使って同じことをしてみましょう。
 
 ```fsharp
 [<Measure>] type sec
@@ -202,8 +202,8 @@ let commandTimeout (s:int<sec>) (cmd:System.Data.IDbCommand) =
     cmd.CommandTimeout <- (s * 1<_>)
 ```
 
-Which approach is better?
+どちらのアプローチが良いでしょうか？
 
-If you are doing lots of arithmetic on them (adding, multiplying, etc) then the units of measure approach is much more convenient, but otherwise there is not much to choose between them.
+もし、たくさんの算術演算（足し算、掛け算など）をするのであれば、測定単位のアプローチの方がはるかに便利ですが、そうでなければ、どちらを選ぶべきかはあまりありません。
 
 

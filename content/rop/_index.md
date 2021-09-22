@@ -7,135 +7,135 @@ image: "/rop/rop427.jpg"
 date: 2020-01-01
 ---
 
-This page contains links to the slides and code from my talk "Railway Oriented Programming".
+このページでは、私の講演「鉄道指向プログラミング」のスライドとコードへのリンクを掲載しています。
 
-Here's the blurb for the talk:
+この講演の宣伝文句は以下の通りです。
 
-> Many examples in functional programming assume that you are always on the "happy path".
-> But to create a robust real world application you must deal with validation, logging,
-> network and service errors, and other annoyances.
+> 関数型プログラミングの多くの例では、常に「幸せな道」を歩むことを前提としています。
+> しかし、堅牢な現実世界のアプリケーションを作成するためには、検証、ロギング、ネットワークやサービスのエラーなどに対処しなければなりません。
+> しかし、堅牢な現実世界のアプリケーションを作るためには、検証、ロギング、ネットワークやサービスのエラー、その他の厄介な問題に対処しなければなりません。
 > \
 > \
-> So, how do you handle all this in a clean functional way?
+> では、これらをきれいな機能的な方法で処理するにはどうすればよいのでしょうか？
 > \
 > \
-> This talk will provide a brief introduction to this topic,
-> using a fun and easy-to-understand railway analogy.
+> 本講演では、このテーマについて
+> 楽しくてわかりやすい鉄道の例えを使って、簡単に紹介します。
 
-I am also planning to upload some posts on these topics soon. Meanwhile, please see the [recipe for a functional app](/series/a-recipe-for-a-functional-app.html) series, which covers similar ground.
+また、近日中にこれらのトピックに関する記事をいくつかアップする予定です。一方で、似たような内容を扱った[recipe for a functional app](/series/a-recipe-for-a-functional-app.html)シリーズもご覧ください。
 
-If you want to to see some real code, I have created
-[this project on Github that compares normal C# with F# using the ROP approach](https://github.com/swlaschin/Railway-Oriented-Programming-Example)
+もし、実際のコードを見たいのであれば、私は
+[普通のC#とF#をROPアプローチで比較したGithubのプロジェクト](https://github.com/swlaschin/Railway-Oriented-Programming-Example)
 
-WARNING: This is a useful approach to error handling, but please don't take it to extremes! See my post on ["Against Railway-Oriented Programming"](/posts/against-railway-oriented-programming/).
+警告: これはエラー処理のための便利なアプローチですが、極端なことはしないでください! [Against Railway-Oriented Programming](/posts/against-railway-oriented-programming/)をご覧ください。
 
-## Videos
+## ビデオ
 
-I presented on this topic at NDC London 2014 (click image to view video)
+NDC London 2014でこのトピックについて発表しました(画像をクリックすると動画が表示されます)
 
 [![Video from NDC London 2014](rop427.jpg)](https://goo.gl/Lv5ZAo)
 
-Other videos of this talk are available are from [NDC Oslo 2014](http://vimeo.com/97344498)
-and [Functional Programming eXchange, 2014](https://skillsmatter.com/skillscasts/4964-railway-oriented-programming)
+この講演の他のビデオは、[NDC Oslo 2014](http://vimeo.com/97344498)
+および[Functional Programming eXchange, 2014](https://skillsmatter.com/skillscasts/4964-railway-oriented-programming)
 
 
-## Slides
+## スライド
 
-Slides from Functional Programming eXchange, March 14, 2014
+Functional Programming eXchange（2014年3月14日）のスライド
 
 {{< slideshare "9eUxEVfdTUTTh8" "railway-oriented-programming" "Railway Oriented Programming" >}}
 
-The powerpoint slides are also available from [Github](https://github.com/swlaschin/RailwayOrientedProgramming). Feel free to borrow from them!
+パワーポイントのスライドは[Github](https://github.com/swlaschin/RailwayOrientedProgramming)からも公開しています。ご自由にご利用ください。
 
-{{<  book_page_explain >}}
+{{< book_page_explain >}}
 
 {{< linktarget "monads" >}}
 
-## Relationship to the Either monad and Kleisli composition ##
+## EitherモナドとKleisli compositionとの関係 ##
 
-Any Haskellers reading this will immediately recognize this approach as the [`Either` type](http://book.realworldhaskell.org/read/error-handling.html),
-specialized to use a list of a custom error type for the Left case. In Haskell, something like: `type TwoTrack a b = Either [a] (b,[a])`
+これを読んでいるハスケラーならば、このアプローチが[`Either`型](http://book.realworldhaskell.org/read/error-handling.html)であることがすぐにわかるでしょう。
+Leftケースにカスタムエラータイプのリストを使用するように特化されています。Haskellでは次のようになります。`type TwoTrack a b = Either [a] (b,[a])`
 
-I'm certainly not trying to claim that I invented this approach at all (although I do lay claim to the silly analogy).  So why did I not use the standard Haskell terminology?
+確かに、私がこの方法を発明したと主張するつもりは全くありません（くだらないアナロジーは主張していますが）。 では、なぜ私は標準的なHaskellの用語を使わなかったのでしょうか？
 
-First, **this post is not trying to be a monad tutorial**, but is instead focused on solving the specific problem of error handling.
+まず、**この投稿はモナドのチュートリアル**ではなく、エラー処理という特定の問題を解決することに焦点を当てています。
 
-Most people coming to F# are not familiar with monads. I'd rather present an approach that is visual, non-intimidating, and generally more intuitive for many people.
+F#に来た人のほとんどは、モナドに慣れていません。私はむしろ、視覚的で威圧感がなく、多くの人にとってより直感的なアプローチを提示したいと考えています。
 
-I am strong believer in a ["begin with the concrete, and move to the abstract"](https://byorgey.wordpress.com/2009/01/12/abstraction-intuition-and-the-monad-tutorial-fallacy/)
-pedagogical approach. In my experience, once you are familiar with this particular approach, the higher level abstractions are easier to grasp later.
+私は、["具体的なことから始めて、抽象的なことに移る"](https://byorgey.wordpress.com/2009/01/12/abstraction-intuition-and-the-monad-tutorial-fallacy/)を強く信じています。
+教育的なアプローチです。私の経験では、いったんこの特別なアプローチに慣れてしまえば、後からより高度な抽象的概念を理解することが容易になります。
 
-Second, I would be incorrect to claim that my two-track type with bind is a monad anyway -- a monad is more complicated than that, and I just didn't want to get into the monad laws here.
+第二に、bindを使った2トラックの型がモナドであると主張するのは間違っています。
 
-Third, and most importantly, `Either` is too general a concept. **I wanted to present a recipe, not a tool**.
+第三に、そして最も重要なことですが、`Either`はあまりにも一般的な概念です。**私が提示したかったのはレシピであって、ツールではありません。**
 
-For example, if I want a recipe for making a loaf of bread, saying "just use flour and an oven" is not very helpful.
+例えば、パンを作るためのレシピを知りたいとき、「小麦粉とオーブンを使えばいい」と言っても、あまり役に立ちませんよね。
 
-And so, in the same way, if I want a recipe for handling errors, saying "just use Either with bind" is not very helpful.
+それと同じように、エラー処理のレシピを知りたければ、「Eitherとbindを使えばいい」と言ってもあまり意味がありません。
 
-So, in this approach, I'm presenting a whole series of techniques:
+そこで、このアプローチでは、一連のテクニックを紹介します。
 
-* Using a list of custom error types on both the left and right sides of Either (rather than, say, `Either String a`).
-* "bind" (`>>=`) for integrating monadic functions into the pipeline.
-* Kleisli composition (`>=>`) for composing monadic functions.
-* "map" (`fmap`) for integrating non-monadic functions into the pipeline.
-* "tee" for integrating unit functions into the pipeline (because F# doesn't use the IO monad).
-* Mapping from exceptions to error cases.
-* `&&&` for combining monadic functions in parallel (e.g. for validation).
-* The benefits of custom error types for domain driven design.
-* And obvious extensions for logging, domain events, compensating transactions, and more.
+* Eitherの左辺と右辺の両方で、カスタムエラータイプのリストを使用する（たとえば、`Either String a`ではなく）。
+* モナディック関数をパイプラインに統合するための「bind」（`>>=`）。
+* モナド関数を合成するための "Kleisli composition" (`>=>`) です。
+* "map" (`fmap`): 非単項式関数をパイプラインに統合します。
+(F# は IO モナドを使用しないため) * 単位関数をパイプラインに統合するための "tee" 。
+* 例外からエラーケースへのマッピング。
+* モナド関数を並列に結合するための `&&&` (例：検証用)
+* ドメイン駆動設計のためのカスタムエラータイプの利点。
+* ロギング、ドメインイベント、トランザクションの補償など、明らかな拡張機能。
 
-I hope you can see that this is a more comprehensive approach than "just use the Either monad"!
+「Eitherモナドを使えばいい」というものではなく、より包括的なアプローチであることがお分かりいただけると思います。
 
-My goal here is to provide a template that is versatile enough to be
-used in almost all situations, yet constrained enough to enforce a consistent style.
-That is, there is basically only one way to write the code. This is extremely helpful to anyone who has to maintain the code later,
-as they can immediately understand how it is put together.
+ここでの私の目標は、ほとんどすべての状況で使用可能な汎用性を持ち、かつ制約のあるテンプレートを提供することです。
+しかし、一貫したスタイルを実現するためには十分な制約が必要です。
+つまり、コードを書く方法は基本的に1つしかないということです。
+これは、後でコードをメンテナンスしなければならない人にとって、どのようにまとめられているかをすぐに理解することができるので、非常に便利です。
 
-I'm not saying that this is the *only* way to do it. But I think this approach is a good start.
+これが唯一の方法だとは言いません。しかし、このアプローチは良いスタートだと思います。
 
-As an aside, even in the Haskell community [there is no consistent approach to error handling](http://www.randomhacks.net/2007/03/10/haskell-8-ways-to-report-errors/), which
-can make things [confusing for beginners](http://programmers.stackexchange.com/questions/252977/cleanest-way-to-report-errors-in-haskell).
-I know that there is a [lot of content](http://www.fpcomplete.com/school/starting-with-haskell/basics-of-haskell/10_Error_Handling)
-about the individual [error handling techniques](http://hackage.haskell.org/package/errors), but I'm not aware of a document that brings all these tools
-together in a comprehensive way.
+余談ですが、Haskellコミュニティでも、[エラー処理に対する一貫したアプローチはありません](http://www.randomhacks.net/2007/03/10/haskell-8-ways-to-report-errors/)。
+これは[初心者を混乱させるものです](http://programmers.stackexchange.com/questions/252977/cleanest-way-to-report-errors-in-haskell)。
+[たくさんのコンテンツ](http://www.fpcomplete.com/school/starting-with-haskell/basics-of-haskell/10_Error_Handling)があることは知っています。
+しかし、これらすべてのツールを
+包括的にまとめたドキュメントを私は知りません。
 
-## How can I use this in my own code?
+## どうやって自分のコードに使えばいいの？
 
-* If you want a ready-made F# library that works with NuGet, check out the [Chessie project](https://fsprojects.github.io/Chessie/).
-* If you want to see a sample web-service using these techniques, [I have created a project on GitHub](https://github.com/swlaschin/Railway-Oriented-Programming-Example).
-* You can also [see the ROP approach applied to FizzBuzz](/posts/railway-oriented-programming-carbonated/)!
+* NuGetで動作する既製のF#ライブラリが欲しい場合は、 [Chessieプロジェクト](https://fsprojects.github.io/Chessie/)をチェックしてください。
+* これらの技術を使ったウェブサービスのサンプルを見たい場合は、 [GitHubにプロジェクトを作成しました](https://github.com/swlaschin/Railway-Oriented-Programming-Example)をご覧ください。
+* また、[FizzBuzzに適用されたROPアプローチを見る](/posts/railway-oriented-programming-carbonated/)こともできます!
 
-F# does not have type classes, and so you don't really have a reusable way to do monads (although the [FSharpX library](https://github.com/fsprojects/fsharpx/blob/master/src/FSharpx.Core/ComputationExpressions/Monad.fs)
-has a useful approach).  This means the `Rop.fs` library defines all its functions from scratch.
-(In some ways though, this isolation can be helpful because there are no external dependencies at all.)
+F#は型クラスを持っていないので、モナドを行うための再利用可能な方法はありません（ただし、[FSharpXライブラリ](https://github.com/fsprojects/fsharpx/blob/master/src/FSharpx.Core/ComputationExpressions/Monad.fs)
+には便利な方法があります）．)  このため，`Rop.fs`ライブラリは，すべての関数をゼロから定義しています．
+(しかし，ある意味では，外部への依存性が全くないため，この孤立化が役に立つこともあります)．
 
-## Further reading
+## 続きを読む
 
-> *"One bind does not a monad make" -- Aristotle*
+> *"One bind does not a monad make" -- アリストテレス*.
 
-As I mentioned above, one reason why I stayed away from monads is that defining a monad correctly is *not* just a matter of implementing "bind" and "return".
-It is an algebraic structure that needs to obey the monad laws (which in turn are just the [monoid laws](/posts/monoids-without-tears/) in a specific situation)
-and that was a path I did not want to head down in this particular talk.
+上に書いたように、私がモナドから遠ざかっていた理由の一つは、モナドを正しく定義することは、単に「bind」と「return」を実装するだけの問題ではないからです。
+モナドを正しく定義することは、単に "bind "と "return "を実装することではなく、モナド則（それは特定の状況における[monoid laws](/posts/monoids-without-tears/)に従う必要がある代数的な構造です。
+これは、今回の講演では避けたかった道です。
 
-However if you are interested in more detail on `Either` and Kleisi composition, here are some links that might be useful:
+しかし、`Either`やKleisi compositionについてもっと詳しく知りたいという方には、以下のリンクが役に立つかもしれません。
 
 * **Monads in general**.
   * [Stack overflow answer on monads](http://stackoverflow.com/questions/44965/what-is-a-monad)
   * [Stack overflow answer by Eric Lippert](http://stackoverflow.com/questions/2704652/monad-in-plain-english-for-the-oop-programmer-with-no-fp-background/2704795#2704795)
   * [Monads in pictures](http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html)
   * ["You Could Have Invented Monads"](http://blog.sigfpe.com/2006/08/you-could-have-invented-monads-and.html)
-  * [Haskell tutorial](https://www.haskell.org/tutorial/monads.html)
+  * [Haskell チュートリアル](https://www.haskell.org/tutorial/monads.html)
   * [The hardcore definition on nLab](http://ncatlab.org/nlab/show/monad)
 * **The `Either` monad**.
   * [School of Haskell](http://www.fpcomplete.com/school/starting-with-haskell/basics-of-haskell/10_Error_Handling)
-  * [Real World Haskell on error handling](http://book.realworldhaskell.org/read/error-handling.html) (halfway down)
-  * [LYAH on error handling](http://learnyouahaskell.com/for-a-few-monads-more) (halfway down)
-* **Kleisli categories and composition**
-  * [Post at FPComplete](http://www.fpcomplete.com/user/Lkey/kleisli)
-  * [Post by Bartosz Milewski](http://bartoszmilewski.com/2014/12/23/kleisli-categories/)
+  * [Real World Haskell on error handling](http://book.realworldhaskell.org/read/error-handling.html) (途中まで)
+  * [LYAH on error handling](http://learnyouahaskell.com/for-a-few-monads-more) (中途半端)
+* **Kleisli categories and composition**.
+  * [FPComplete への投稿](http://www.fpcomplete.com/user/Lkey/kleisli)
+  * [Bartosz Milewski の投稿](http://bartoszmilewski.com/2014/12/23/kleisli-categories/)
   * [The hardcore definition on nLab](http://ncatlab.org/nlab/show/Kleisli+category)
-* **Comprehensive error handling approaches**
-  * [Item 5 in this post](http://www.randomhacks.net/2007/03/10/haskell-8-ways-to-report-errors/)
-  * I'm not aware of other approaches that cover all the techniques discussed in this talk.
-    If you do know of any, ping me in the comments and I'll update this page.
+* **包括的なエラー処理のアプローチ**。
+  * [この投稿の項目5](http://www.randomhacks.net/2007/03/10/haskell-8-ways-to-report-errors/)
+  * この講演で取り上げた技術をすべてカバーする他のアプローチを私は知りません。
+    もし知っていたら、コメントで教えていただければ、このページを更新します。

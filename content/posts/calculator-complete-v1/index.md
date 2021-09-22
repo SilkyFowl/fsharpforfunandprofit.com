@@ -8,21 +8,21 @@ seriesId: "Annotated walkthroughs"
 seriesOrder: 3
 ---
 
-In this post, I'll continue developing a simple pocket calculator app.
+今回の投稿では、シンプルなポケット電卓アプリの開発を続けます。
 
-In the [first post](/posts/calculator-design/), we completed a first draft of the design, using only types (no UML diagrams!).
-and in the [previous post](/posts/calculator-implementation/), we created an initial implementation that exercised the design and revealed a missing requirement.
+[最初の投稿](/posts/calculator-design/)では、型だけを使って(UML図は使わない！)デザインの最初のドラフトを完成させました。
+[前の記事](/posts/calculator-implementation/)では、設計を実行し、欠けている要件を明らかにする初期実装を作成しました。
 
-Now it's time to build the remaining components and assemble them into a complete application
+次は、残りのコンポーネントを構築し、完全なアプリケーションに組み立てる番です。
 
-## Creating the services
+## サービスの作成
 
-We have a implementation. But the implementation depends on some services, and we haven't created the services yet.
+私たちには実装があります。しかし、この実装はいくつかのサービスに依存しており、そのサービスをまだ作成していません。
 
-In practice though, this bit is very easy and straightforward. The types defined in the domain enforce constraints
-such there is really only one way of writing the code.
+しかし実際には、この部分はとても簡単でわかりやすいです。ドメインで定義された型は、制約を強いるものです。
+そのため、コードを書く方法は本当に1つしかありません。
 
-I'm going to show all the code at once (below), and I'll add some comments afterwards.
+すべてのコードを一度に表示します（以下）。後にコメントを追加します。
 
 ```fsharp
 // ================================================
@@ -127,23 +127,23 @@ module CalculatorServices =
         }
 ```
 
-Some comments:
+いくつかのコメントです。
 
-* I have created a configuration record that stores properties that are used to parameterize the services, such as the decimal separator.
-* The configuration record is passed into the `createServices` function, which in turn passes the configuration on those services that need it.
-* All the functions use the same approach of returning one of the types defined in the design, such as `UpdateDisplayFromDigit` or `DoMathOperation`.
-* There are only a few tricky edge cases, such as trapping exceptions in division, or preventing more than one decimal separator being appended.
+* 小数点以下の区切り文字など、サービスをパラメータ化するためのプロパティを格納するコンフィギュレーションレコードを作成しました。
+* コンフィグレーションレコードは、`createServices`関数に渡され、必要なサービスにコンフィグレーションを渡します。
+* すべての関数は、`UpdateDisplayFromDigit`や`DoMathOperation`など、デザインで定義された型の1つを返すという同じアプローチを使用しています。
+* 割り算の例外をトラップしたり、2つ以上の小数点セパレータが付加されないようにするなど、いくつかのトリッキーなエッジケースがあります。
 
 
-## Creating the user interface
+## ユーザーインターフェースの作成
 
-For the user interface, I'm going to use WinForms rather than WPF or a web-based approach. It's simple and should work on Mono/Xamarin as well as Windows.
-And it should be easy to port to other UI frameworks as well.
+ユーザーインターフェイスには、WPFやウェブベースのアプローチではなく、WinFormsを使用します。これはシンプルで、WindowsだけでなくMono/Xamarinでも動作するはずです。
+また、他のUIフレームワークにも簡単に移植できるはずです。
 
-As is typical with UI development I spent more time on this than on any other part of the process!
-I'm going to spare you all the painful iterations and just go directly to the final version.
+UI開発ではよくあることですが、私は他のどの部分よりもこの作業に時間を費やしました。
+辛い反復作業は省き、最終バージョンに直接進むことにしました。
 
-I won't show all the code, as it is about 200 lines (and you can see it in the [gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1-fsx)), but here are some highlights:
+コードは約200行なので、すべては示しませんが（[gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1-fsx)で見ることができます）、いくつかのハイライトを紹介します。
 
 ```fsharp
 module CalculatorUI =
@@ -153,27 +153,27 @@ module CalculatorUI =
     type CalculatorForm(initState:InitState, calculate:Calculate) as this =
         inherit Form()
 
-        // initialization before constructor
+        // コンストラクタ前の初期化
         let mutable state = initState()
         let mutable setDisplayedText =
-            fun text -> () // do nothing
+            fun text -> () // 何もしない
 ```
 
-The `CalculatorForm` is a subclass of `Form`, as usual.
+`CalculatorForm`は、例によって`Form`のサブクラスです。
 
-There are two parameters for its constructor.
-One is `initState`, the function that creates an empty state, and `calculate`, the function that transforms the state based on the input.
-In other words, I'm using standard constructor based dependency injection here.
+コンストラクタには2つのパラメータがあります。
+1つは`initState`という空の状態を作る関数で、もう1つは`calculate`という入力に基づいて状態を変化させる関数です。
+つまり、ここでは標準的なコンストラクタベースの依存性注入を使用しているのです。
 
-There are two mutable fields (shock horror!).
+ミュータブルなフィールドが2つあります（驚）。
 
-One is the state itself. Obviously, it will be modified after each button is pressed.
+1つは状態そのものです。明らかに、ボタンが押されるたびに修正されます。
 
-The second is a function called `setDisplayedText`. What's that all about?
+2つ目は、`setDisplayedText`という関数です。これはいったい何なのでしょうか？
 
-Well, after the state has changed, we need to refresh the control (a Label) that displays the text.
+ステートが変更された後、テキストを表示するコントロール（Label）を更新する必要があります。
 
-The standard way to do it is to make the label control a field in the form, like this:
+これを行う標準的な方法は、次のようにラベルコントロールをフォーム内のフィールドにすることです。
 
 ```fsharp
 type CalculatorForm(initState:InitState, calculate:Calculate) as this =
@@ -182,7 +182,7 @@ type CalculatorForm(initState:InitState, calculate:Calculate) as this =
     let displayControl :Label = null
 ```
 
-and then set it to an actual control value when the form has been initialized:
+そして、フォームが初期化されたときに、実際のコントロールの値に設定します。
 
 ```fsharp
 member this.CreateDisplayLabel() =
@@ -195,13 +195,13 @@ member this.CreateDisplayLabel() =
     displayControl <- display
 ```
 
-But this has the problem that you might accidentally try to access the label control before it is initialized, causing a NRE.
-Also, I'd prefer to focus on the desired behavior, rather than having a "global" field that can be accessed by anyone anywhere.
+しかし、この方法では、ラベルコントロールが初期化される前に誤ってアクセスしようとすると、NREが発生するという問題があります。
+また、誰でもどこからでもアクセスできる「グローバル」なフィールドを用意するよりも、望ましい動作に焦点を当てたいと思います。
 
-By using a function, we (a) encapsulate the access to the real control and (b) avoid any possibility of a null reference.
+関数を使用することで、(a)実際のコントロールへのアクセスをカプセル化し、(b)null参照の可能性を回避します。
 
-The mutable function starts off with a safe default implementation (`fun text -> ()`),
-and is then changed to a *new* implementation when the label control is created:
+mutable関数は、最初は安全なデフォルトの実装（`fun text -> ()`）で始まります。
+そして，ラベルコントロールが作成されると，*新しい*実装に変更されます．
 
 ```fsharp
 member this.CreateDisplayLabel() =
@@ -214,11 +214,11 @@ member this.CreateDisplayLabel() =
 ```
 
 
-## Creating the buttons
+## ボタンの作成
 
-The buttons are laid out in a grid, and so I create a helper function `getPos(row,col)` that gets the physical position from a logical (row,col) on the grid.
+ボタンはグリッドに配置されているので、グリッド上の論理的な(row,col)から物理的な位置を取得するヘルパー関数 `getPos(row,col)` を作成しています。
 
-Here's an example of creating the buttons:
+以下はボタンの作成例です。
 
 ```fsharp
 member this.CreateButtons() =
@@ -238,7 +238,7 @@ member this.CreateButtons() =
     addButton |> addOpButton Add
 ```
 
-And since all the digit buttons have the same behavior, as do all the math op buttons, I just created some helpers that set the event handler in a generic way:
+また、すべての桁のボタンは、すべての数学のOPボタンと同様に同じ動作をするので、一般的な方法でイベントハンドラを設定するヘルパーを作成しました。
 
 ```fsharp
 let addDigitButton digit (button:Button) =
@@ -250,7 +250,7 @@ let addOpButton op (button:Button) =
     this.Controls.Add(button)
 ```
 
-I also added some keyboard support:
+また、キーボードのサポートも追加しました。
 
 ```fsharp
 member this.KeyPressHandler(e:KeyPressEventArgs) =
@@ -260,10 +260,10 @@ member this.KeyPressHandler(e:KeyPressEventArgs) =
     | '2' -> handleDigit Two
     | '.' | ',' -> handleDigit DecimalSeparator
     | '+' -> handleOp Add
-    // etc
+    //など
 ```
 
-Button clicks and keyboard presses are eventually routed into the key function `handleInput`, which does the calculation.
+ボタンのクリックやキーボードの押下は、最終的にキー関数である`handleInput`にルーティングされ、計算が行われます。
 
 ```fsharp
 let handleInput input =
@@ -278,46 +278,46 @@ let handleOp op =
      Op op |> handleInput
 ```
 
-As you can see, the implementation of `handleInput` is trivial.
-It calls the calculation function that was injected, sets the mutable state to the result, and then updates the display.
+ご覧の通り、`handleInput`の実装は些細なものです。
+インジェクションされた計算関数を呼び出し、 mutable stateに結果を設定し、ディスプレイを更新しています。
 
-So there you have it -- a complete calculator!
+これで、完全な計算機が完成しました。
 
-Let's try it now -- get the code from this [gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1-fsx) and try running it as a F# script.
+この[gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1-fsx)からコードを取得して、F#スクリプトとして実行してみましょう。
 
 ## Disaster strikes!
 
-Let's start with a simple test. Try entering `1` `Add` `2` `Equals`. What would you expect?
+簡単なテストから始めましょう。`1` `Add` `2` `Equals` と入力してみてください。何を期待しているのでしょうか？
 
-I don't know about you, but what I *wouldn't* expect is that the calculator display shows `12`!
+あなたのことは知りませんが、私は電卓のディスプレイに「12」と表示されることは期待していません。
 
-What's going on? Some quick experimenting shows that I have forgotten something really important --
-when an `Add` or `Equals` operation happens, any subsequent digits should *not* be added to the current buffer, but instead start a new one.
-Oh no! We've got a showstopper bug!
+何が起こっているのでしょうか？ちょっとした実験をしてみると、私は本当に重要なことを忘れていました。
+`Add` や `Equals`の操作が行われた場合、それ以降の数字は現在のバッファに追加されるのではなく、新しいバッファが開始されます。
+いやいや、これはとんでもないバグですよ。
 
-Remind me again, what idiot said "if it compiles, it probably works".*\
-{{<footnote "*">}}Actually, that idiot would be me (among many others).{{</footnote>}}
+どこのバカが「コンパイルすればたぶん動く」と言ったのか、もう一度思い出してみてください。
+{{<footnote "*">}実際には、そのバカは私（他の多くの人の中で）です。{{</footnote>}}
 
-So what went wrong then?
+では、何が悪かったのでしょうか？
 
-Well the code did compile, but it didn't work as expected, not because the code was buggy, but because *my design was flawed*.
+コードはコンパイルされましたが、期待通りに動作しませんでした。それはコードがバグっていたからではなく、*私の設計に欠陥があったからです。
 
-In other words, the use of the types from the type-first design process means that I *do* have high confidence that the code I wrote is a correct implementation of the design.
-But if the requirements and design are wrong, all the correct code in the world can't fix that.
+言い換えれば、型優先設計プロセスで型を使用したということは、私が書いたコードが設計の正しい実装であるという高い信頼性を持っているということです。
+しかし、要件や設計が間違っていれば、世界中の正しいコードを使っても解決できません。
 
-We'll revisit the requirements in the next post, but meanwhile, is there a patch we can make that will fix the problem?
+次の記事で要件を再検討しますが、その間に、問題を修正するパッチを作ることはできないでしょうか？
 
 ## Fixing the bug
 
-Let's think of the circumstances when we start a new set of digits, vs. when we just append to the existing ones.
-As we noted above, a math operation or `Equals` will force the reset.
+新しい桁を始めるときと、既存の桁に追加するだけのときの状況を考えてみましょう。
+上で述べたように、算術演算や`Equals`では強制的にリセットされます。
 
-So why not set a flag when those operations happen? If the flag is set, then start a new display buffer,
-and after that, unset the flag so that characters are appended as before.
+そこで、これらの操作が行われたときにフラグを立ててはどうでしょうか。フラグがセットされていれば、新しいディスプレイバッファを開始します。
+その後、フラグの設定を解除すれば、以前のように文字が追加されます。
 
-What changes do we need to make to the code?
+では、どのような変更が必要なのでしょうか？
 
-First, we need to store the flag somewhere. We'll store it in the `CalculatorState` of course!
+まず，フラグをどこかに保存する必要があります。もちろん、`CalculatorState`の中に格納します。
 
 ```fsharp
 type CalculatorState = {
@@ -327,24 +327,24 @@ type CalculatorState = {
     }
 ```
 
-(*This might seem like a good solution for now, but using flags like this is really a design smell.
-In the next post, I'll use a [different approach](/posts/designing-with-types-representing-states/#replace-flags) which doesn't involve flags)*
+(*現時点では良い解決策に見えるかもしれませんが、このようにフラグを使用することは、本当にデザイン上の問題です。
+次の記事では、フラグを使わない[別のアプローチ](/posts/designing-with-types-representing-states/#replace-flags)を使ってみます)*。
 
-## Fixing the implementation
+## 実装の修正
 
-With this change made, compiling the `CalculatorImplementation` code now breaks everywhere a new state is created.
+この変更により、`CalculatorImplementation`のコードをコンパイルすると、新しい状態が作られるたびに壊れてしまうようになりました。
 
-Actually, that's what I like about using F# -- something like adding a new field to a record is a breaking change, rather than
-something that can be overlooked by mistake.
+実際、F#を使っていて気に入っているのはこの点です -- レコードに新しいフィールドを追加するようなことは、壊れやすい変更ではなく
+誤って見落としてしまうようなものではなく、重大な変更なのです。
 
-We'll make the following tweaks to the code:
+コードに以下のような修正を加えます。
 
-* For `updateDisplayFromDigit`, we return a new state with `allowAppend` set to true.
-* For `updateDisplayFromPendingOp` and `addPendingMathOp`, we return a new state with `allowAppend` set to false.
+* `updateDisplayFromDigit`では、`allowAppend`がtrueに設定された新しいステートを返します。
+* `updateDisplayFromPendingOp` と `addPendingMathOp` については、`allowAppend` を false に設定した新しい状態を返します。
 
-## Fixing the services
+## サービスの修正
 
-Most of the services are fine. The only service that is broken now is `initState`, which just needs to be tweaked to have `allowAppend` be true when starting.
+ほとんどのサービスは問題ありません。現在壊れているのは `initState` だけで、これは起動時に `allowAppend` が true になるように調整するだけです。
 
 ```fsharp
 let initState :InitState = fun () ->
@@ -355,67 +355,67 @@ let initState :InitState = fun () ->
     }
 ```
 
-## Fixing the user interface
+## ユーザーインターフェイスの修正
 
-The `CalculatorForm` class continues to work with no changes.
+`CalculatorForm` クラスは、何の変更もなく動作を続けています。
 
-But this change does raise the question of how much the `CalculatorForm` should know about the internals of the `CalculatorDisplay` type.
+しかし、この変更により、`CalculatorForm` が `CalculatorDisplay` 型の内部についてどの程度知っておくべきかという問題が発生します。
 
-Should `CalculatorDisplay` be transparent, in which case the form might break every time we change the internals?
+この場合、内部構造を変更するたびにフォームが壊れてしまう可能性があります。
 
-Or should `CalculatorDisplay` be an opaque type, in which case we will need to add another "service" that extracts the buffer from the `CalculatorDisplay` type so that the form
-can display it?
+それとも、`CalculatorDisplay` は不透明な型にすべきでしょうか？この場合、`CalculatorDisplay` 型からバッファを抽出して、フォームがそれを表示できるようにする別の「サービス」を追加する必要があります。
+サービス」を追加する必要があります。
 
-For now, I'm happy to tweak the form if there are changes. But in a bigger or more long-term project,
-when we are trying to reduce dependencies, then yes, I would make the domain types opaque as much as possible to reduce the fragility of the design.
+今のところ、変更があればフォームをいじってもいいと思っています。でも、もっと大きなプロジェクトや長期的なプロジェクトでは
+しかし、より大きなプロジェクトや長期的なプロジェクトでは、依存性を減らそうとしているので、デザインの脆弱性を減らすために、ドメインタイプをできるだけ不透明にしたいと思います。
 
-## Testing the patched version
+## パッチを当てたバージョンのテスト
 
-Let's try out the patched version now (*you can get the code for the patched version from this [gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1_patched-fsx)*).
+それでは、パッチを当てたバージョンを試してみましょう (*パッチを当てたバージョンのコードは、この[gist](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1_patched-fsx)*から入手できます)。
 
-Does it work now?
+これで動きますか？
 
-Yes. Entering `1` `Add` `2` `Equals` results in `3`, as expected.
+はい、うまくいきました。`1` `Add` `2` `Equals` と入力すると、期待通りに `3` となります。
 
-So that fixes the major bug. Phew.
+これで主要なバグが修正されました。ふう。
 
-But if you keep playing around with this implementation, you will encounter other ~~bugs~~ undocumented features too.
+しかし、この実装で遊び続けていると、他の～～バグ～～文書化されていない機能にも遭遇することになります。
 
-For example:
+例えば、以下のようなものです。
 
-* `1.0 / 0.0` displays `Infinity`. What happened to our divide by zero error?
-* You get strange behaviors if you enter operations in unusual orders. For example, entering `2 + + -` shows `8` on the display!
+* `1.0 / 0.0` は `Infinity` を表示します。私たちのゼロ除算エラーはどうなったのでしょうか?
+* 変わった順序で演算を入力すると、奇妙な動作をします。例えば、`2 + + -` と入力すると、`8` と表示されます。
 
-So obviously, this code is not yet fit for purpose.
+つまり、このコードはまだ目的に適合していないということです。
 
 
-## What about Test-Driven Development?
+## テスト駆動型開発とは？
 
-At this point, you might be saying to yourself: "if only he had used TDD this wouldn't have happened".
+この時点で、あなたは自分自身に言い聞かせているかもしれません。「TDDを使っていれば、こんなことにはならなかったのに」と思うかもしれません。
 
-It's true -- I wrote all this code, and yet I didn't even bother to write a test that checked whether you could add two numbers properly!
+確かに、これだけのコードを書いたのに、2つの数字をきちんと足せるかどうかをチェックするテストすら書いていませんでした。
 
-If I had started out by writing tests, and letting that drive the design, then surely I wouldn't have run into this problem.
+もし私が最初にテストを書き、それに基づいて設計を進めていたら、きっとこの問題は起こらなかったでしょう。
 
-Well in this particular example, yes, I would probably would have caught the problem immediately.
-In a TDD approach, checking that `1 + 2 = 3` would have been one of the first tests I wrote!
-But on the other hand, for obvious flaws like this, any interactive testing will reveal the issue too.
+この例では、おそらくすぐに問題を発見していたでしょう。
+TDDのアプローチでは、「1 + 2 = 3」をチェックすることは、私が書いた最初のテストの1つだったでしょう。
+しかし一方で、このような明らかな欠陥がある場合、どんなインタラクティブなテストでも問題が明らかになります。
 
-To my mind, the advantages of test-driven development are that:
+私の考えでは、テスト駆動開発の利点は次のとおりです。
 
-* it drives the *design* of the code, not just the implementation.
-* it provides guarantees that code stays correct during refactoring.
+* 実装だけでなく、コードの「設計」を推進することができる。
+* リファクタリングの際にコードが正しく保たれることが保証される。
 
-So the real question is, would test-driven development help us find missing requirements or subtle edge cases?
-Not necessarily. Test-driven development will only be effective if we can think of every possible case that could happen in the first place.
-In that sense, TDD would not make up for a lack of imagination!
+では、実際の問題として、テスト駆動開発は、欠けている要件や微妙なエッジケースを見つけるのに役立つのでしょうか？
+必ずしもそうではありません。テスト駆動開発が効果を発揮するのは、そもそも起こりうるすべてのケースを考えられるようになってからです。
+その意味で、TDDは想像力の欠如を補うものではありません。
 
-And if do have good requirements, then hopefully we can design the types to [make illegal states unrepresentable](/posts/designing-with-types-making-illegal-states-unrepresentable/)
-and then we won't need the tests to provide correctness guarantees.
+もし良い要件があれば、うまくいけば「違法な状態を表現できないように」型を設計することができます(/posts/designing-with-types-making-illegal-states-unrepresentable/)
+そうすれば、テストで正しさを保証する必要がなくなります。
 
-Now I'm not saying that I am against automated testing. In fact, I do use it all the time to verify certain requirements, and especially for integration and testing in the large.
+さて、私は自動テストに反対しているわけではありません。実際、私は特定の要件を検証するために、そして特に大規模な統合とテストのために、常に自動テストを使用しています。
 
-So, for example, here is how I might test this code:
+例えば、このコードをどのようにテストするかというと、次のようになります。
 
 ```fsharp
 module CalculatorTests =
@@ -462,23 +462,23 @@ module CalculatorTests =
         ``when I input 1 + 2 + 3, I expect 6``()
 ```
 
-And of course, this would be easily adapted to using [NUnit or similar](/posts/low-risk-ways-to-use-fsharp-at-work-3/).
+もちろん、これは[NUnit or similar](/posts/low-risk-ways-to-use-fsharp-at-work-3/)を使って簡単に適応できるでしょう。
 
 ## How can I develop a better design?
 
-I messed up! As I said earlier, the *implementation itself* was not the problem. I think the type-first design process worked.
-The real problem was that I was too hasty and just dived into the design without really understanding the requirements.
+失敗しました。先ほど言ったように、*実装そのもの*は問題ではありませんでした。タイプファーストの設計プロセスはうまくいったと思います。
+本当の問題は、私が急ぎすぎて、要件をよく理解せずに設計に飛び込んでしまったことです。
 
-How can I prevent this from happening again next time?
+次回以降、このようなことがないようにするにはどうしたらいいでしょうか？
 
-One obvious solution would be to switch to a proper TDD approach.
-But I'm going to be a bit stubborn, and see if I can stay with a type-first design!
+ひとつの明白な解決策は、適切なTDDアプローチに切り替えることです。
+しかし、私は少し頑固になって、タイプファーストの設計を続けられるかどうか試してみるつもりです。
 
-[In the next post](/posts/calculator-complete-v2/), I will stop being so ad-hoc and over-confident,
-and instead use a process that is more thorough and much more likely to prevent these kinds of errors at the design stage.
+[次の記事](/posts/calculator-complete-v2/)では、その場しのぎの過信をやめまて、
+より徹底したプロセスを用いて、設計段階でこの種のエラーを防ぐことにします。
 
-*The code for this post is available on GitHub in [this gist (unpatched)](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1-fsx)
-and [this gist (patched)](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1_patched-fsx).*
+*この記事のコードはGitHubの[this gist (unpatched)](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1-fsx)で公開されています。
+と[this gist (patched)](https://gist.github.com/swlaschin/0e954cbdc383d1f5d9d3#file-calculator_v1_patched-fsx)で公開されています。*。
 
 
 

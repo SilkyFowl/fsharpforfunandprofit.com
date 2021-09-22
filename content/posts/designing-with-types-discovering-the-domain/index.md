@@ -9,11 +9,11 @@ seriesOrder: 4
 categories: [Types, DDD]
 ---
 
-In the last post, we looked at how we could represent a business rule using types.
+前回の記事では、型を使ってビジネス・ルールを表現する方法を紹介しました。
 
-The rule was: *"A contact must have an email or a postal address"*.
+そのルールとは *"A contact must have an email or a postal address "*.
 
-And the type we designed was:
+そして、私たちが設計した型は
 
 ```fsharp
 type ContactInfo =
@@ -22,17 +22,17 @@ type ContactInfo =
     | EmailAndPost of EmailContactInfo * PostalContactInfo
 ```
 
-Now let's say that the business decides that phone numbers need to be supported as well.  The new business rule is: *"A contact must have at least one of the following: an email, a postal address, a home phone, or a work phone"*.
+ここで、ビジネス上、電話番号もサポートする必要があると判断したとします。 新しいビジネス・ルールは以下の通りです。*"A contact must have at least one of the following: an email, a postal address, a home phone, or a work phone "*.
 
-How can we represent this now?
+これをどのように表現すればよいのでしょうか。
 
-A little thought reveals that there are 15 possible combinations of these four contact methods. Surely we don't want to create a union case with 15 choices? Is there a better way?
+少し考えてみると、この4つの連絡手段の組み合わせは15通りあることがわかります。15の選択肢を持つ組合員のケースを作りたくないのではないでしょうか？何か良い方法はないだろうか？
 
-Let's hold that thought and look at a different but related problem.
+その考えは保留にして、別の、しかし関連する問題を見てみましょう。
 
-## Forcing breaking changes when requirements change
+## 要件が変わったときに壊れやすい変更を強いる
 
-Here's the problem. Say that you have a contact structure which contains a list of email addresses and also a list of postal addresses, like so:
+問題はここにあります。例えば、以下のようなメールアドレスと住所のリストを含むコンタクト構造があるとします。
 
 ```fsharp
 type ContactInformation =
@@ -42,7 +42,7 @@ type ContactInformation =
     }
 ```
 
-And, also let's say that you have created a `printReport` function that loops through the information and prints it out in a report:
+また、これらの情報をループしてレポートに出力する`printReport`関数を作成したとします。
 
 ```fsharp
 // mock code
@@ -64,9 +64,9 @@ let printReport contactInfo =
          printPostalAddress postalAddress
 ```
 
-Crude, but simple and understandable.
+粗削りですが、シンプルでわかりやすいですね。
 
-Now if the new business rule comes into effect, we might decide to change the structure to have some new lists for the phone numbers.  The updated structure will now look something like this:
+さて、もし新しいビジネスルールが有効になったら、電話番号用の新しいリストを持つように構造を変更することにしましょう。 更新後の構造は以下のようになります。
 
 ```fsharp
 type PhoneContactInfo = string // dummy for now
@@ -80,11 +80,11 @@ type ContactInformation =
     }
 ```
 
-If you make this change, you also want to make sure that all the functions that process the contact information are updated to handle the new phone cases as well.
+この変更を行った場合、連絡先情報を処理するすべての関数が、新しい電話番号のケースにも対応できるように更新されていることを確認してください。
 
-Certainly, you will be forced to fix any pattern matches that break. But in many cases, you would *not* be forced to handle the new cases.
+確かに、パターンマッチが崩れると修正せざるを得ないでしょう。しかし、多くの場合、新しいケースを処理する必要はありません。
 
-For example, here's `printReport` updated to work with the new lists:
+例えば、新しいリストに対応するために更新された`printReport`は以下の通りです。
 
 ```fsharp
 let printReport contactInfo =
@@ -98,21 +98,21 @@ let printReport contactInfo =
          printPostalAddress postalAddress
 ```
 
-Can you see the deliberate mistake? Yes, I forgot to change the function to handle the phones. The new fields in the record have not caused the code to break at all. There is no guarantee that you will remember to handle the new cases. It would be all too easy to forget.
+わざとらしいミスがわかりますか？はい、電話を処理する関数を変更するのを忘れていました。レコードの新しいフィールドのおかげで、コードが壊れることは全くありませんでした。新しいケースを処理することを覚えているという保証はありません。忘れてしまうのはあまりにも簡単です。
 
-Again, we have the challenge: can we design types such that these situations cannot easily happen?
+繰り返しになりますが、このような状況が簡単に起こらないように型を設計することができるか、という課題があります。
 
-## Deeper insight into the domain
+## ドメインへの深い洞察
 
-If you think about this example a bit more deeply, you will realize that we have missed the forest for the trees.
+この例をもう少し深く考えてみると、「木を見て森を見ず」になっていることに気づくでしょう。
 
-Our initial concept was: *"to contact a customer, there will be a list of possible emails, and a list of possible addresses, etc"*.
+私たちの最初のコンセプトは *「お客様に連絡を取るためには、可能なメールのリストと、可能なアドレスのリストなどが必要」*です。
 
-But really, this is all wrong. A much better concept is: *"To contact a customer, there will be a list of contact methods. Each contact method could be an email OR a postal address OR a phone number"*.
+しかし、これは間違っています。もっと良いコンセプトがあります。*「お客様に連絡を取るには、連絡方法のリストが必要です。それぞれの連絡方法には、電子メール、郵便番号、電話番号などがあります。」*。
 
-This is a key insight into how the domain should be modelled.  It creates a whole new type, a "ContactMethod", which resolves our problems in one stroke.
+これは、ドメインがどのようにモデル化されるべきかについての重要な洞察です。 これにより、「ContactMethod」という全く新しい型が作成され、問題が一挙に解決されます。
 
-We can immediately refactor the types to use this new concept:
+この新しい概念を使うために、すぐに型をリファクタリングすることができます。
 
 ```fsharp
 type ContactMethod =
@@ -127,7 +127,7 @@ type ContactInformation =
     }
 ```
 
-And the reporting code must now be changed to handle the new type as well:
+そして、レポーティングのコードも新しいタイプを扱うように変更する必要があります。
 
 ```fsharp
 // mock code
@@ -150,23 +150,23 @@ let printReport contactInfo =
     |> List.iter printContactMethod
 ```
 
-These changes have a number of benefits.
+これらの変更にはいくつかの利点があります。
 
-First, from a modelling point of view, the new types represent the domain much better, and are more adaptable to changing requirements.
+まず、モデリングの観点からは、新しい型はドメインをより良く表現し、変化する要求に対応できるようになっています。
 
-And from a development point of view, changing the type to be a union means that any new cases that we add (or remove) will break the code in a very obvious way, and it will be much harder to accidentally forget to handle all the cases.
+また、開発の観点からは、型をユニオンに変更することで、新しいケースを追加（または削除）しても、非常にわかりやすい方法でコードを壊すことができ、すべてのケースを処理することをうっかり忘れてしまうことがより難しくなります。
 
 {{< book_page_ddd >}}
 
-## Back to the business rule with 15 possible combinations
+## 15通りの組み合わせがあるビジネスルールに戻る
 
-So now back to the original example. We left it thinking that, in order to encode the business rule, we might have to create 15 possible combinations of various contact methods.
+さて、元の例に戻りましょう。ビジネスルールをコード化するためには、さまざまな連絡方法の15通りの組み合わせを作らなければならないのではないかと考えていました。
 
-But the new insight from the reporting problem also affects our understanding of the business rule.
+しかし、報告問題から得られた新たな知見は、ビジネスルールの理解にも影響を与えます。
 
-With the "contact method" concept in our heads, we can rephase the requirement as: *"A customer must have at least one contact method. A contact method could be an email OR a postal addresses OR a phone number"*.
+「連絡方法」という概念が頭に入っていれば、要件を次のように言い換えることができます。*「お客様は、少なくとも1つの連絡方法を持っている必要があります。連絡方法には、電子メール、住所、電話番号があります。」*
 
-So let's redesign the `Contact` type to have a list of contact methods:
+そこで、コンタクトメソッドのリストを持つように`Contact`タイプを再設計しましょう。
 
 ```fsharp
 type Contact =
@@ -176,9 +176,9 @@ type Contact =
     }
 ```
 
-But this is still not quite right. The list could be empty.  How can we enforce the rule that there must be *at least* one contact method?
+しかし、これはまだ正しいとは言えません。リストは空かもしれません。 少なくとも1つのコンタクトメソッドが存在しなければならないというルールをどのようにして適用すればよいのでしょうか。
 
-The simplest way is to create a new field that is required, like this:
+最も簡単な方法は、次のように必須の新しいフィールドを作ることです。
 
 ```fsharp
 type Contact =
@@ -189,17 +189,17 @@ type Contact =
     }
 ```
 
-In this design, the `PrimaryContactMethod` is required, and the secondary contact methods are optional, which is exactly what the business rule requires!
+このデザインでは、`PrimaryContactMethod`が必須で、セカンダリーコンタクトメソッドはオプションとなっていますが、これはまさにビジネスルールが要求していることです。
 
-And this refactoring too, has given us some insight.  It may be that the concepts of "primary" and "secondary" contact methods might, in turn, clarify code in other areas, creating a cascading change of insight and refactoring.
+今回のリファクタリングでは、いくつかのヒントを得ることができました。 プライマリ」と「セカンダリ」のコンタクトメソッドの概念は、他の領域のコードを明確にし、洞察とリファクタリングの連鎖的な変化を生み出すかもしれません。
 
-## Summary
+## まとめ
 
-In this post, we've seen how using types to model business rules can actually help you to understand the domain at a deeper level.
+今回の記事では、ビジネスルールのモデル化に型を使用することで、実際にドメインをより深いレベルで理解することができることを見てきました。
 
-In the *Domain Driven Design* book, Eric Evans devotes a whole section and two chapters in particular (chapters 8 and 9) to discussing the importance of [refactoring towards deeper insight](http://dddcommunity.org/wp-content/uploads/files/books/evans_pt03.pdf).  The example in this post is simple in comparison, but I hope that it shows that how an insight like this can help improve both the model and the code correctness.
+エリック・エヴァンス氏は、*Domain Driven Design*という本の中で、セクション全体と特に2つの章（第8章と第9章）を割いて、[refactoring towards deeper insight](http://dddcommunity.org/wp-content/uploads/files/books/evans_pt03.pdf)の重要性を論じています。 今回の例はそれに比べると簡単なものですが、このような洞察がモデルとコードの正しさの両方を向上させるのに役立つことを示していると思います。
 
-In the next post, we'll see how types can help with representing fine-grained states.
+次回は、細かい状態を表現するのに型がどのように役立つかを見ていきます。
 
 
 
